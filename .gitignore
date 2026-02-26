@@ -5,6 +5,9 @@ node_modules
 .next
 dist
 coverage
+.turbo/
+*.tsbuildinfo
+.vscode/
 .expo/
 apps/mobile/.expo/
 .vercel

@@ -24,8 +24,7 @@ export default function HomePage() {
           <Button
             asChild
             size="lg"
-            glass
-            className="pointer-events-auto px-6 text-sm font-semibold !text-slate-900 hover:-translate-y-0.5 dark:!text-white"
+            className="pointer-events-auto px-6 text-sm font-semibold !text-slate-900 dark:!text-white"
             glassProps={{
               borderRadius: 999,
               borderWidth: 0.07,
@@ -52,8 +51,7 @@ export default function HomePage() {
             asChild
             size="lg"
             variant="secondary"
-            glass
-            className="pointer-events-auto px-6 text-sm font-semibold !text-slate-900 hover:-translate-y-0.5 dark:!text-white"
+            className="pointer-events-auto px-6 text-sm font-semibold !text-slate-900 dark:!text-white"
             glassProps={{
               borderRadius: 999,
               borderWidth: 0.07,

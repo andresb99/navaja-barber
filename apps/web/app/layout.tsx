@@ -32,6 +32,11 @@ const themeScript = `
 export const metadata: Metadata = {
   title: APP_NAME,
   description: 'Reservas, operacion del equipo, cursos y postulaciones en una sola plataforma.',
+  icons: {
+    icon: '/favicon.jpg',
+    shortcut: '/favicon.jpg',
+    apple: '/favicon.jpg',
+  },
 };
 
 const rootThemeVars = {

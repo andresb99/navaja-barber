@@ -1,6 +1,5 @@
 import { Mesh, Program, Renderer, Triangle, Vec3 } from 'ogl';
 import { useEffect, useRef } from 'react';
-import './Orb.css';
 
 export default function Orb({
   hue = 0,
@@ -187,6 +186,10 @@ export default function Orb({
     const container = ctnDom.current;
     if (!container) return;
 
+    const MAX_DPR = 1.25;
+    const TARGET_FPS = 30;
+    const FRAME_MS = 1000 / TARGET_FPS;
+
     const renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
@@ -213,7 +216,7 @@ export default function Orb({
 
     function resize() {
       if (!container) return;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
       const width = container.clientWidth;
       const height = container.clientHeight;
       renderer.setSize(width * dpr, height * dpr);
@@ -224,19 +227,26 @@ export default function Orb({
     window.addEventListener('resize', resize);
     resize();
 
-    let lastTime = 0;
+    let lastRenderMs = 0;
     let currentRot = 0;
     const rotationSpeed = 0.3;
+    const backgroundVec3 = hexToVec3(backgroundColor);
+    program.uniforms.hue.value = hue;
+    program.uniforms.hoverIntensity.value = hoverIntensity;
+    program.uniforms.backgroundColor.value = backgroundVec3;
 
     let rafId;
     const update = t => {
       rafId = requestAnimationFrame(update);
-      const dt = (t - lastTime) * 0.001;
-      lastTime = t;
+
+      if (t - lastRenderMs < FRAME_MS) {
+        return;
+      }
+
+      const dt = (t - lastRenderMs) * 0.001;
+      lastRenderMs = t;
+
       program.uniforms.iTime.value = t * 0.001;
-      program.uniforms.hue.value = hue;
-      program.uniforms.hoverIntensity.value = hoverIntensity;
-      program.uniforms.backgroundColor.value = hexToVec3(backgroundColor);
 
       const effectiveHover = 0;
       program.uniforms.hover.value += (effectiveHover - program.uniforms.hover.value) * 0.1;
