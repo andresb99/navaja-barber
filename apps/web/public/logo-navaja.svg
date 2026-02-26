@@ -1,0 +1,22 @@
+﻿<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="84" fill="#040404"/>
+
+  <!-- Razor -->
+  <g transform="translate(66 82)">
+    <path d="M76 96C92 83 108 81 122 88L128 101H145V113H116L112 103C103 98 95 100 84 109L76 96Z" fill="#F4F6F8"/>
+    <rect x="140" y="102" width="210" height="42" rx="8" fill="#F4F6F8"/>
+    <path d="M44 109C52 114 58 127 58 144V272C58 294 52 312 40 323C27 317 20 303 20 284V145C20 128 29 115 44 109Z" fill="#F4F6F8"/>
+    <path d="M78 125C87 133 93 149 93 169V271C93 292 86 309 74 322C63 311 57 294 57 274V168C57 149 64 133 78 125Z" fill="#FAFAFB"/>
+    <circle cx="119" cy="106" r="7" fill="#040404"/>
+  </g>
+
+  <!-- N monogram -->
+  <g transform="translate(165 176)">
+    <path d="M0 0H70L132 177V0H197V339H132L66 141V339H0V0Z" fill="#F4F6F8"/>
+    <path d="M185 100L245 100L185 180V100Z" fill="#F4F6F8"/>
+    <path d="M197 140L259 140V366L197 324V140Z" fill="#E7ECF2"/>
+  </g>
+
+  <!-- Accent cut under N -->
+  <path d="M224 470L338 414V455L264 512H224V470Z" fill="#F4F6F8" fill-opacity="0.94"/>
+</svg>
