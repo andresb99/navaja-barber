@@ -1,6 +1,6 @@
 import 'server-only';
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
-import { serverEnv } from '@/lib/env.server';
+import { getReviewLinkSigningSecret } from '@/lib/env.server';
 
 const REVIEW_TOKEN_BYTES = 32;
 
@@ -9,7 +9,7 @@ function sha256(value: string) {
 }
 
 function signToken(value: string) {
-  return createHmac('sha256', serverEnv.REVIEW_LINK_SIGNING_SECRET).update(value).digest('base64url');
+  return createHmac('sha256', getReviewLinkSigningSecret()).update(value).digest('base64url');
 }
 
 export interface SignedReviewToken {
