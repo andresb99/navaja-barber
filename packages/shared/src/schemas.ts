@@ -11,6 +11,8 @@ export const appointmentStatusSchema = z.enum([
   'no_show',
   'done',
 ]);
+export const appointmentCancelledBySchema = z.enum(['customer', 'staff', 'admin', 'system']);
+export const reviewStatusSchema = z.enum(['published', 'hidden', 'flagged']);
 export const enrollmentStatusSchema = z.enum(['pending', 'confirmed', 'cancelled']);
 export const jobApplicationStatusSchema = z.enum([
   'new',
@@ -73,11 +75,50 @@ export const appointmentSchema = z.object({
   customer_id: uuidSchema,
   service_id: uuidSchema,
   start_at: isoDateTimeSchema,
-  end_at: isoDateTimeSchema,
+  end_at: isoDateTimeSchema.nullable().optional(),
   status: appointmentStatusSchema,
-  price_cents: z.number().int().nonnegative(),
+  price_cents: z.number().int().nonnegative().nullable().optional(),
   notes: z.string().max(2000).nullable().optional(),
+  completed_at: isoDateTimeSchema.nullable().optional(),
+  cancelled_at: isoDateTimeSchema.nullable().optional(),
+  cancelled_by: appointmentCancelledBySchema.nullable().optional(),
+  cancellation_reason: z.string().max(2000).nullable().optional(),
+  review_request_sent_at: isoDateTimeSchema.nullable().optional(),
   created_at: isoDateTimeSchema.optional(),
+});
+
+export const appointmentReviewSchema = z.object({
+  id: uuidSchema,
+  shop_id: uuidSchema,
+  appointment_id: uuidSchema,
+  staff_id: uuidSchema,
+  customer_id: uuidSchema,
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(2000).nullable().optional(),
+  status: reviewStatusSchema,
+  is_verified: z.boolean(),
+  submitted_at: isoDateTimeSchema,
+  published_at: isoDateTimeSchema.nullable().optional(),
+  ip_hash: z.string().max(255).nullable().optional(),
+  user_agent_hash: z.string().max(255).nullable().optional(),
+});
+
+export const reviewInviteSchema = z.object({
+  id: uuidSchema,
+  appointment_id: uuidSchema,
+  customer_id: uuidSchema,
+  token_hash: z.string().min(32),
+  sent_at: isoDateTimeSchema,
+  expires_at: isoDateTimeSchema,
+  used_at: isoDateTimeSchema.nullable().optional(),
+  revoked_at: isoDateTimeSchema.nullable().optional(),
+  created_at: isoDateTimeSchema,
+});
+
+export const submitAppointmentReviewInputSchema = z.object({
+  signed_token: z.string().min(32).max(512),
+  rating: z.number().int().min(1).max(5),
+  comment: z.string().max(1000).optional().nullable(),
 });
 
 export const workingHoursSchema = z.object({
@@ -362,6 +403,8 @@ export type Staff = z.infer<typeof staffSchema>;
 export type Service = z.infer<typeof serviceSchema>;
 export type Customer = z.infer<typeof customerSchema>;
 export type Appointment = z.infer<typeof appointmentSchema>;
+export type AppointmentReview = z.infer<typeof appointmentReviewSchema>;
+export type ReviewInvite = z.infer<typeof reviewInviteSchema>;
 export type WorkingHours = z.infer<typeof workingHoursSchema>;
 export type TimeOff = z.infer<typeof timeOffSchema>;
 export type Course = z.infer<typeof courseSchema>;
@@ -375,13 +418,16 @@ export type Waiver = z.infer<typeof waiverSchema>;
 export type BookingInput = z.infer<typeof bookingInputSchema>;
 export type AvailabilityInput = z.infer<typeof availabilityInputSchema>;
 export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
+export type AppointmentCancelledBy = z.infer<typeof appointmentCancelledBySchema>;
 export type StaffRole = z.infer<typeof staffRoleSchema>;
 export type EnrollmentStatus = z.infer<typeof enrollmentStatusSchema>;
 export type JobApplicationStatus = z.infer<typeof jobApplicationStatusSchema>;
+export type ReviewStatus = z.infer<typeof reviewStatusSchema>;
 export type ModelCompensationType = z.infer<typeof modelCompensationTypeSchema>;
 export type ModelApplicationStatus = z.infer<typeof modelApplicationStatusSchema>;
 export type ModelRegistrationInput = z.infer<typeof modelRegistrationInputSchema>;
 export type ModelRequirementsInput = z.infer<typeof modelRequirementsInputSchema>;
 export type ModelApplicationStatusUpdate = z.infer<typeof modelApplicationStatusUpdateSchema>;
 export type WaiverInput = z.infer<typeof waiverInputSchema>;
+export type SubmitAppointmentReviewInput = z.infer<typeof submitAppointmentReviewInputSchema>;
 

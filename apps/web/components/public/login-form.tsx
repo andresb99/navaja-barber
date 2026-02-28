@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { LockKeyhole, MailCheck, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button, Input } from '@heroui/react';
+import { APP_NAME } from '@/lib/constants';
 import { resolveSafeNextPath } from '@/lib/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
@@ -42,7 +42,11 @@ function mapAuthError(message: string) {
   return message;
 }
 
-export function LoginForm({ initialMode = 'login', nextPath = '/cuenta', initialMessage = null }: LoginFormProps) {
+export function LoginForm({
+  initialMode = 'login',
+  nextPath = '/cuenta',
+  initialMessage = null,
+}: LoginFormProps) {
   const safeNextPath = useMemo(() => resolveSafeNextPath(nextPath, '/cuenta'), [nextPath]);
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
@@ -112,7 +116,10 @@ export function LoginForm({ initialMode = 'login', nextPath = '/cuenta', initial
     }
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
       completeRequest();
 
       if (signInError) {
@@ -185,7 +192,7 @@ export function LoginForm({ initialMode = 'login', nextPath = '/cuenta', initial
     }
   }
 
-  async function sendMagicLink(event: React.MouseEvent<HTMLButtonElement>) {
+  async function sendMagicLink(event: React.MouseEvent<Element>) {
     event.preventDefault();
     beginRequest();
 
@@ -309,22 +316,20 @@ export function LoginForm({ initialMode = 'login', nextPath = '/cuenta', initial
 
   return (
     <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-      <aside className="relative overflow-hidden rounded-3xl border border-white/20 bg-[#07111f] p-6 text-white md:p-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_8%,rgba(234,176,72,0.22),transparent_38%),radial-gradient(circle_at_88%_92%,rgba(56,189,248,0.18),transparent_42%)]" />
-        <div className="metal-grid absolute inset-0 opacity-20" />
+      <aside className="section-hero p-6 text-ink md:p-8 dark:text-white">
         <div className="relative z-10 space-y-4">
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]">
+          <p className="hero-eyebrow dark:border-white/10 dark:bg-white/[0.04] dark:text-white/82">
             <Sparkles className="h-3.5 w-3.5" />
             Acceso seguro
           </p>
-          <h1 className="font-[family-name:var(--font-heading)] text-3xl font-semibold leading-tight md:text-4xl">
-            {mode === 'reset' ? 'Actualiza tu clave' : 'Tu cuenta en Navaja'}
+          <h1 className="font-[family-name:var(--font-heading)] text-3xl font-semibold leading-tight text-ink md:text-4xl dark:text-white">
+            {mode === 'reset' ? 'Actualiza tu clave' : `Tu cuenta en ${APP_NAME}`}
           </h1>
-          <p className="max-w-sm text-sm text-white/80">
+          <p className="max-w-sm text-sm text-slate/80 dark:text-white/80">
             Controla reservas, historial y accesos por rol desde un solo inicio de sesion.
           </p>
 
-          <ul className="space-y-2 pt-2 text-sm text-white/85">
+          <ul className="space-y-2 pt-2 text-sm text-slate/85 dark:text-white/85">
             <li className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-brass" />
               Sesiones protegidas y por rol.
@@ -341,45 +346,41 @@ export function LoginForm({ initialMode = 'login', nextPath = '/cuenta', initial
         </div>
       </aside>
 
-      <div className="soft-panel rounded-3xl border border-white/45 p-6 md:p-8">
+      <div className="soft-panel rounded-[2rem] border-0 p-6 md:p-8">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] transition-colors ${
-              mode === 'login'
-                ? 'bg-ink text-white dark:bg-brass dark:text-slate-950'
-                : 'bg-slate/10 text-slate/80 dark:bg-slate-800 dark:text-slate-300'
-            }`}
+            className="pill-toggle"
+            data-active={String(mode === 'login')}
             onClick={() => setMode('login')}
           >
             Ingresar
           </button>
           <button
             type="button"
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] transition-colors ${
-              mode === 'register'
-                ? 'bg-ink text-white dark:bg-brass dark:text-slate-950'
-                : 'bg-slate/10 text-slate/80 dark:bg-slate-800 dark:text-slate-300'
-            }`}
+            className="pill-toggle"
+            data-active={String(mode === 'register')}
             onClick={() => setMode('register')}
           >
             Registro
           </button>
           <button
             type="button"
-            className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] transition-colors ${
-              mode === 'recover'
-                ? 'bg-ink text-white dark:bg-brass dark:text-slate-950'
-                : 'bg-slate/10 text-slate/80 dark:bg-slate-800 dark:text-slate-300'
-            }`}
+            className="pill-toggle"
+            data-active={String(mode === 'recover')}
             onClick={() => setMode('recover')}
           >
             Recuperar
           </button>
-          <Button asChild type="button" variant="ghost" size="sm" className="ml-auto">
-            <Link href="/book" className="no-underline">
-              Seguir invitado
-            </Link>
+          <Button
+            as={Link}
+            href="/book"
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="action-secondary ml-auto"
+          >
+            Seguir invitado
           </Button>
         </div>
 
@@ -388,30 +389,25 @@ export function LoginForm({ initialMode = 'login', nextPath = '/cuenta', initial
         </h2>
         <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">{subtitleByMode[mode]}</p>
 
-        {error ? (
-          <p className="mt-4 rounded-xl border border-red-300/70 bg-red-100/75 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/35 dark:text-red-200">
-            {error}
-          </p>
-        ) : null}
-        {message ? (
-          <p className="mt-4 rounded-xl border border-emerald-300/70 bg-emerald-100/75 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/35 dark:text-emerald-200">
-            {message}
-          </p>
-        ) : null}
+        {error ? <p className="status-banner error mt-4">{error}</p> : null}
+        {message ? <p className="status-banner success mt-4">{message}</p> : null}
 
         {mode === 'recover' ? (
           <form className="mt-4 space-y-3" onSubmit={sendPasswordRecovery}>
-            <div>
-              <label htmlFor="recoverEmail">Email</label>
-              <Input
-                id="recoverEmail"
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" disabled={loading}>
+            <Input
+              id="recoverEmail"
+              type="email"
+              label="Email"
+              labelPlacement="inside"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+            <Button
+              type="submit"
+              disabled={loading}
+              className="action-primary px-5 text-sm font-semibold"
+            >
               {loading ? 'Enviando...' : 'Enviar enlace de recuperacion'}
             </Button>
           </form>
@@ -424,35 +420,38 @@ export function LoginForm({ initialMode = 'login', nextPath = '/cuenta', initial
                 Tu sesion de recuperacion no esta activa. Solicita un nuevo enlace.
               </p>
             ) : null}
-            <div>
-              <label htmlFor="newPassword">Nueva contrasena</label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                required
-                minLength={8}
-              />
-            </div>
-            <div>
-              <label htmlFor="confirmPassword">Confirmar contrasena</label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                required
-                minLength={8}
-              />
-            </div>
+            <Input
+              id="newPassword"
+              type="password"
+              label="Nueva contrasena"
+              labelPlacement="inside"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              required
+              minLength={8}
+            />
+            <Input
+              id="confirmPassword"
+              type="password"
+              label="Confirmar contrasena"
+              labelPlacement="inside"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              required
+              minLength={8}
+            />
             <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={loading || !hasRecoverySession}>
+              <Button
+                type="submit"
+                disabled={loading || !hasRecoverySession}
+                className="action-primary px-5 text-sm font-semibold"
+              >
                 {loading ? 'Actualizando...' : 'Guardar nueva contrasena'}
               </Button>
               <Button
                 type="button"
                 variant="ghost"
+                className="action-secondary px-5 text-sm font-semibold"
                 onClick={() => {
                   setMode('recover');
                 }}
@@ -465,46 +464,66 @@ export function LoginForm({ initialMode = 'login', nextPath = '/cuenta', initial
         ) : null}
 
         {isPasswordMode ? (
-          <form className="mt-4 space-y-3" onSubmit={mode === 'login' ? loginWithPassword : registerWithPassword}>
+          <form
+            className="mt-4 space-y-3"
+            onSubmit={mode === 'login' ? loginWithPassword : registerWithPassword}
+          >
             {mode === 'register' ? (
-            <div>
-              <label htmlFor="fullName">Nombre y apellido</label>
-              <Input id="fullName" value={fullName} onChange={(event) => setFullName(event.target.value)} />
-            </div>
-          ) : null}
+              <Input
+                id="fullName"
+                label="Nombre y apellido"
+                labelPlacement="inside"
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+              />
+            ) : null}
 
-          <div>
-            <label htmlFor="email">Email</label>
             <Input
               id="email"
               type="email"
+              label="Email"
+              labelPlacement="inside"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
             />
-          </div>
 
             <div>
-              <label htmlFor="password">Contrasena</label>
               <Input
                 id="password"
                 type="password"
+                label="Contrasena"
+                labelPlacement="inside"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 required
-                minLength={mode === 'register' ? 8 : undefined}
+                {...(mode === 'register' ? { minLength: 8 } : {})}
               />
               {mode === 'register' ? (
-                <p className="mt-1 text-xs text-slate/65 dark:text-slate-400">Minimo 8 caracteres.</p>
+                <p className="mt-1 text-xs text-slate/65 dark:text-slate-400">
+                  Minimo 8 caracteres.
+                </p>
               ) : null}
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button type="submit" disabled={loading}>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="action-primary px-5 text-sm font-semibold"
+              >
                 {loading ? 'Procesando...' : mode === 'login' ? 'Ingresar' : 'Crear cuenta'}
               </Button>
               {mode === 'login' ? (
-                <Button type="button" variant="ghost" disabled={loading || !email} onClick={sendMagicLink}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="action-secondary px-5 text-sm font-semibold"
+                  disabled={loading || !email}
+                  onClick={(event) => {
+                    void sendMagicLink(event);
+                  }}
+                >
                   Enlace magico
                 </Button>
               ) : null}
@@ -526,17 +545,17 @@ export function LoginForm({ initialMode = 'login', nextPath = '/cuenta', initial
           </form>
         ) : null}
 
-        <div className="mt-6 space-y-2 rounded-2xl border border-white/40 bg-white/65 p-4 dark:border-slate-700 dark:bg-slate-900/70">
+        <div className="mt-6 space-y-2 rounded-[1.6rem] border border-white/75 bg-white/62 p-4 dark:border-white/8 dark:bg-white/[0.04]">
           <h3 className="font-[family-name:var(--font-heading)] text-lg font-semibold text-ink dark:text-slate-100">
             Acceso por rol
           </h3>
-          <p className="rounded-lg border border-white/50 bg-white/70 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900/65">
+          <p className="surface-card rounded-xl px-3 py-2 text-sm">
             Invitado: reserva, ve cursos y puede postularse.
           </p>
-          <p className="rounded-lg border border-white/50 bg-white/70 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900/65">
+          <p className="surface-card rounded-xl px-3 py-2 text-sm">
             Usuario: cuenta personal y reservas vinculadas a su email.
           </p>
-          <p className="rounded-lg border border-white/50 bg-white/70 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900/65">
+          <p className="surface-card rounded-xl px-3 py-2 text-sm">
             Staff/Admin: acceso operativo segun permisos internos.
           </p>
         </div>

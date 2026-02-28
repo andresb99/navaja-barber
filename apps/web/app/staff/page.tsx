@@ -1,14 +1,12 @@
-import { updateOwnAppointmentStatusAction } from '@/app/admin/actions';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardDescription, CardTitle } from '@/components/ui/card';
-import { Select } from '@/components/ui/select';
+import { Card, CardBody } from '@heroui/card';
+import { Chip } from '@heroui/chip';
+import { StaffAppointmentStatusForm } from '@/components/staff/appointment-status-form';
 import { requireStaff } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
-const statusTone: Record<string, 'neutral' | 'success' | 'warning' | 'danger'> = {
+const statusTone: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
   pending: 'warning',
-  confirmed: 'neutral',
+  confirmed: 'default',
   cancelled: 'danger',
   no_show: 'danger',
   done: 'success',
@@ -52,44 +50,51 @@ export default async function StaffPage() {
         </div>
       </div>
 
-      <Card>
-        <CardTitle>Mis citas</CardTitle>
-        <CardDescription>Actualiza estado como realizada, no asistio o cancelada.</CardDescription>
+      <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
+        <CardBody className="p-5">
+          <h3 className="text-xl font-semibold text-ink dark:text-slate-100">Mis citas</h3>
+          <p className="text-sm text-slate/80 dark:text-slate-300">
+            Actualiza estado como realizada, no asistio o cancelada.
+          </p>
 
-        <div className="mt-4 space-y-3">
-          {(appointments || []).length === 0 ? <p className="text-sm text-slate/70">No hay citas en este periodo.</p> : null}
+          <div className="mt-4 space-y-3">
+            {(appointments || []).length === 0 ? (
+              <p className="text-sm text-slate/70">No hay citas en este periodo.</p>
+            ) : null}
 
-          {(appointments || []).map((item) => (
-            <div key={String(item.id)} className="rounded-lg border border-slate/20 bg-slate/5 p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-medium text-ink">
-                  {new Date(String(item.start_at)).toLocaleString('es-UY')} -{' '}
-                  {String((item.services as { name?: string } | null)?.name || 'Servicio')}
+            {(appointments || []).map((item) => (
+              <div key={String(item.id)} className="surface-card rounded-2xl p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-medium text-ink">
+                    {new Date(String(item.start_at)).toLocaleString('es-UY')} -{' '}
+                    {String((item.services as { name?: string } | null)?.name || 'Servicio')}
+                  </p>
+                  <Chip
+                    size="sm"
+                    radius="full"
+                    variant="flat"
+                    color={statusTone[String(item.status)] || 'default'}
+                  >
+                    {statusLabel[String(item.status)] || String(item.status)}
+                  </Chip>
+                </div>
+                <p className="mt-1 text-xs text-slate/70">
+                  Cliente:{' '}
+                  {String((item.customers as { name?: string } | null)?.name || 'Sin nombre')} -{' '}
+                  {String((item.customers as { phone?: string } | null)?.phone || 'Sin telefono')}
                 </p>
-                <Badge tone={statusTone[String(item.status)] || 'neutral'}>
-                  {statusLabel[String(item.status)] || String(item.status)}
-                </Badge>
-              </div>
-              <p className="mt-1 text-xs text-slate/70">
-                Cliente: {String((item.customers as { name?: string } | null)?.name || 'Sin nombre')} -{' '}
-                {String((item.customers as { phone?: string } | null)?.phone || 'Sin telefono')}
-              </p>
-              {item.notes ? <p className="mt-1 text-xs text-slate/70">Notas: {String(item.notes)}</p> : null}
+                {item.notes ? (
+                  <p className="mt-1 text-xs text-slate/70">Notas: {String(item.notes)}</p>
+                ) : null}
 
-              <form action={updateOwnAppointmentStatusAction} className="mt-3 flex flex-wrap items-center gap-2">
-                <input type="hidden" name="appointment_id" value={String(item.id)} />
-                <Select name="status" defaultValue={String(item.status)} className="w-44">
-                  <option value="done">Realizada</option>
-                  <option value="no_show">No asistio</option>
-                  <option value="cancelled">Cancelada</option>
-                </Select>
-                <Button type="submit" variant="secondary">
-                  Guardar estado
-                </Button>
-              </form>
-            </div>
-          ))}
-        </div>
+                <StaffAppointmentStatusForm
+                  appointmentId={String(item.id)}
+                  status={String(item.status)}
+                />
+              </div>
+            ))}
+          </div>
+        </CardBody>
       </Card>
     </section>
   );

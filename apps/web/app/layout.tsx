@@ -3,8 +3,8 @@ import { Plus_Jakarta_Sans, Sora } from 'next/font/google';
 import { navajaTheme } from '@navaja/shared';
 import './globals.css';
 import { APP_NAME } from '@/lib/constants';
-import { OrbBackdrop } from '@/components/public/orb-backdrop';
 import { SiteHeader } from '@/components/public/site-header';
+import { HeroUiProvider } from '@/components/providers/heroui-provider';
 
 const headingFont = Sora({
   subsets: ['latin'],
@@ -33,9 +33,9 @@ export const metadata: Metadata = {
   title: APP_NAME,
   description: 'Reservas, operacion del equipo, cursos y postulaciones en una sola plataforma.',
   icons: {
-    icon: '/favicon.jpg',
-    shortcut: '/favicon.jpg',
-    apple: '/favicon.jpg',
+    icon: '/favicon-beardly.png',
+    shortcut: '/favicon-beardly.png',
+    apple: '/favicon-beardly.png',
   },
 };
 
@@ -62,10 +62,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-screen bg-[#f6f8ff] text-slate-900 antialiased font-[family-name:var(--font-body)] dark:bg-[#060012] dark:text-slate-100">
-        <OrbBackdrop />
-        <SiteHeader />
+        <HeroUiProvider>
+          <div className="relative min-h-screen">
+            <SiteHeader />
 
-        <main className="page-enter relative z-10 mx-auto max-w-6xl px-4 py-8">{children}</main>
+            <main className="main-shell page-enter">{children}</main>
+          </div>
+        </HeroUiProvider>
       </body>
     </html>
   );

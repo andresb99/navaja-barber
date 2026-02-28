@@ -2,9 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { modelRegistrationInputSchema } from '@navaja/shared';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { Button, Input, Select, SelectItem } from '@heroui/react';
 
 interface SessionOption {
   session_id: string;
@@ -99,68 +97,94 @@ export function ModelRegistrationForm({
 
   if (success) {
     return (
-      <div className="status-banner success rounded-xl p-5">
-        <h2 className="font-[family-name:var(--font-heading)] text-2xl font-semibold">Listo, recibimos tu registro</h2>
-        <p className="mt-2 text-sm">Te vamos a contactar por WhatsApp para confirmar disponibilidad.</p>
+      <div className="soft-panel rounded-[1.8rem] p-5">
+        <h2 className="font-[family-name:var(--font-heading)] text-2xl font-semibold">
+          Listo, recibimos tu registro
+        </h2>
+        <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
+          Te vamos a contactar por WhatsApp para confirmar disponibilidad.
+        </p>
       </div>
     );
   }
 
   return (
-    <form onSubmit={onSubmit} className="soft-panel space-y-4 rounded-2xl border border-white/45 p-6 dark:border-slate-700">
-      <div className="grid gap-3 md:grid-cols-2">
+    <form onSubmit={onSubmit} className="soft-panel space-y-5 rounded-[1.9rem] border-0 p-6">
+      <div className="grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <label htmlFor="fullName">Nombre y apellido</label>
-          <Input
-            id="fullName"
-            value={fullName}
-            onChange={(event) => setFullName(event.target.value)}
-            placeholder="Ej: Camila Rodriguez"
-            required
-          />
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+            Tu perfil
+          </p>
+          <h2 className="mt-2 font-[family-name:var(--font-heading)] text-2xl font-semibold text-ink dark:text-slate-100">
+            Completa tu registro
+          </h2>
+          <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
+            Guarda tus datos, tus preferencias y los consentimientos necesarios en una sola vista.
+          </p>
         </div>
-        <div>
-          <label htmlFor="phone">Telefono</label>
-          <Input
-            id="phone"
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
-            placeholder="Ej: +59899111222"
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="email">Email (opcional)</label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="tu@email.com"
-          />
-        </div>
-        <div>
-          <label htmlFor="instagram">Instagram (opcional)</label>
-          <Input
-            id="instagram"
-            value={instagram}
-            onChange={(event) => setInstagram(event.target.value)}
-            placeholder="@usuario"
-          />
+        <div className="surface-card">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+            Contacto
+          </p>
+          <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
+            Si encajas en la sesion, coordinamos por WhatsApp y te pedimos cualquier dato extra.
+          </p>
         </div>
       </div>
 
-      <div>
-        <label htmlFor="sessionId">Sesion de curso (opcional)</label>
-        <Select id="sessionId" value={sessionId} onChange={(event) => setSessionId(event.target.value)}>
-          <option value="">Me anoto para proximas convocatorias</option>
-          {sessions.map((session) => (
-            <option key={session.session_id} value={session.session_id}>
-              {session.label}
-            </option>
-          ))}
-        </Select>
+      <div className="grid gap-3 md:grid-cols-2">
+        <Input
+          id="fullName"
+          label="Nombre y apellido"
+          labelPlacement="inside"
+          value={fullName}
+          onChange={(event) => setFullName(event.target.value)}
+          placeholder="Ej: Camila Rodriguez"
+          required
+        />
+        <Input
+          id="phone"
+          label="Telefono"
+          labelPlacement="inside"
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          placeholder="Ej: +59899111222"
+          required
+        />
+        <Input
+          id="email"
+          type="email"
+          label="Email (opcional)"
+          labelPlacement="inside"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder="tu@email.com"
+        />
+        <Input
+          id="instagram"
+          label="Instagram (opcional)"
+          labelPlacement="inside"
+          value={instagram}
+          onChange={(event) => setInstagram(event.target.value)}
+          placeholder="@usuario"
+        />
       </div>
+
+      <Select
+        id="sessionId"
+        aria-label="Sesion de curso"
+        label="Sesion de curso (opcional)"
+        labelPlacement="inside"
+        selectedKeys={sessionId ? [sessionId] : []}
+        disallowEmptySelection={false}
+        isClearable
+        placeholder="Me anoto para proximas convocatorias"
+        onChange={(event) => setSessionId(event.target.value)}
+      >
+        {sessions.map((session) => (
+          <SelectItem key={session.session_id}>{session.label}</SelectItem>
+        ))}
+      </Select>
 
       <div>
         <p className="mb-2 text-sm font-medium text-slate/90">Preferencias (opcional)</p>
@@ -184,7 +208,8 @@ export function ModelRegistrationForm({
       <div className="rounded-lg border border-dashed border-slate/30 bg-slate/5 p-3 text-sm text-slate/70 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300">
         <p className="font-medium text-slate/80">Fotos (opcional)</p>
         <p className="mt-1">
-          Por ahora no pedimos carga de fotos online. Si hace falta, te las vamos a solicitar por WhatsApp.
+          Por ahora no pedimos carga de fotos online. Si hace falta, te las vamos a solicitar por
+          WhatsApp.
         </p>
         {/* TODO: habilitar carga segura de hasta 3 fotos con storage y validacion de ownership */}
       </div>
@@ -210,7 +235,11 @@ export function ModelRegistrationForm({
 
       {error ? <p className="status-banner error">{error}</p> : null}
 
-      <Button type="submit" disabled={!canSubmit}>
+      <Button
+        type="submit"
+        disabled={!canSubmit}
+        className="action-primary px-5 text-sm font-semibold"
+      >
         {loading ? 'Enviando...' : 'Anotarme como modelo'}
       </Button>
     </form>

@@ -1,17 +1,32 @@
+import { Card, CardBody } from '@heroui/card';
+import { AdminStaffForms } from '@/components/admin/staff-forms';
 import { SHOP_ID } from '@/lib/constants';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { createTimeOffAction, upsertStaffAction, upsertWorkingHoursAction } from '@/app/admin/actions';
-import { Button } from '@/components/ui/button';
-import { Card, CardDescription, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 
 const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+
+  if (!parts.length) {
+    return 'ST';
+  }
+
+  if (parts.length === 1) {
+    return parts[0]!.slice(0, 2).toUpperCase();
+  }
+
+  return `${parts[0]!.charAt(0)}${parts[1]!.charAt(0)}`.toUpperCase();
+}
 
 export default async function StaffPage() {
   const supabase = await createSupabaseServerClient();
   const [{ data: staff }, { data: workingHours }, { data: timeOff }] = await Promise.all([
-    supabase.from('staff').select('id, name, role, phone, is_active').eq('shop_id', SHOP_ID).order('name'),
+    supabase
+      .from('staff')
+      .select('id, name, role, phone, is_active')
+      .eq('shop_id', SHOP_ID)
+      .order('name'),
     supabase
       .from('working_hours')
       .select('id, staff_id, day_of_week, start_time, end_time, staff(name)')
@@ -25,124 +40,215 @@ export default async function StaffPage() {
       .limit(20),
   ]);
 
+  const activeStaffCount = (staff || []).filter((item) => item.is_active).length;
+  const groupedWorkingHours = new Map<
+    string,
+    {
+      staffName: string;
+      items: Array<{
+        id: string;
+        dayLabel: string;
+        startTime: string;
+        endTime: string;
+      }>;
+    }
+  >();
+
+  for (const entry of workingHours || []) {
+    const staffName = String((entry.staff as { name?: string } | null)?.name || 'Personal');
+
+    if (!groupedWorkingHours.has(staffName)) {
+      groupedWorkingHours.set(staffName, {
+        staffName,
+        items: [],
+      });
+    }
+
+    groupedWorkingHours.get(staffName)?.items.push({
+      id: String(entry.id),
+      dayLabel: weekdays[Number(entry.day_of_week || 0)] || 'Dia',
+      startTime: String(entry.start_time),
+      endTime: String(entry.end_time),
+    });
+  }
+
   return (
     <section className="space-y-6">
-      <h1 className="font-[family-name:var(--font-heading)] text-3xl font-bold text-ink">Equipo</h1>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardTitle>Alta o edicion de personal</CardTitle>
-          <CardDescription>Crea integrantes y asigna su rol.</CardDescription>
-          <form action={upsertStaffAction} className="mt-4 grid gap-3">
-            <input type="hidden" name="shop_id" value={SHOP_ID} />
-            <Input name="name" placeholder="Nombre" required />
-            <Input name="phone" placeholder="Telefono" required />
-            <Input name="auth_user_id" placeholder="ID de usuario en Supabase (opcional)" />
-            <Select name="role" defaultValue="staff">
-              <option value="staff">Personal</option>
-              <option value="admin">Administrador</option>
-            </Select>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="is_active" defaultChecked /> Activo
-            </label>
-            <Button type="submit">Guardar personal</Button>
-          </form>
-        </Card>
-
-        <Card>
-          <CardTitle>Horarios laborales</CardTitle>
-          <CardDescription>Base de disponibilidad para generar turnos.</CardDescription>
-          <form action={upsertWorkingHoursAction} className="mt-4 grid gap-3">
-            <input type="hidden" name="shop_id" value={SHOP_ID} />
-            <Select name="staff_id" required>
-              <option value="">Selecciona personal</option>
-              {(staff || []).map((item) => (
-                <option key={String(item.id)} value={String(item.id)}>
-                  {String(item.name)}
-                </option>
-              ))}
-            </Select>
-            <Select name="day_of_week" defaultValue="1">
-              {weekdays.map((day, index) => (
-                <option key={day} value={index}>
-                  {day}
-                </option>
-              ))}
-            </Select>
-            <div className="grid grid-cols-2 gap-3">
-              <Input name="start_time" type="time" defaultValue="09:00" required />
-              <Input name="end_time" type="time" defaultValue="17:00" required />
-            </div>
-            <Button type="submit">Guardar horario</Button>
-          </form>
-        </Card>
-      </div>
-
-      <Card>
-        <CardTitle>Agregar tiempo no disponible</CardTitle>
-        <CardDescription>Excluye periodos de la disponibilidad reservable.</CardDescription>
-        <form action={createTimeOffAction} className="mt-4 grid gap-3 md:grid-cols-4">
-          <input type="hidden" name="shop_id" value={SHOP_ID} />
-          <Select name="staff_id" required>
-            <option value="">Selecciona personal</option>
-            {(staff || []).map((item) => (
-              <option key={String(item.id)} value={String(item.id)}>
-                {String(item.name)}
-              </option>
-            ))}
-          </Select>
-          <Input name="start_at" type="datetime-local" required />
-          <Input name="end_at" type="datetime-local" required />
-          <Input name="reason" placeholder="Motivo" />
-          <div className="md:col-span-4">
-            <Button type="submit">Agregar bloqueo</Button>
+      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+          <div>
+            <p className="hero-eyebrow">Equipo</p>
+            <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.3rem] dark:text-slate-100">
+              Gestion de personal y disponibilidad
+            </h1>
+            <p className="mt-3 text-sm text-slate/80 dark:text-slate-300">
+              El equipo ahora se ordena por identidad, disponibilidad y bloqueos; menos bloques
+              repetidos, mas lectura por persona.
+            </p>
           </div>
-        </form>
-      </Card>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card>
-          <CardTitle>Equipo</CardTitle>
-          <ul className="mt-3 space-y-2 text-sm">
-            {(staff || []).map((item) => (
-              <li key={String(item.id)} className="rounded-md bg-slate/5 p-2">
-                <p className="font-medium text-ink">{String(item.name)}</p>
-                <p className="text-xs text-slate/70">
-                  {String(item.role)} - {String(item.phone)} - {item.is_active ? 'Activo' : 'Inactivo'}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="stat-tile">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Equipo
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {(staff || []).length}
+              </p>
+            </div>
+            <div className="stat-tile">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Activos
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {activeStaffCount}
+              </p>
+            </div>
+            <div className="stat-tile">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Bloqueos
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {(timeOff || []).length}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <AdminStaffForms
+        shopId={SHOP_ID}
+        weekdays={weekdays}
+        staff={(staff || []).map((item) => ({
+          id: String(item.id),
+          name: String(item.name),
+        }))}
+      />
+
+      <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+        <Card className="spotlight-card soft-panel rounded-[1.9rem] border-0 shadow-none">
+          <CardBody className="p-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-semibold text-ink dark:text-slate-100">Equipo</h3>
+                <p className="text-sm text-slate/80 dark:text-slate-300">
+                  Vista rapida de roles y estado.
                 </p>
-              </li>
-            ))}
-          </ul>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3">
+              {(staff || []).map((item) => (
+                <div key={String(item.id)} className="data-card rounded-[1.4rem] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/60 bg-white/55 text-sm font-semibold text-ink dark:border-transparent dark:bg-white/[0.05] dark:text-slate-100">
+                        {getInitials(String(item.name))}
+                      </div>
+                      <div>
+                        <p className="text-base font-semibold text-ink dark:text-slate-100">
+                          {String(item.name)}
+                        </p>
+                        <p className="mt-1 text-sm text-slate/75 dark:text-slate-300">
+                          {String(item.phone)}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="meta-chip" data-tone={item.is_active ? 'success' : undefined}>
+                      {item.is_active ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </div>
+                  <div className="mt-4 border-t border-white/45 pt-3 dark:border-transparent">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/55 dark:text-slate-400">
+                      {String(item.role)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardBody>
         </Card>
 
-        <Card className="lg:col-span-2">
-          <CardTitle>Horarios configurados</CardTitle>
-          <ul className="mt-3 space-y-2 text-sm">
-            {(workingHours || []).map((item) => (
-              <li key={String(item.id)} className="rounded-md bg-slate/5 p-2">
-                <p className="font-medium text-ink">{String((item.staff as { name?: string } | null)?.name || 'Personal')}</p>
-                <p className="text-xs text-slate/70">
-                  {weekdays[Number(item.day_of_week || 0)]} - {String(item.start_time)} a {String(item.end_time)}
+        <Card className="spotlight-card soft-panel rounded-[1.9rem] border-0 shadow-none">
+          <CardBody className="p-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-semibold text-ink dark:text-slate-100">
+                  Horarios configurados
+                </h3>
+                <p className="text-sm text-slate/80 dark:text-slate-300">
+                  Agrupados por persona para leerlos de una vez.
                 </p>
-              </li>
-            ))}
-          </ul>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              {Array.from(groupedWorkingHours.values()).map((group) => (
+                <div key={group.staffName} className="data-card rounded-[1.5rem] p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/60 bg-white/55 text-sm font-semibold text-ink dark:border-transparent dark:bg-white/[0.05] dark:text-slate-100">
+                      {getInitials(group.staffName)}
+                    </div>
+                    <p className="text-base font-semibold text-ink dark:text-slate-100">
+                      {group.staffName}
+                    </p>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {group.items.map((entry) => (
+                      <span
+                        key={entry.id}
+                        className="rounded-full border border-white/55 bg-white/45 px-3 py-1.5 text-[11px] font-semibold text-slate/80 dark:border-transparent dark:bg-white/[0.04] dark:text-slate-300"
+                      >
+                        {entry.dayLabel.slice(0, 3)} {entry.startTime}-{entry.endTime}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardBody>
         </Card>
       </div>
 
-      <Card>
-        <CardTitle>Bloqueos recientes</CardTitle>
-        <ul className="mt-3 space-y-2 text-sm">
-          {(timeOff || []).map((item) => (
-            <li key={String(item.id)} className="rounded-md bg-slate/5 p-3">
-              <p className="font-medium text-ink">{String((item.staff as { name?: string } | null)?.name || 'Personal')}</p>
-              <p className="text-xs text-slate/70">
-                {new Date(String(item.start_at)).toLocaleString('es-UY')} - {new Date(String(item.end_at)).toLocaleString('es-UY')}
+      <Card className="spotlight-card soft-panel rounded-[1.9rem] border-0 shadow-none">
+        <CardBody className="p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h3 className="text-xl font-semibold text-ink dark:text-slate-100">
+                Bloqueos recientes
+              </h3>
+              <p className="text-sm text-slate/80 dark:text-slate-300">
+                Historial compacto de indisponibilidad.
               </p>
-              <p className="text-xs text-slate/70">{String(item.reason || 'Sin motivo')}</p>
-            </li>
-          ))}
-        </ul>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {(timeOff || []).map((item) => (
+              <div key={String(item.id)} className="data-card rounded-[1.5rem] p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-base font-semibold text-ink dark:text-slate-100">
+                      {String((item.staff as { name?: string } | null)?.name || 'Personal')}
+                    </p>
+                    <p className="mt-2 text-sm text-slate/75 dark:text-slate-300">
+                      {new Date(String(item.start_at)).toLocaleString('es-UY')}
+                    </p>
+                    <p className="text-sm text-slate/75 dark:text-slate-300">
+                      {new Date(String(item.end_at)).toLocaleString('es-UY')}
+                    </p>
+                  </div>
+                  <span className="meta-chip" data-tone="danger">
+                    Bloqueado
+                  </span>
+                </div>
+                <p className="mt-3 text-sm text-slate/75 dark:text-slate-300">
+                  {String(item.reason || 'Sin motivo')}
+                </p>
+              </div>
+            ))}
+          </div>
+        </CardBody>
       </Card>
     </section>
   );

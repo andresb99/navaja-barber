@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { courseEnrollmentCreateSchema } from '@navaja/shared';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button, Input } from '@heroui/react';
 
 export function CourseEnrollmentForm({ sessionId }: { sessionId: string }) {
   const [name, setName] = useState('');
@@ -51,17 +50,39 @@ export function CourseEnrollmentForm({ sessionId }: { sessionId: string }) {
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="space-y-2 rounded-xl border border-slate/20 bg-white/85 p-4 dark:border-slate-700 dark:bg-slate-900/70"
-    >
-      <p className="font-medium text-ink dark:text-slate-100">Reservar cupo</p>
-      <Input placeholder="Nombre y apellido" value={name} onChange={(event) => setName(event.target.value)} />
-      <Input placeholder="Telefono" value={phone} onChange={(event) => setPhone(event.target.value)} />
-      <Input placeholder="Email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+    <form onSubmit={onSubmit} className="surface-card spotlight-card space-y-3">
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+          Inscripcion
+        </p>
+        <p className="mt-2 font-medium text-ink dark:text-slate-100">Reservar cupo</p>
+      </div>
+      <Input
+        label="Nombre y apellido"
+        labelPlacement="inside"
+        value={name}
+        onChange={(event) => setName(event.target.value)}
+      />
+      <Input
+        label="Telefono"
+        labelPlacement="inside"
+        value={phone}
+        onChange={(event) => setPhone(event.target.value)}
+      />
+      <Input
+        type="email"
+        label="Email"
+        labelPlacement="inside"
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+      />
       {error ? <p className="status-banner error text-xs">{error}</p> : null}
       {message ? <p className="status-banner success text-xs">{message}</p> : null}
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button
+        type="submit"
+        disabled={loading}
+        className="action-primary w-full text-sm font-semibold"
+      >
         {loading ? 'Enviando...' : 'Anotarme'}
       </Button>
     </form>

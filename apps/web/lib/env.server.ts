@@ -4,10 +4,12 @@ import { env } from './env';
 
 const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(20),
+  REVIEW_LINK_SIGNING_SECRET: z.string().min(32),
 });
 
 const parsed = serverEnvSchema.safeParse({
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  REVIEW_LINK_SIGNING_SECRET: process.env.REVIEW_LINK_SIGNING_SECRET,
 });
 
 if (!parsed.success) {
@@ -25,4 +27,3 @@ export const serverEnv = {
   ...env,
   ...parsed.data,
 };
-

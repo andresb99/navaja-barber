@@ -1,6 +1,6 @@
 import { env } from './env';
 
-export const APP_NAME = 'Navaja Barber';
+export const APP_NAME = 'Beardly';
 export const SHOP_ID = env.NEXT_PUBLIC_SHOP_ID;
 
 export const METRIC_RANGES = {
@@ -10,4 +10,3 @@ export const METRIC_RANGES = {
 } as const;
 
 export type MetricRangeKey = (typeof METRIC_RANGES)[keyof typeof METRIC_RANGES];
-

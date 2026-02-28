@@ -5,6 +5,7 @@ create table if not exists public.user_profiles (
   auth_user_id uuid not null unique references auth.users(id) on delete cascade,
   full_name text null,
   phone text null,
+  avatar_url text null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -67,4 +68,3 @@ using (
       and s.is_active = true
   )
 );
-

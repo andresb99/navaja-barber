@@ -10,11 +10,16 @@ import {
   staffUpsertSchema,
   timeOffUpsertSchema,
   updateAppointmentStatusSchema,
+  uuidSchema,
   workingHoursUpsertSchema,
 } from '@navaja/shared';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { z } from 'zod';
 import { requireAdmin, requireStaff } from '@/lib/auth';
+import { env } from '@/lib/env';
+import { createSignedReviewToken } from '@/lib/review-links';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 function formValue(formData: FormData, key: string): string | undefined {
@@ -41,10 +46,74 @@ function formDateTimeIso(formData: FormData, key: string): string | undefined {
   return parsed.toISOString();
 }
 
-export async function signOutAction() {
-  const supabase = await createSupabaseServerClient();
-  await supabase.auth.signOut();
-  revalidatePath('/');
+const markAppointmentCompletedInputSchema = z.object({
+  appointmentId: uuidSchema,
+  priceCents: z.number().int().nonnegative().optional(),
+});
+
+function revalidateAppointmentMetrics() {
+  revalidatePath('/staff');
+  revalidatePath('/admin/appointments');
+  revalidatePath('/admin/metrics');
+  revalidatePath('/cuenta');
+}
+
+export interface MarkAppointmentCompletedResult {
+  reviewLink: string | null;
+}
+
+export async function markAppointmentCompletedAction(
+  input: { appointmentId: string; priceCents?: number },
+): Promise<MarkAppointmentCompletedResult> {
+  const ctx = await requireStaff();
+
+  const parsed = markAppointmentCompletedInputSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new Error(parsed.error.flatten().formErrors.join(', ') || 'Datos de finalizacion invalidos.');
+  }
+
+  const { signedToken, tokenHash } = createSignedReviewToken();
+  const sentAt = new Date();
+  const expiresAt = new Date(sentAt);
+  expiresAt.setUTCDate(expiresAt.getUTCDate() + 14);
+
+  const userScopedSupabase = await createSupabaseServerClient();
+  const { data: appointment, error: accessError } = await userScopedSupabase
+    .from('appointments')
+    .select('id')
+    .eq('id', parsed.data.appointmentId)
+    .eq('shop_id', env.NEXT_PUBLIC_SHOP_ID)
+    .single();
+
+  if (accessError || !appointment) {
+    throw new Error(ctx.role === 'admin' ? 'No se encontro la cita.' : 'No tienes acceso a esta cita.');
+  }
+
+  const adminSupabase = createSupabaseAdminClient();
+  const { data, error } = await adminSupabase.rpc('complete_appointment_and_create_review_invite', {
+    p_appointment_id: parsed.data.appointmentId,
+    p_price_cents: parsed.data.priceCents ?? null,
+    p_token_hash: tokenHash,
+    p_sent_at: sentAt.toISOString(),
+    p_expires_at: expiresAt.toISOString(),
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const row = Array.isArray(data)
+    ? (data[0] as { review_invite_created?: boolean } | undefined)
+    : undefined;
+
+  revalidateAppointmentMetrics();
+
+  return {
+    reviewLink:
+      row?.review_invite_created === true
+        ? `${env.NEXT_PUBLIC_APP_URL}/review/${encodeURIComponent(signedToken)}`
+        : null,
+  };
 }
 
 export async function upsertStaffAction(formData: FormData) {
@@ -169,19 +238,39 @@ export async function updateAppointmentStatusAction(formData: FormData) {
     throw new Error(parsed.error.flatten().formErrors.join(', ') || 'Datos de actualizacion de cita invalidos.');
   }
 
+  if (parsed.data.status === 'done') {
+    return markAppointmentCompletedAction(
+      typeof parsed.data.price_cents === 'number'
+        ? {
+            appointmentId: parsed.data.appointment_id,
+            priceCents: parsed.data.price_cents,
+          }
+        : {
+            appointmentId: parsed.data.appointment_id,
+          },
+    );
+  }
+
   const supabase = await createSupabaseServerClient();
   const updatePayload: Record<string, unknown> = {
     status: parsed.data.status,
+    completed_at: null,
+    cancelled_by: parsed.data.status === 'cancelled' ? 'admin' : null,
+    cancellation_reason: null,
   };
 
-  if (parsed.data.status === 'done' && typeof parsed.data.price_cents === 'number') {
-    updatePayload.price_cents = parsed.data.price_cents;
+  const { error } = await supabase
+    .from('appointments')
+    .update(updatePayload)
+    .eq('id', parsed.data.appointment_id);
+
+  if (error) {
+    throw new Error(error.message);
   }
 
-  await supabase.from('appointments').update(updatePayload).eq('id', parsed.data.appointment_id);
+  revalidateAppointmentMetrics();
 
-  revalidatePath('/admin/appointments');
-  revalidatePath('/admin/metrics');
+  return null;
 }
 
 export async function upsertCourseAction(formData: FormData) {
@@ -433,10 +522,22 @@ export async function updateOwnAppointmentStatusAction(formData: FormData) {
     throw new Error('Estado no permitido para el equipo.');
   }
 
+  if (parsed.data.status === 'done') {
+    await markAppointmentCompletedAction({
+      appointmentId: parsed.data.appointment_id,
+    });
+    return;
+  }
+
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase
     .from('appointments')
-    .update({ status: parsed.data.status })
+    .update({
+      status: parsed.data.status,
+      completed_at: null,
+      cancelled_by: parsed.data.status === 'cancelled' ? 'staff' : null,
+      cancellation_reason: null,
+    })
     .eq('id', parsed.data.appointment_id)
     .eq('staff_id', ctx.staffId);
 
@@ -444,8 +545,6 @@ export async function updateOwnAppointmentStatusAction(formData: FormData) {
     throw new Error(error.message);
   }
 
-  revalidatePath('/staff');
-  revalidatePath('/admin/appointments');
-  revalidatePath('/admin/metrics');
+  revalidateAppointmentMetrics();
 }
 

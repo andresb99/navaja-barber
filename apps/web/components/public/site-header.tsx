@@ -1,13 +1,26 @@
 'use client';
 
-import Link from 'next/link';
+import NextLink from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Menu, Moon, Sun, X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useCallback, useEffect, useMemo, useState, type Key } from 'react';
+import { Moon, Sun } from 'lucide-react';
+import {
+  Avatar,
+  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Link,
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
+  NavbarMenu,
+  NavbarMenuItem,
+  NavbarMenuToggle,
+} from '@heroui/react';
 import { HeaderBrand } from '@/components/public/header-brand';
-import GlassSurface from '@/components/GlassSurface';
 import { cn } from '@/lib/cn';
 import { SHOP_ID } from '@/lib/constants';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
@@ -29,20 +42,44 @@ const headerLinks = [
   { href: '/jobs', label: 'Empleo' },
 ] as const;
 
-function getRolePanelTarget(role: NavRole): { href: string; label: string } | null {
-  if (role === 'user') {
-    return { href: '/cuenta', label: 'Mi cuenta' };
+const adminHeaderLinks = [
+  { href: '/admin', label: 'Resumen' },
+  { href: '/admin/appointments', label: 'Citas' },
+  { href: '/admin/staff', label: 'Equipo' },
+  { href: '/admin/services', label: 'Servicios' },
+  { href: '/admin/courses', label: 'Cursos' },
+  { href: '/admin/modelos', label: 'Modelos' },
+  { href: '/admin/applicants', label: 'Postulantes' },
+  { href: '/admin/metrics', label: 'Metricas' },
+] as const;
+
+const staffHeaderLinks = [
+  { href: '/staff', label: 'Agenda' },
+  { href: '/book', label: 'Agendar' },
+  { href: '/cuenta', label: 'Cuenta' },
+] as const;
+
+const actionButtonClassName =
+  'h-10 rounded-2xl border border-white/75 bg-white/58 px-4 text-xs font-semibold text-ink no-underline shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition-[background-color,transform,box-shadow,color,border-color] duration-150 data-[hover=true]:-translate-y-px data-[hover=true]:border-white/90 data-[hover=true]:bg-white/84 data-[pressed=true]:scale-[0.98] data-[pressed=true]:bg-white/92 data-[focus-visible=true]:ring-2 data-[focus-visible=true]:ring-sky-400/55 data-[focus-visible=true]:ring-offset-1 data-[focus-visible=true]:ring-offset-transparent dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100 dark:data-[hover=true]:bg-white/[0.08] dark:data-[pressed=true]:bg-white/[0.09]';
+
+function getAvatarInitials(name: string | null, email: string | null) {
+  const source = (name || email || '').trim();
+  if (!source) {
+    return 'U';
   }
-  if (role === 'staff') {
-    return { href: '/staff', label: 'Panel staff' };
+
+  const parts = source.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) {
+    const first = parts[0] || '';
+    return first.slice(0, 2).toUpperCase();
   }
-  if (role === 'admin') {
-    return { href: '/admin', label: 'Panel admin' };
-  }
-  return null;
+
+  const first = parts[0] || '';
+  const second = parts[1] || '';
+  return `${first.charAt(0)}${second.charAt(0)}`.toUpperCase();
 }
 
-function isActivePath(pathname: string, href: string) {
+function isActivePath(pathname: string, href: string): boolean {
   if (href === '/') {
     return pathname === '/';
   }
@@ -53,11 +90,47 @@ export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [role, setRole] = useState<NavRole>('guest');
+  const [profileName, setProfileName] = useState<string | null>(null);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [theme, setTheme] = useState<ThemeMode>('light');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
-  const rolePanelTarget = useMemo(() => getRolePanelTarget(role), [role]);
+  const avatarInitials = useMemo(
+    () => getAvatarInitials(profileName, userEmail),
+    [profileName, userEmail],
+  );
+  const avatarProps = useMemo(
+    () => (profileAvatarUrl ? { src: profileAvatarUrl } : {}),
+    [profileAvatarUrl],
+  );
+  const activeHeaderLinks = useMemo(() => {
+    if (role === 'admin') {
+      return adminHeaderLinks;
+    }
+
+    if (role === 'staff') {
+      return staffHeaderLinks;
+    }
+
+    return headerLinks;
+  }, [role]);
+  const activeHeaderHref = useMemo(() => {
+    let bestMatch: string | null = null;
+
+    for (const item of activeHeaderLinks) {
+      if (!isActivePath(pathname, item.href)) {
+        continue;
+      }
+
+      if (!bestMatch || item.href.length > bestMatch.length) {
+        bestMatch = item.href;
+      }
+    }
+
+    return bestMatch;
+  }, [activeHeaderLinks, pathname]);
 
   const applyTheme = useCallback((nextTheme: ThemeMode) => {
     document.documentElement.classList.toggle('dark', nextTheme === 'dark');
@@ -76,17 +149,29 @@ export function SiteHeader() {
 
     if (!user) {
       setRole('guest');
+      setProfileName(null);
+      setProfileAvatarUrl(null);
+      setUserEmail(null);
       setLoading(false);
       return;
     }
 
-    const { data: staffRow } = await supabase
-      .from('staff')
-      .select('role')
-      .eq('shop_id', SHOP_ID)
-      .eq('auth_user_id', user.id)
-      .eq('is_active', true)
-      .maybeSingle();
+    setUserEmail(user.email ?? null);
+
+    const [{ data: staffRow }, { data: profileRow }] = await Promise.all([
+      supabase
+        .from('staff')
+        .select('role')
+        .eq('shop_id', SHOP_ID)
+        .eq('auth_user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle(),
+      supabase
+        .from('user_profiles')
+        .select('full_name, avatar_url')
+        .eq('auth_user_id', user.id)
+        .maybeSingle(),
+    ]);
 
     if (staffRow?.role === 'admin') {
       setRole('admin');
@@ -95,6 +180,11 @@ export function SiteHeader() {
     } else {
       setRole('user');
     }
+
+    const metadataName =
+      typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name : null;
+    setProfileName((profileRow?.full_name as string | null) || metadataName || null);
+    setProfileAvatarUrl((profileRow?.avatar_url as string | null) || null);
     setLoading(false);
   }, [supabase]);
 
@@ -119,6 +209,17 @@ export function SiteHeader() {
   }, [loadAuthState, supabase]);
 
   useEffect(() => {
+    const handleProfileUpdated = () => {
+      void loadAuthState();
+    };
+
+    window.addEventListener('profile-updated', handleProfileUpdated);
+    return () => {
+      window.removeEventListener('profile-updated', handleProfileUpdated);
+    };
+  }, [loadAuthState]);
+
+  useEffect(() => {
     try {
       const storedTheme = localStorage.getItem('navaja-theme');
       if (storedTheme === 'dark' || storedTheme === 'light') {
@@ -130,247 +231,200 @@ export function SiteHeader() {
       // Ignore localStorage access issues and rely on current DOM class.
     }
 
-    const fallbackTheme: ThemeMode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    const fallbackTheme: ThemeMode = document.documentElement.classList.contains('dark')
+      ? 'dark'
+      : 'light';
     setTheme(fallbackTheme);
     document.documentElement.classList.toggle('dark', fallbackTheme === 'dark');
   }, []);
 
   useEffect(() => {
-    setMobileMenuOpen(false);
+    setIsMenuOpen(false);
   }, [pathname]);
 
-  const toggleTheme = useCallback(() => {
-    const nextTheme: ThemeMode = theme === 'dark' ? 'light' : 'dark';
-    applyTheme(nextTheme);
+  const handleThemeToggle = useCallback(() => {
+    applyTheme(theme === 'dark' ? 'light' : 'dark');
   }, [applyTheme, theme]);
 
-  async function handleSignOut() {
+  const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut();
     setRole('guest');
-    setMobileMenuOpen(false);
+    setProfileName(null);
+    setProfileAvatarUrl(null);
+    setUserEmail(null);
+    setIsMenuOpen(false);
     router.replace('/');
     router.refresh();
-  }
+  }, [router, supabase]);
 
-  const desktopLinkClassName = (href: string) =>
-    cn(
-      'rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.11em] no-underline transition-colors duration-100',
-      isActivePath(pathname, href)
-        ? 'bg-white/16 text-white ring-1 ring-white/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.34)]'
-        : 'text-white/82 hover:bg-white/10 hover:!text-white',
-    );
+  const handleAvatarAction = useCallback(
+    (key: Key) => {
+      const action = String(key);
 
-  const mobileLinkClassName = (href: string) =>
-    cn(
-      'block rounded-xl px-3 py-2.5 text-sm font-semibold no-underline transition-colors duration-100',
-      isActivePath(pathname, href)
-        ? 'bg-white/14 text-white ring-1 ring-white/25'
-        : 'text-white/85 hover:bg-white/10 hover:!text-white',
-    );
+      if (action === 'account') {
+        setIsMenuOpen(false);
+        router.push('/cuenta');
+        return;
+      }
 
-  const actionButtonClassName =
-    'h-9 rounded-lg px-3.5 text-sm font-semibold no-underline transition-colors duration-100';
-
-  const themeButtonClassName =
-    'h-9 w-9 px-0 !text-white/88 transition-colors duration-100 hover:!text-white hover:!bg-white/12';
+      if (action === 'logout') {
+        void handleSignOut();
+      }
+    },
+    [handleSignOut, router],
+  );
 
   return (
-    <header className="sticky top-0 z-50">
-      <div className="mx-auto max-w-6xl px-4 pt-4">
-        <GlassSurface
-          width="100%"
-          height={58}
-          className="w-full rounded-full ring-1 ring-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.34),0_18px_30px_-22px_rgba(0,0,0,0.85)]"
-          borderRadius={999}
-          borderWidth={0.07}
-          blur={11}
-          displace={0.5}
-          distortionScale={-180}
-          redOffset={0}
-          greenOffset={10}
-          blueOffset={20}
-          brightness={50}
-          opacity={0.93}
-          backgroundOpacity={0.08}
-          saturation={1}
-          mixBlendMode="screen"
-        >
-          <div className="flex h-full items-center justify-between gap-3 px-3">
-            <Link href="/" className="no-underline">
-              <HeaderBrand />
-            </Link>
+    <Navbar
+      isBlurred={false}
+      maxWidth="full"
+      height="88px"
+      isMenuOpen={isMenuOpen}
+      onMenuOpenChange={setIsMenuOpen}
+      className="bg-transparent px-0 pt-3"
+      classNames={{
+        wrapper: 'glass-nav mx-auto w-[calc(100%-1rem)] max-w-[84rem] px-3 sm:px-4',
+        menu: 'mx-4 mt-3 rounded-[1.6rem] border border-white/80 bg-white/90 p-4 shadow-[0_24px_54px_-34px_rgba(15,23,42,0.3)] backdrop-blur-2xl dark:border-white/10 dark:bg-[#091120]/88',
+      }}
+    >
+      <NavbarContent justify="start">
+        <NavbarBrand className="h-full items-center py-0">
+          <NextLink href="/" className="flex h-full items-center no-underline">
+            <HeaderBrand />
+          </NextLink>
+        </NavbarBrand>
+      </NavbarContent>
 
-            <nav className="hidden items-center gap-1.5 md:flex">
-              {headerLinks.map((item) => {
-                const isActive = isActivePath(pathname, item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={desktopLinkClassName(item.href)}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
+      <NavbarContent className="hidden md:flex" justify="center">
+        {activeHeaderLinks.map((item) => {
+          const isActive = item.href === activeHeaderHref;
+          return (
+            <NavbarItem key={item.href} isActive={isActive}>
+              <Link
+                as={NextLink}
+                href={item.href}
+                color="foreground"
+                aria-current={isActive ? 'page' : undefined}
+                className="nav-link-pill no-underline"
+                data-active={String(isActive)}
+              >
+                {item.label}
+              </Link>
+            </NavbarItem>
+          );
+        })}
+      </NavbarContent>
 
-              {rolePanelTarget ? (
-                <Button
-                  asChild
-                  size="sm"
-                  className={cn(actionButtonClassName, 'ml-1 !bg-white/10 !text-white hover:!bg-white/16')}
-                >
-                  <Link href={rolePanelTarget.href} className="no-underline">
-                    {rolePanelTarget.label}
-                  </Link>
-                </Button>
-              ) : null}
+      <NavbarContent justify="end">
+        {role === 'guest' ? (
+          <NavbarItem className="hidden md:flex">
+            <Button
+              as={NextLink}
+              href="/login"
+              variant="ghost"
+              size="sm"
+              className={actionButtonClassName}
+            >
+              Ingresar
+            </Button>
+          </NavbarItem>
+        ) : null}
 
-              {role === 'guest' ? (
-                <Button
-                  asChild
-                  size="sm"
-                  className={cn(actionButtonClassName, '!bg-white/10 !text-white hover:!bg-white/16')}
-                >
-                  <Link href="/login" className="no-underline">
-                    Ingresar
-                  </Link>
-                </Button>
-              ) : (
-                <Button
+        {!loading && role !== 'guest' ? (
+          <NavbarItem>
+            <Dropdown placement="bottom-end">
+              <DropdownTrigger>
+                <button
                   type="button"
-                  size="sm"
-                  className={cn(actionButtonClassName, '!bg-white/10 !text-white hover:!bg-white/16')}
-                  onClick={() => {
-                    void handleSignOut();
-                  }}
+                  className="flex items-center rounded-full outline-none ring-offset-0 transition data-[hover=true]:opacity-90"
+                  aria-label="Abrir menu de perfil"
                 >
+                  <Avatar
+                    {...avatarProps}
+                    name={profileName || userEmail || roleLabel[role]}
+                    fallback={avatarInitials}
+                    size="sm"
+                    className="h-10 w-10 border border-white/75 bg-white/68 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.28)] dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
+                  />
+                </button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Menu de perfil" onAction={handleAvatarAction}>
+                <DropdownItem
+                  key="profile-summary"
+                  isReadOnly
+                  textValue="Perfil"
+                  className="cursor-default opacity-100"
+                  description={userEmail || roleLabel[role]}
+                >
+                  {profileName || 'Mi perfil'}
+                </DropdownItem>
+                <DropdownItem key="account">Mi cuenta</DropdownItem>
+                <DropdownItem key="logout" className="text-danger" color="danger">
                   Salir
-                </Button>
-              )}
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          </NavbarItem>
+        ) : null}
 
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className={themeButtonClassName}
-                onClick={toggleTheme}
-                aria-label={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}
-                title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
-              >
-                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
-
-              {!loading && role !== 'guest' ? <Badge className="ml-1 !bg-white/14 !text-white !ring-white/30">{roleLabel[role]}</Badge> : null}
-            </nav>
-
-            <div className="flex items-center gap-2 md:hidden">
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className={themeButtonClassName}
-                onClick={toggleTheme}
-                aria-label={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}
-                title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
-              >
-                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
-
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className={themeButtonClassName}
-                onClick={() => setMobileMenuOpen((prev) => !prev)}
-                aria-expanded={mobileMenuOpen}
-                aria-controls="mobile-nav-panel"
-                aria-label={mobileMenuOpen ? 'Cerrar menu' : 'Abrir menu'}
-                title={mobileMenuOpen ? 'Cerrar menu' : 'Abrir menu'}
-              >
-                {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-        </GlassSurface>
-      </div>
-
-      {mobileMenuOpen ? (
-        <>
-          <button
+        <NavbarItem>
+          <Button
             type="button"
-            aria-label="Cerrar menu"
-            className="fixed inset-0 z-40 bg-slate-950/30 md:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <div
-            id="mobile-nav-panel"
-            className="relative z-50 mt-3 border-y border-white/18 bg-[#060012]/86 backdrop-blur-xl md:hidden"
+            isIconOnly
+            variant="light"
+            radius="full"
+            onPress={handleThemeToggle}
+            aria-label={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}
+            title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+            className="h-10 w-10 min-w-0 rounded-2xl border border-white/75 bg-white/58 p-0 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition data-[hover=true]:-translate-y-px data-[hover=true]:border-white/90 data-[hover=true]:bg-white/84 data-[hover=true]:text-sky-700 data-[pressed=true]:scale-100 data-[pressed=true]:bg-white/88 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:data-[hover=true]:bg-white/[0.08] dark:data-[hover=true]:text-sky-200"
           >
-            <div className="mx-auto max-w-6xl px-4 py-4">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/75">Menu</p>
-                {!loading && role !== 'guest' ? <Badge className="!bg-white/14 !text-white !ring-white/30">{roleLabel[role]}</Badge> : null}
-              </div>
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+        </NavbarItem>
 
-              <nav className="space-y-2">
-                {headerLinks.map((item) => {
-                  const isActive = isActivePath(pathname, item.href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={mobileLinkClassName(item.href)}
-                      aria-current={isActive ? 'page' : undefined}
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </nav>
+        <NavbarItem className="md:hidden">
+          <NavbarMenuToggle
+            aria-label={isMenuOpen ? 'Cerrar menu' : 'Abrir menu'}
+            className="text-ink data-[hover=true]:bg-white/65 dark:text-white dark:data-[hover=true]:bg-white/[0.06]"
+          />
+        </NavbarItem>
+      </NavbarContent>
 
-              <div className="mt-4 flex items-center gap-2">
-                {rolePanelTarget ? (
-                  <Button
-                    asChild
-                    size="sm"
-                    className={cn(actionButtonClassName, 'flex-1 !bg-white/10 !text-white hover:!bg-white/16')}
-                  >
-                    <Link href={rolePanelTarget.href} className="no-underline" onClick={() => setMobileMenuOpen(false)}>
-                      {rolePanelTarget.label}
-                    </Link>
-                  </Button>
-                ) : null}
+      <NavbarMenu>
+        {activeHeaderLinks.map((item) => {
+          const isActive = item.href === activeHeaderHref;
+          return (
+            <NavbarMenuItem key={item.href} isActive={isActive}>
+              <Link
+                as={NextLink}
+                href={item.href}
+                color="foreground"
+                aria-current={isActive ? 'page' : undefined}
+                onClick={() => setIsMenuOpen(false)}
+                className="nav-link-pill flex w-full justify-start no-underline"
+                data-active={String(isActive)}
+              >
+                {item.label}
+              </Link>
+            </NavbarMenuItem>
+          );
+        })}
 
-                {role === 'guest' ? (
-                  <Button
-                    asChild
-                    size="sm"
-                    className={cn(actionButtonClassName, 'flex-1 !bg-white/10 !text-white hover:!bg-white/16')}
-                  >
-                    <Link href="/login" className="no-underline" onClick={() => setMobileMenuOpen(false)}>
-                      Ingresar
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button
-                    type="button"
-                    size="sm"
-                    className={cn(actionButtonClassName, 'flex-1 !bg-white/10 !text-white hover:!bg-white/16')}
-                    onClick={() => {
-                      void handleSignOut();
-                    }}
-                  >
-                    Salir
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </>
-      ) : null}
-    </header>
+        {role === 'guest' ? (
+          <NavbarMenuItem>
+            <Button
+              as={NextLink}
+              href="/login"
+              variant="ghost"
+              size="sm"
+              className={cn(actionButtonClassName, 'w-full justify-center text-center')}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Ingresar
+            </Button>
+          </NavbarMenuItem>
+        ) : null}
+      </NavbarMenu>
+    </Navbar>
   );
 }
