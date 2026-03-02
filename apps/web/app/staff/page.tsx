@@ -1,8 +1,13 @@
+import { formatCurrency } from '@navaja/shared';
 import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
-import { StaffAppointmentStatusForm } from '@/components/staff/appointment-status-form';
+import { createStaffTimeOffRequestAction } from '@/app/admin/actions';
 import { requireStaff } from '@/lib/auth';
+import { getStaffPerformanceDetail } from '@/lib/metrics';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { isPendingTimeOffReason, stripPendingTimeOffReason } from '@/lib/time-off-requests';
+
+const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
 const statusTone: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
   pending: 'warning',
@@ -20,6 +25,24 @@ const statusLabel: Record<string, string> = {
   done: 'Realizada',
 };
 
+function formatHours(minutes: number) {
+  return `${(minutes / 60).toFixed(1)} h`;
+}
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+
+  if (!parts.length) {
+    return 'ST';
+  }
+
+  if (parts.length === 1) {
+    return parts[0]!.slice(0, 2).toUpperCase();
+  }
+
+  return `${parts[0]!.charAt(0)}${parts[1]!.charAt(0)}`.toUpperCase();
+}
+
 interface StaffPageProps {
   searchParams: Promise<{ shop?: string }>;
 }
@@ -34,13 +57,77 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
   const end = new Date(start);
   end.setUTCDate(end.getUTCDate() + 7);
 
-  const { data: appointments } = await supabase
-    .from('appointments')
-    .select('id, start_at, end_at, status, services(name), customers(name, phone), notes')
-    .eq('staff_id', ctx.staffId)
-    .gte('start_at', start.toISOString())
-    .lt('start_at', end.toISOString())
-    .order('start_at');
+  const [appointmentsResult, workingHoursResult, timeOffResult, coursesResult, performance] =
+    await Promise.all([
+      supabase
+        .from('appointments')
+        .select('id, start_at, end_at, status, services(name), customers(name, phone), notes')
+        .eq('staff_id', ctx.staffId)
+        .gte('start_at', start.toISOString())
+        .lt('start_at', end.toISOString())
+        .order('start_at'),
+      supabase
+        .from('working_hours')
+        .select('id, staff_id, day_of_week, start_time, end_time, staff(name)')
+        .eq('shop_id', ctx.shopId)
+        .order('day_of_week'),
+      supabase
+        .from('time_off')
+        .select('id, staff_id, start_at, end_at, reason, created_at, staff(name)')
+        .eq('shop_id', ctx.shopId)
+        .order('start_at', { ascending: false })
+        .limit(20),
+      supabase
+        .from('courses')
+        .select('id, title, level, duration_hours, price_cents')
+        .eq('shop_id', ctx.shopId)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(6),
+      getStaffPerformanceDetail(
+        ctx.staffId,
+        {
+          range: 'last7',
+        },
+        ctx.shopId,
+      ).catch(() => null),
+    ]);
+
+  const appointments = appointmentsResult.data || [];
+  const timeOffRows = timeOffResult.data || [];
+  const groupedWorkingHours = new Map<
+    string,
+    Array<{
+      id: string;
+      dayLabel: string;
+      startTime: string;
+      endTime: string;
+    }>
+  >();
+
+  for (const entry of workingHoursResult.data || []) {
+    const staffName = String((entry.staff as { name?: string } | null)?.name || 'Personal');
+
+    if (!groupedWorkingHours.has(staffName)) {
+      groupedWorkingHours.set(staffName, []);
+    }
+
+    groupedWorkingHours.get(staffName)?.push({
+      id: String(entry.id),
+      dayLabel: weekdays[Number(entry.day_of_week || 0)] || 'Dia',
+      startTime: String(entry.start_time),
+      endTime: String(entry.end_time),
+    });
+  }
+
+  const myPendingTimeOff = timeOffRows.filter(
+    (item) =>
+      String(item.staff_id || '') === ctx.staffId && isPendingTimeOffReason(item.reason as string | null),
+  );
+  const myApprovedTimeOff = timeOffRows.filter(
+    (item) =>
+      String(item.staff_id || '') === ctx.staffId && !isPendingTimeOffReason(item.reason as string | null),
+  );
 
   return (
     <section className="space-y-6">
@@ -50,27 +137,161 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
             Panel de staff
           </h1>
           <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-            Agenda de los proximos 7 dias en {ctx.shopName} para {ctx.email || 'tu cuenta'}.
+            Vista operativa de {ctx.shopName} para {ctx.email || 'tu cuenta'}: tus reservas,
+            metricas propias, horarios del equipo y solicitudes de ausencia.
           </p>
         </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="data-card rounded-[1.7rem] border-0 shadow-none">
+          <CardBody className="p-5">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+              Proximas citas
+            </h3>
+            <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+              {appointments.length}
+            </p>
+          </CardBody>
+        </Card>
+        <Card className="data-card rounded-[1.7rem] border-0 shadow-none">
+          <CardBody className="p-5">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+              Ausencias pendientes
+            </h3>
+            <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+              {myPendingTimeOff.length}
+            </p>
+          </CardBody>
+        </Card>
+        <Card className="data-card rounded-[1.7rem] border-0 shadow-none">
+          <CardBody className="p-5">
+            <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+              Resena promedio
+            </h3>
+            <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+              {performance ? performance.metric.trustedRating.toFixed(1) : '0.0'}
+            </p>
+          </CardBody>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+        <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
+          <CardBody className="space-y-4 p-5">
+            <div>
+              <h3 className="text-xl font-semibold text-ink dark:text-slate-100">Mis metricas</h3>
+              <p className="text-sm text-slate/80 dark:text-slate-300">
+                Solo lectura. Ves tu rendimiento personal sin acceso a la gestion global del equipo.
+              </p>
+            </div>
+
+            {performance ? (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="data-card rounded-2xl p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/55 dark:text-slate-400">
+                    Facturacion
+                  </p>
+                  <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">
+                    {formatCurrency(performance.metric.totalRevenueCents)}
+                  </p>
+                </div>
+                <div className="data-card rounded-2xl p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/55 dark:text-slate-400">
+                    Realizadas
+                  </p>
+                  <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">
+                    {performance.metric.completedAppointments}
+                  </p>
+                </div>
+                <div className="data-card rounded-2xl p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/55 dark:text-slate-400">
+                    Ocupacion
+                  </p>
+                  <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">
+                    {Math.round(performance.metric.occupancyRatio * 100)}%
+                  </p>
+                </div>
+                <div className="data-card rounded-2xl p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/55 dark:text-slate-400">
+                    Horas reservadas
+                  </p>
+                  <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">
+                    {formatHours(performance.metric.bookedMinutes)}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-slate/70 dark:text-slate-400">
+                Aun no hay suficientes datos para mostrar tus metricas.
+              </p>
+            )}
+          </CardBody>
+        </Card>
+
+        <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
+          <CardBody className="space-y-4 p-5">
+            <div>
+              <h3 className="text-xl font-semibold text-ink dark:text-slate-100">
+                Solicitar ausencia
+              </h3>
+              <p className="text-sm text-slate/80 dark:text-slate-300">
+                Tu solicitud entra como pendiente y el admin la aprueba o la rechaza desde sus
+                notificaciones.
+              </p>
+            </div>
+
+            <form action={createStaffTimeOffRequestAction} className="grid gap-3">
+              <input type="hidden" name="shop_id" value={ctx.shopId} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                  id="staff-time-off-start-at"
+                  name="start_at"
+                  type="datetime-local"
+                  required
+                  className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+                />
+                <input
+                  id="staff-time-off-end-at"
+                  name="end_at"
+                  type="datetime-local"
+                  required
+                  className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+                />
+              </div>
+              <input
+                name="reason"
+                type="text"
+                placeholder="Motivo de la ausencia"
+                className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+              />
+              <button
+                type="submit"
+                className="action-primary inline-flex w-fit rounded-full px-5 py-2.5 text-sm font-semibold"
+              >
+                Enviar solicitud
+              </button>
+            </form>
+          </CardBody>
+        </Card>
       </div>
 
       <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
         <CardBody className="p-5">
           <h3 className="text-xl font-semibold text-ink dark:text-slate-100">Mis citas</h3>
           <p className="text-sm text-slate/80 dark:text-slate-300">
-            Actualiza estado como realizada, no asistio o cancelada.
+            Vista de tus proximos 7 dias. Desde aqui no editas estados ni equipo.
           </p>
 
           <div className="mt-4 space-y-3">
-            {(appointments || []).length === 0 ? (
+            {appointments.length === 0 ? (
               <p className="text-sm text-slate/70">No hay citas en este periodo.</p>
             ) : null}
 
-            {(appointments || []).map((item) => (
+            {appointments.map((item) => (
               <div key={String(item.id)} className="surface-card rounded-2xl p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-medium text-ink">
+                  <p className="font-medium text-ink dark:text-slate-100">
                     {new Date(String(item.start_at)).toLocaleString('es-UY')} -{' '}
                     {String((item.services as { name?: string } | null)?.name || 'Servicio')}
                   </p>
@@ -91,12 +312,139 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
                 {item.notes ? (
                   <p className="mt-1 text-xs text-slate/70">Notas: {String(item.notes)}</p>
                 ) : null}
+              </div>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
 
-                <StaffAppointmentStatusForm
-                  appointmentId={String(item.id)}
-                  status={String(item.status)}
-                  shopId={ctx.shopId}
-                />
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
+          <CardBody className="p-5">
+            <h3 className="text-xl font-semibold text-ink dark:text-slate-100">
+              Horarios del equipo
+            </h3>
+            <p className="text-sm text-slate/80 dark:text-slate-300">
+              Puedes ver tu agenda y la del equipo, pero no editarla.
+            </p>
+
+            <div className="mt-4 grid gap-3">
+              {Array.from(groupedWorkingHours.entries()).map(([staffName, items]) => (
+                <div key={staffName} className="data-card rounded-[1.5rem] p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/60 bg-white/55 text-sm font-semibold text-ink dark:border-transparent dark:bg-white/[0.05] dark:text-slate-100">
+                      {getInitials(staffName)}
+                    </div>
+                    <p className="text-base font-semibold text-ink dark:text-slate-100">
+                      {staffName}
+                    </p>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {items.map((entry) => (
+                      <span
+                        key={entry.id}
+                        className="rounded-full border border-white/55 bg-white/45 px-3 py-1.5 text-[11px] font-semibold text-slate/80 dark:border-transparent dark:bg-white/[0.04] dark:text-slate-300"
+                      >
+                        {entry.dayLabel.slice(0, 3)} {entry.startTime}-{entry.endTime}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
+          <CardBody className="p-5">
+            <h3 className="text-xl font-semibold text-ink dark:text-slate-100">
+              Mis ausencias
+            </h3>
+            <p className="text-sm text-slate/80 dark:text-slate-300">
+              Las solicitudes nuevas quedan pendientes hasta que el admin las apruebe.
+            </p>
+
+            <div className="mt-4 grid gap-3">
+              {myPendingTimeOff.length === 0 && myApprovedTimeOff.length === 0 ? (
+                <p className="text-sm text-slate/70 dark:text-slate-400">
+                  No tienes ausencias registradas.
+                </p>
+              ) : null}
+
+              {myPendingTimeOff.map((item) => (
+                <div key={`pending-${String(item.id)}`} className="data-card rounded-[1.5rem] p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-ink dark:text-slate-100">
+                        {new Date(String(item.start_at)).toLocaleString('es-UY')}
+                      </p>
+                      <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
+                        hasta {new Date(String(item.end_at)).toLocaleString('es-UY')}
+                      </p>
+                      <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
+                        {stripPendingTimeOffReason(item.reason as string | null) || 'Sin motivo'}
+                      </p>
+                    </div>
+                    <span className="meta-chip" data-tone="warning">
+                      Pendiente
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {myApprovedTimeOff.map((item) => (
+                <div key={`approved-${String(item.id)}`} className="data-card rounded-[1.5rem] p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-ink dark:text-slate-100">
+                        {new Date(String(item.start_at)).toLocaleString('es-UY')}
+                      </p>
+                      <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
+                        hasta {new Date(String(item.end_at)).toLocaleString('es-UY')}
+                      </p>
+                      <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
+                        {stripPendingTimeOffReason(item.reason as string | null) || 'Sin motivo'}
+                      </p>
+                    </div>
+                    <span className="meta-chip" data-tone="success">
+                      Aprobada
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      </div>
+
+      <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
+        <CardBody className="p-5">
+          <h3 className="text-xl font-semibold text-ink dark:text-slate-100">
+            Cursos activos del local
+          </h3>
+          <p className="text-sm text-slate/80 dark:text-slate-300">
+            El sistema todavia no modela asignacion de profesor por curso; por ahora ves el
+            catalogo activo del workspace en modo lectura.
+          </p>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {(coursesResult.data || []).length === 0 ? (
+              <p className="text-sm text-slate/70 dark:text-slate-400">
+                No hay cursos activos para esta barberia.
+              </p>
+            ) : null}
+
+            {(coursesResult.data || []).map((course) => (
+              <div key={String(course.id)} className="data-card rounded-[1.5rem] p-4">
+                <p className="text-base font-semibold text-ink dark:text-slate-100">
+                  {String(course.title)}
+                </p>
+                <p className="mt-2 text-xs text-slate/70 dark:text-slate-400">
+                  {String(course.level)} | {String(course.duration_hours)} h
+                </p>
+                <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                  {formatCurrency(Number(course.price_cents || 0))}
+                </p>
               </div>
             ))}
           </div>

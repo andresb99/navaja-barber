@@ -12,7 +12,7 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   use: {
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: 'http://127.0.0.1:3100',
     headless: true,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
@@ -20,8 +20,8 @@ export default defineConfig({
   webServer: {
     command: 'pnpm run e2e:serve',
     cwd: rootDir,
-    url: 'http://127.0.0.1:3000',
-    reuseExistingServer: !process.env.CI,
+    url: 'http://127.0.0.1:3100',
+    reuseExistingServer: false,
     env: {
       ...inheritedEnv,
       NAVAJA_TEST_MODE: 'mock',
@@ -30,7 +30,7 @@ export default defineConfig({
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'test-anon-key-1234567890',
       NEXT_PUBLIC_SHOP_ID:
         process.env.NEXT_PUBLIC_SHOP_ID || '11111111-1111-1111-1111-111111111111',
-      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3000',
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://127.0.0.1:3100',
     },
   },
   projects: [

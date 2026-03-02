@@ -1,6 +1,7 @@
 import { cache } from 'react';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { METRIC_RANGES, type MetricRangeKey } from '@/lib/constants';
+import { isPendingTimeOffReason } from '@/lib/time-off-requests';
 import { buildAdminHref } from '@/lib/workspace-routes';
 
 type RawSearchParam = string | string[] | undefined;
@@ -714,7 +715,7 @@ export async function getDashboardMetrics(
       .eq('shop_id', shopId),
     supabase
       .from('time_off')
-      .select('staff_id, start_at, end_at')
+      .select('staff_id, start_at, end_at, reason')
       .eq('shop_id', shopId)
       .lt('start_at', dateRange.endAtIso)
       .gt('end_at', dateRange.startAtIso),
@@ -778,6 +779,10 @@ export async function getDashboardMetrics(
   }, 0);
 
   const timeOffMinutes = (timeOff || []).reduce((acc, item) => {
+    if (isPendingTimeOffReason(item.reason as string | null)) {
+      return acc;
+    }
+
     const intervalMinutes = Math.round(
       (new Date(String(item.end_at)).getTime() - new Date(String(item.start_at)).getTime()) / 60000,
     );

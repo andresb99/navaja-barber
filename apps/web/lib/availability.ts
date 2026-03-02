@@ -1,5 +1,6 @@
 import { generateAvailabilitySlots } from '@navaja/shared';
 import { createSupabaseAdminClient } from './supabase/admin';
+import { isPendingTimeOffReason } from './time-off-requests';
 
 interface AvailabilityParams {
   shopId: string;
@@ -68,7 +69,7 @@ export async function getAvailabilityForDate(params: AvailabilityParams): Promis
       .gt('end_at', dayStart),
     supabase
       .from('time_off')
-      .select('staff_id, start_at, end_at')
+      .select('staff_id, start_at, end_at, reason')
       .eq('shop_id', shopId)
       .in('staff_id', staffIds)
       .lt('start_at', dayEnd)
@@ -80,7 +81,9 @@ export async function getAvailabilityForDate(params: AvailabilityParams): Promis
   for (const staff of staffRows) {
     const scopedWorkingHours = (workingHours || []).filter((item) => item.staff_id === staff.id);
     const scopedAppointments = (appointments || []).filter((item) => item.staff_id === staff.id);
-    const scopedTimeOff = (timeOff || []).filter((item) => item.staff_id === staff.id);
+    const scopedTimeOff = (timeOff || []).filter(
+      (item) => item.staff_id === staff.id && !isPendingTimeOffReason(item.reason as string | null),
+    );
 
     const generated = generateAvailabilitySlots({
       date,

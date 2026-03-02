@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Card, CardBody } from '@heroui/card';
+import { AccountNotificationsPanel } from '@/components/public/account-notifications-panel';
 import { Chip } from '@heroui/chip';
 import { AccountProfileForm } from '@/components/public/account-profile-form';
 import { getAccountAppointments } from '@/lib/account-reviews';
@@ -76,6 +77,45 @@ export default async function CuentaPage() {
       );
   }
 
+  const { data: inviteMemberships } = ctx.userId
+    ? await supabase
+        .from('shop_memberships')
+        .select('id, shop_id, role, membership_status, created_at')
+        .eq('user_id', ctx.userId)
+        .eq('membership_status', 'invited')
+        .order('created_at', { ascending: false })
+    : { data: [] as Array<{ id: string; shop_id: string; role: string; membership_status: string; created_at: string }> };
+  const inviteShopIds = Array.from(
+    new Set(
+      (inviteMemberships || [])
+        .map((item) => String(item.shop_id || ''))
+        .filter(Boolean),
+    ),
+  );
+  const { data: inviteShops } = inviteShopIds.length
+    ? await admin.from('shops').select('id, name, slug').in('id', inviteShopIds)
+    : { data: [] as Array<{ id: string; name: string; slug: string }> };
+  const inviteShopsById = new Map(
+    (inviteShops || []).map((item) => [
+      String(item.id),
+      {
+        name: String(item.name),
+        slug: String(item.slug),
+      },
+    ]),
+  );
+  const invitationItems = (inviteMemberships || []).map((item) => {
+    const shop = inviteShopsById.get(String(item.shop_id || ''));
+
+    return {
+      id: String(item.id),
+      role: String(item.role),
+      createdAt: String(item.created_at),
+      shopName: shop?.name || 'Barberia',
+      shopSlug: shop?.slug || null,
+    };
+  });
+
   const appointments =
     ctx.role === 'user' && ctx.email ? await getAccountAppointments(ctx.email) : [];
   const reviewableAppointments = appointments.filter(
@@ -104,6 +144,8 @@ export default async function CuentaPage() {
           />
         </CardBody>
       </Card>
+
+      <AccountNotificationsPanel invitations={invitationItems} />
 
       {ctx.role === 'user' ? (
         <>

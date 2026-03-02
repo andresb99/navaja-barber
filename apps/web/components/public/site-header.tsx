@@ -22,6 +22,7 @@ import {
 import { HeaderBrand } from '@/components/public/header-brand';
 import { cn } from '@/lib/cn';
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
+import { isPendingTimeOffReason } from '@/lib/time-off-requests';
 import { buildAdminHref, buildStaffHref } from '@/lib/workspace-routes';
 
 type NavRole = 'guest' | 'user' | 'staff' | 'admin';
@@ -154,6 +155,7 @@ export function SiteHeader() {
   const [profileName, setProfileName] = useState<string | null>(null);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [pendingNotificationCount, setPendingNotificationCount] = useState(0);
   const [hasWorkspaceAccess, setHasWorkspaceAccess] = useState(false);
   const [workspaceDirectory, setWorkspaceDirectory] = useState<AccessibleWorkspaceMeta[]>([]);
   const [theme, setTheme] = useState<ThemeMode>('light');
@@ -273,6 +275,7 @@ export function SiteHeader() {
       setProfileName(null);
       setProfileAvatarUrl(null);
       setUserEmail(null);
+      setPendingNotificationCount(0);
       setHasWorkspaceAccess(false);
       setWorkspaceDirectory([]);
       setLoading(false);
@@ -281,25 +284,31 @@ export function SiteHeader() {
 
     setUserEmail(user.email ?? null);
 
-    const [{ data: membershipRows }, { data: staffRows }, { data: profileRow }] = await Promise.all([
-      supabase
-        .from('shop_memberships')
-        .select('role, shop_id')
-        .eq('user_id', user.id)
-        .eq('membership_status', 'active')
-        .limit(5),
-      supabase
-        .from('staff')
-        .select('role, shop_id')
-        .eq('auth_user_id', user.id)
-        .eq('is_active', true)
-        .limit(5),
-      supabase
-        .from('user_profiles')
-        .select('full_name, avatar_url')
-        .eq('auth_user_id', user.id)
-        .maybeSingle(),
-    ]);
+    const [{ data: membershipRows }, { data: pendingInviteRows }, { data: staffRows }, { data: profileRow }] =
+      await Promise.all([
+        supabase
+          .from('shop_memberships')
+          .select('role, shop_id')
+          .eq('user_id', user.id)
+          .eq('membership_status', 'active')
+          .limit(5),
+        supabase
+          .from('shop_memberships')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('membership_status', 'invited'),
+        supabase
+          .from('staff')
+          .select('role, shop_id')
+          .eq('auth_user_id', user.id)
+          .eq('is_active', true)
+          .limit(5),
+        supabase
+          .from('user_profiles')
+          .select('full_name, avatar_url')
+          .eq('auth_user_id', user.id)
+          .maybeSingle(),
+      ]);
 
     const membershipRoles = (membershipRows || []).map((item) => String(item.role));
     const staffRoles = (staffRows || []).map((item) => String(item.role));
@@ -318,7 +327,29 @@ export function SiteHeader() {
       membershipRoles.includes('admin') ||
       staffRoles.includes('admin');
     const hasStaffRole = membershipRoles.includes('staff') || staffRoles.includes('staff');
+    let nextPendingNotificationCount = (pendingInviteRows || []).length;
+
+    if (hasAdminRole && accessibleShopIds.length > 0) {
+      const { data: timeOffRows } = await supabase
+        .from('time_off')
+        .select('id, reason')
+        .in('shop_id', accessibleShopIds)
+        .order('created_at', { ascending: false })
+        .limit(40);
+
+      const pendingAbsenceApprovals = (timeOffRows || []).filter((item) =>
+        isPendingTimeOffReason(item.reason as string | null),
+      ).length;
+
+      // The avatar badge only tracks actionable work:
+      // user invitations that still need a decision, plus admin absence approvals.
+      // Informational events remain visible in the notifications panel but no longer
+      // keep the badge active after they are reviewed.
+      nextPendingNotificationCount = (pendingInviteRows || []).length + pendingAbsenceApprovals;
+    }
+
     setHasWorkspaceAccess(accessibleShopIds.length > 0);
+    setPendingNotificationCount(nextPendingNotificationCount);
     setWorkspaceDirectory(
       (shopRows || []).map((row) => ({
         id: String(row.id),
@@ -414,6 +445,7 @@ export function SiteHeader() {
     setProfileName(null);
     setProfileAvatarUrl(null);
     setUserEmail(null);
+    setPendingNotificationCount(0);
     setHasWorkspaceAccess(false);
     setWorkspaceDirectory([]);
     setIsMenuOpen(false);
@@ -431,6 +463,16 @@ export function SiteHeader() {
         return;
       }
 
+      if (action === 'notifications') {
+        setIsMenuOpen(false);
+        router.push(
+          role === 'admin'
+            ? `${buildAdminHref('/admin', activeWorkspaceSlug)}#notificaciones`
+            : '/cuenta#notificaciones',
+        );
+        return;
+      }
+
       if (action === 'workspaces') {
         setIsMenuOpen(false);
         router.push('/mis-barberias');
@@ -441,7 +483,7 @@ export function SiteHeader() {
         void handleSignOut();
       }
     },
-    [handleSignOut, router],
+    [activeWorkspaceSlug, handleSignOut, role, router],
   );
 
   return (
@@ -507,7 +549,8 @@ export function SiteHeader() {
               size="sm"
               className={actionButtonClassName}
             >
-              Mis barberias
+              <Store className="h-4 w-4" />
+              <span>Mis barberias</span>
             </Button>
           </NavbarItem>
         ) : null}
@@ -540,7 +583,7 @@ export function SiteHeader() {
               <DropdownTrigger>
                 <button
                   type="button"
-                  className="flex items-center rounded-full outline-none ring-offset-0 transition data-[hover=true]:opacity-90"
+                  className="relative flex items-center rounded-full outline-none ring-offset-0 transition data-[hover=true]:opacity-90"
                   aria-label="Abrir menu de perfil"
                 >
                   <Avatar
@@ -550,6 +593,11 @@ export function SiteHeader() {
                     size="sm"
                     className="h-10 w-10 border border-white/75 bg-white/68 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.28)] dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
                   />
+                  {pendingNotificationCount > 0 ? (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-black">
+                      {pendingNotificationCount > 9 ? '9+' : pendingNotificationCount}
+                    </span>
+                  ) : null}
                 </button>
               </DropdownTrigger>
               <DropdownMenu aria-label="Menu de perfil" onAction={handleAvatarAction}>
@@ -561,6 +609,10 @@ export function SiteHeader() {
                   description={userEmail || roleLabel[role]}
                 >
                   {profileName || 'Mi perfil'}
+                </DropdownItem>
+                <DropdownItem key="notifications">
+                  Notificaciones
+                  {pendingNotificationCount > 0 ? ` (${pendingNotificationCount})` : ''}
                 </DropdownItem>
                 <DropdownItem key="account">Mi cuenta</DropdownItem>
                 {hasWorkspaceAccess ? <DropdownItem key="workspaces">Mis barberias</DropdownItem> : null}
@@ -618,8 +670,9 @@ export function SiteHeader() {
             <NextLink
               href="/mis-barberias"
               onClick={() => setIsMenuOpen(false)}
-              className="nav-link-pill flex w-full justify-start no-underline"
+              className="nav-link-pill flex w-full items-center justify-start gap-2 no-underline"
             >
+              <Store className="h-4 w-4" />
               Mis barberias
             </NextLink>
           </NavbarMenuItem>

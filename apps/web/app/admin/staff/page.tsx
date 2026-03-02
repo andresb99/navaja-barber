@@ -5,6 +5,18 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
+const inviteStatusLabel: Record<string, string> = {
+  invited: 'Pending',
+  active: 'Success',
+  disabled: 'Declined',
+};
+
+const inviteStatusTone: Record<string, 'warning' | 'success' | 'danger' | undefined> = {
+  invited: 'warning',
+  active: 'success',
+  disabled: 'danger',
+};
+
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
 
@@ -27,7 +39,8 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
   const params = await searchParams;
   const ctx = await requireAdmin({ shopSlug: params.shop });
   const supabase = await createSupabaseServerClient();
-  const [{ data: staff }, { data: workingHours }, { data: timeOff }] = await Promise.all([
+  const [{ data: staff }, { data: workingHours }, { data: timeOff }, { data: memberships }] =
+    await Promise.all([
     supabase
       .from('staff')
       .select('id, name, role, phone, is_active')
@@ -44,9 +57,38 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
       .eq('shop_id', ctx.shopId)
       .order('start_at', { ascending: false })
       .limit(20),
-  ]);
+      supabase
+        .from('shop_memberships')
+        .select('id, user_id, role, membership_status, created_at')
+        .eq('shop_id', ctx.shopId)
+        .in('role', ['admin', 'staff'])
+        .order('created_at', { ascending: false }),
+    ]);
+
+  const membershipUserIds = Array.from(
+    new Set(
+      (memberships || [])
+        .map((item) => String(item.user_id || ''))
+        .filter(Boolean),
+    ),
+  );
+  const { data: membershipProfiles } = membershipUserIds.length
+    ? await supabase
+        .from('user_profiles')
+        .select('auth_user_id, full_name')
+        .in('auth_user_id', membershipUserIds)
+    : { data: [] as Array<{ auth_user_id: string; full_name: string | null }> };
+  const membershipProfilesByUserId = new Map(
+    (membershipProfiles || []).map((item) => [
+      String(item.auth_user_id),
+      (typeof item.full_name === 'string' && item.full_name.trim()) || null,
+    ]),
+  );
 
   const activeStaffCount = (staff || []).filter((item) => item.is_active).length;
+  const pendingInvitesCount = (memberships || []).filter(
+    (item) => String(item.membership_status) === 'invited',
+  ).length;
   const groupedWorkingHours = new Map<
     string,
     {
@@ -133,6 +175,64 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
       />
 
       <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+        <Card className="spotlight-card soft-panel rounded-[1.9rem] border-0 shadow-none">
+          <CardBody className="p-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h3 className="text-xl font-semibold text-ink dark:text-slate-100">
+                  Invitaciones del equipo
+                </h3>
+                <p className="text-sm text-slate/80 dark:text-slate-300">
+                  El usuario acepta desde sus notificaciones y aqui veras el cambio de Pending a
+                  Success.
+                </p>
+              </div>
+              <span className="meta-chip" data-tone={pendingInvitesCount > 0 ? 'warning' : undefined}>
+                {pendingInvitesCount} pendientes
+              </span>
+            </div>
+
+            <div className="mt-4 grid gap-3">
+              {(memberships || []).length === 0 ? (
+                <p className="text-sm text-slate/70 dark:text-slate-400">
+                  Todavia no hay invitaciones creadas para este workspace.
+                </p>
+              ) : null}
+
+              {(memberships || []).map((item) => {
+                const membershipStatus = String(item.membership_status || 'invited');
+                const profileName =
+                  membershipProfilesByUserId.get(String(item.user_id || '')) ||
+                  `Usuario ${String(item.user_id || '').slice(0, 8)}`;
+
+                return (
+                  <div key={String(item.id)} className="data-card rounded-[1.5rem] p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-base font-semibold text-ink dark:text-slate-100">
+                          {profileName}
+                        </p>
+                        <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
+                          Rol: {String(item.role)}
+                        </p>
+                        <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
+                          {new Date(String(item.created_at)).toLocaleString('es-UY')}
+                        </p>
+                      </div>
+                      <span
+                        className="meta-chip"
+                        data-tone={inviteStatusTone[membershipStatus]}
+                      >
+                        {inviteStatusLabel[membershipStatus] || membershipStatus}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardBody>
+        </Card>
+
         <Card className="spotlight-card soft-panel rounded-[1.9rem] border-0 shadow-none">
           <CardBody className="p-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
