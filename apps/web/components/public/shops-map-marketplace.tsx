@@ -459,6 +459,30 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   }, [isMobileViewport]);
 
   useEffect(() => {
+    if (!isMobileViewport || typeof document === 'undefined') {
+      return;
+    }
+
+    const { documentElement, body } = document;
+    const previousHtmlOverflow = documentElement.style.overflow;
+    const previousBodyOverflow = body.style.overflow;
+    const previousHtmlOverscrollY = documentElement.style.overscrollBehaviorY;
+    const previousBodyOverscrollY = body.style.overscrollBehaviorY;
+
+    documentElement.style.overflow = 'hidden';
+    body.style.overflow = 'hidden';
+    documentElement.style.overscrollBehaviorY = 'none';
+    body.style.overscrollBehaviorY = 'none';
+
+    return () => {
+      documentElement.style.overflow = previousHtmlOverflow;
+      body.style.overflow = previousBodyOverflow;
+      documentElement.style.overscrollBehaviorY = previousHtmlOverscrollY;
+      body.style.overscrollBehaviorY = previousBodyOverscrollY;
+    };
+  }, [isMobileViewport]);
+
+  useEffect(() => {
     if (!isMobileViewport || !mobileViewportHeight || typeof window === 'undefined') {
       return;
     }
@@ -1749,7 +1773,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
           <div
             className={cn(
               'mt-5 xl:mt-0',
-              isMobileViewport ? 'min-h-0 flex-1 overflow-y-auto px-4 pb-24' : '',
+              isMobileViewport ? 'min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-24' : '',
               isMobileViewport && mobileSheetStage === 'collapsed' && 'pointer-events-none opacity-0',
             )}
           >
