@@ -828,18 +828,11 @@ html.dark .action-secondary {
     linear-gradient(145deg, rgb(255 255 255 / 0.92), rgb(248 250 255 / 0.86)),
     radial-gradient(circle at 100% 0%, rgb(56 189 248 / 0.08), transparent 30%);
   padding: 0.98rem 1rem 0.98rem 2.9rem;
-  font-size: 1rem;
   color: rgb(var(--ink));
   box-shadow:
     0 20px 34px -28px rgb(15 23 42 / 0.16),
     0 10px 18px -14px rgb(56 189 248 / 0.12);
   backdrop-filter: blur(18px);
-}
-
-@media (min-width: 768px) {
-  .places-search-input-shell input {
-    font-size: 0.875rem;
-  }
 }
 
 .places-search-input-shell[data-open='true'] input {
