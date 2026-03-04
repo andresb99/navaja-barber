@@ -813,7 +813,8 @@ html.dark .action-secondary {
 .places-search-icon {
   position: absolute;
   left: 1rem;
-  top: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
   color: rgb(71 85 105 / 0.72);
   pointer-events: none;
   z-index: 2;

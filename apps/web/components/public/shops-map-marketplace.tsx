@@ -593,7 +593,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
           zoom: DEFAULT_MARKETPLACE_ZOOM,
           ...getGoogleMapThemeOptions(isDarkTheme),
           disableDefaultUI: true,
-          zoomControl: true,
+          zoomControl: !isMobileViewport,
           fullscreenControl: false,
           mapTypeControl: false,
           streetViewControl: false,
@@ -652,6 +652,17 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
     map.setOptions(getGoogleMapThemeOptions(isDarkTheme));
   }, [isDarkTheme]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+
+    map.setOptions({
+      zoomControl: !isMobileViewport,
+    });
+  }, [isMobileViewport]);
 
   useEffect(() => {
     const google = googleMapsRef.current;
