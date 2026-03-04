@@ -1574,31 +1574,22 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       : 'Compara reputacion, perfil y disponibilidad antes de reservar.';
   const showResetSearch = (activeSearchMode !== 'all' || activeSearchLabel) && !isApplyingSearch;
   const mobileCollapsedCountLabel = `${filteredShops.length} ${filteredShops.length === 1 ? 'barberia' : 'barberias'}`;
-  const mobileViewportContentHeight = isMobileViewport && mobileViewportHeight ? mobileViewportHeight : null;
   const mobileSheetTranslate = MOBILE_SHEET_STAGE_TRANSLATE[mobileSheetStage];
   const mobileSheetStyle = isMobileViewport
     ? {
         transform: `translateY(calc(${mobileSheetTranslate}% + ${mobileSheetDragOffset}px))`,
-        height: mobileViewportContentHeight ? `${Math.max(mobileViewportContentHeight - 16, 0)}px` : undefined,
-        maxHeight: mobileViewportContentHeight ? `${Math.max(mobileViewportContentHeight - 16, 0)}px` : undefined,
       }
     : undefined;
-  const mobileStageStyle =
-    mobileViewportContentHeight !== null
-      ? {
-          height: `${mobileViewportContentHeight}px`,
-        }
-      : undefined;
   const mobileMapShellClassName = cn(
     'marketplace-map-shell relative overflow-hidden',
     isMobileViewport
-      ? 'h-full min-h-full max-h-full rounded-none border-0 bg-transparent p-0 shadow-none backdrop-blur-0'
+      ? 'flex-1 min-h-0 rounded-none border-0 bg-transparent p-0 shadow-none backdrop-blur-0'
       : 'h-[20rem] rounded-[2rem] border border-white/70 bg-white/88 p-2 shadow-[0_24px_44px_-30px_rgba(15,23,42,0.22)] md:h-[26rem] dark:border-white/10 dark:bg-slate-950/78 xl:h-[calc(100vh-8rem)] xl:min-h-[44rem]',
   );
   const mobileSheetClassName = cn(
     'pointer-events-auto relative z-10',
     isMobileViewport
-      ? 'flex h-[calc(100svh-9.5rem)] max-h-[calc(100svh-9.5rem)] flex-col rounded-t-[2.25rem] rounded-b-none border border-slate-200 bg-white shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] dark:border-white/10 dark:bg-slate-950'
+      ? 'flex h-full min-h-0 max-h-full flex-col rounded-t-[2.25rem] rounded-b-none border border-slate-200 bg-white shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] dark:border-white/10 dark:bg-slate-950'
       : 'relative z-10 rounded-[2.25rem] border border-white/70 bg-white/95 p-4 shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/94 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none xl:backdrop-blur-0',
     !isMobileViewport && '-mt-14 xl:mt-0',
     !isMobileSheetDragging && isMobileViewport && 'transition-transform duration-300 ease-out',
@@ -1607,8 +1598,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   return (
     <div
       ref={mobileStageRef}
-      className="relative -mx-4 -mb-16 -mt-5 flex h-[calc(100dvh-4.75rem)] flex-col gap-4 overflow-hidden sm:-mx-6 md:-mb-[4.5rem] md:-mt-7 xl:mx-0 xl:mb-0 xl:mt-0 xl:grid xl:h-auto xl:min-h-0 xl:overflow-visible xl:grid-cols-[minmax(0,1.02fr)_minmax(28rem,0.98fr)] xl:gap-6 xl:items-start"
-      style={mobileStageStyle}
+      className="relative -mx-4 -mb-16 -mt-5 flex min-h-[100dvh] flex-col gap-4 overflow-hidden sm:-mx-6 md:-mb-[4.5rem] md:-mt-7 xl:mx-0 xl:mb-0 xl:mt-0 xl:grid xl:min-h-0 xl:h-auto xl:overflow-visible xl:grid-cols-[minmax(0,1.02fr)_minmax(28rem,0.98fr)] xl:gap-6 xl:items-start"
     >
       <div className="pointer-events-none absolute inset-0 z-20 flex items-end overflow-hidden xl:pointer-events-auto xl:relative xl:inset-auto xl:block xl:overflow-visible xl:order-1 xl:pr-4">
         <div className="hidden space-y-5 xl:block">
@@ -1932,7 +1922,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       </div>
       </div>
 
-      <div className="order-1 h-full min-h-0 xl:order-2 xl:h-auto xl:sticky xl:top-[6.25rem] xl:self-start xl:w-full">
+      <div className="order-1 flex flex-1 min-h-0 overflow-hidden xl:order-2 xl:block xl:h-auto xl:overflow-visible xl:sticky xl:top-[6.25rem] xl:self-start xl:w-full">
         <div className={mobileMapShellClassName}>
           <div className="pointer-events-none absolute inset-x-3 top-3 z-20 xl:hidden">
             <form
