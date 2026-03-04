@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { formatCurrency } from '@navaja/shared';
 import { Card, CardBody } from '@heroui/card';
+import { PencilLine } from 'lucide-react';
 import { AdminCourseForm } from '@/components/admin/course-form';
 import { AdminCourseSessionForm } from '@/components/admin/course-session-form';
 import { requireAdmin } from '@/lib/auth';
@@ -8,17 +9,18 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { buildAdminHref } from '@/lib/workspace-routes';
 
 interface CoursesAdminPageProps {
-  searchParams: Promise<{ shop?: string }>;
+  searchParams: Promise<{ shop?: string; edit?: string }>;
 }
 
 export default async function CoursesAdminPage({ searchParams }: CoursesAdminPageProps) {
   const params = await searchParams;
   const ctx = await requireAdmin({ shopSlug: params.shop });
+  const editingCourseId = String(params.edit || '').trim();
   const supabase = await createSupabaseServerClient();
 
   const { data: courses } = await supabase
     .from('courses')
-    .select('id, title, level, price_cents, duration_hours, is_active')
+    .select('id, title, description, level, price_cents, duration_hours, image_url, is_active')
     .eq('shop_id', ctx.shopId)
     .order('title');
 
@@ -52,6 +54,8 @@ export default async function CoursesAdminPage({ searchParams }: CoursesAdminPag
   });
 
   const activeCourses = (courses || []).filter((item) => item.is_active).length;
+  const editingCourse =
+    (courses || []).find((course) => String(course.id) === editingCourseId) || null;
 
   return (
     <section className="space-y-6">
@@ -96,6 +100,32 @@ export default async function CoursesAdminPage({ searchParams }: CoursesAdminPag
           </div>
         </div>
       </div>
+
+      {editingCourse ? (
+        <Card className="spotlight-card soft-panel rounded-[1.8rem] border-0 shadow-none">
+          <CardBody className="p-5">
+            <h3 className="text-xl font-semibold text-ink dark:text-slate-100">Editar curso</h3>
+            <p className="text-sm text-slate/80 dark:text-slate-300">
+              Ajusta contenido, estado e imagen de {String(editingCourse.title)}.
+            </p>
+            <AdminCourseForm
+              shopId={ctx.shopId}
+              shopSlug={ctx.shopSlug}
+              initialCourse={{
+                id: String(editingCourse.id),
+                title: String(editingCourse.title),
+                description: String(editingCourse.description || ''),
+                priceCents: Number(editingCourse.price_cents || 0),
+                durationHours: Number(editingCourse.duration_hours || 0),
+                level: String(editingCourse.level || 'Inicial'),
+                imageUrl: (typeof editingCourse.image_url === 'string' && editingCourse.image_url.trim()) || null,
+                isActive: Boolean(editingCourse.is_active),
+              }}
+              cancelHref={buildAdminHref('/admin/courses', ctx.shopSlug)}
+            />
+          </CardBody>
+        </Card>
+      ) : null}
 
       <div className="grid gap-4 xl:grid-cols-2">
         <Card className="spotlight-card soft-panel rounded-[1.8rem] border-0 shadow-none">
@@ -151,12 +181,22 @@ export default async function CoursesAdminPage({ searchParams }: CoursesAdminPag
                         {String(course.title)}
                       </p>
                     </div>
-                    <span
-                      className="meta-chip"
-                      data-tone={course.is_active ? 'success' : undefined}
-                    >
-                      {course.is_active ? 'Activo' : 'Inactivo'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={buildAdminHref('/admin/courses', ctx.shopSlug, { edit: String(course.id) })}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/55 text-ink transition hover:bg-white/78 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.09]"
+                        aria-label={`Editar curso ${String(course.title)}`}
+                        title="Editar curso"
+                      >
+                        <PencilLine className="h-4 w-4" />
+                      </Link>
+                      <span
+                        className="meta-chip"
+                        data-tone={course.is_active ? 'success' : undefined}
+                      >
+                        {course.is_active ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="mt-4 grid gap-2 sm:grid-cols-3">

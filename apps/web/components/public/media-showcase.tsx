@@ -1,6 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+  type UIEvent,
+} from 'react';
 import { Image } from '@heroui/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -14,6 +21,14 @@ interface MediaShowcaseProps {
   fallback?: ReactNode;
 }
 
+function clampIndex(index: number, length: number) {
+  if (length <= 0) {
+    return 0;
+  }
+
+  return Math.min(Math.max(index, 0), length - 1);
+}
+
 export function MediaShowcase({
   alt,
   images,
@@ -22,6 +37,10 @@ export function MediaShowcase({
   dotsClassName,
   fallback = null,
 }: MediaShowcaseProps) {
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isInteracting, setIsInteracting] = useState(false);
+
   const normalizedImages = useMemo(
     () =>
       Array.from(
@@ -34,99 +53,93 @@ export function MediaShowcase({
     [images],
   );
   const imagesFingerprint = useMemo(() => normalizedImages.join('||'), [normalizedImages]);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
   const hasMultipleImages = normalizedImages.length > 1;
 
-  useEffect(() => {
-    setActiveIndex((currentIndex) => {
-      if (normalizedImages.length === 0) {
-        return 0;
-      }
-
-      return Math.min(currentIndex, normalizedImages.length - 1);
-    });
-  }, [imagesFingerprint, normalizedImages.length]);
-
-  function goToIndex(nextIndex: number) {
-    if (!hasMultipleImages) {
+  function scrollToIndex(nextIndex: number, behavior: ScrollBehavior = 'smooth') {
+    const viewport = viewportRef.current;
+    if (!viewport || normalizedImages.length === 0) {
       return;
     }
 
-    const total = normalizedImages.length;
-    const safeIndex = ((nextIndex % total) + total) % total;
+    const safeIndex = clampIndex(nextIndex, normalizedImages.length);
+    const targetLeft = safeIndex * viewport.clientWidth;
+    viewport.scrollTo({
+      left: targetLeft,
+      behavior,
+    });
     setActiveIndex(safeIndex);
   }
 
-  function handlePrevious(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    event.stopPropagation();
-    goToIndex(activeIndex - 1);
-  }
-
-  function handleNext(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    event.stopPropagation();
-    goToIndex(activeIndex + 1);
-  }
-
-  function handleTouchStart(event: React.TouchEvent<HTMLDivElement>) {
-    if (!hasMultipleImages) {
+  function handleScroll(event: UIEvent<HTMLDivElement>) {
+    if (normalizedImages.length <= 1) {
       return;
     }
 
-    const firstTouch = event.touches[0];
-    if (!firstTouch) {
-      return;
-    }
-
-    setTouchStartX(firstTouch.clientX);
+    const viewport = event.currentTarget;
+    const width = viewport.clientWidth || 1;
+    const nextIndex = clampIndex(Math.round(viewport.scrollLeft / width), normalizedImages.length);
+    setActiveIndex(nextIndex);
   }
 
-  function handleTouchEnd(event: React.TouchEvent<HTMLDivElement>) {
-    if (!hasMultipleImages || touchStartX === null) {
-      setTouchStartX(null);
+  useEffect(() => {
+    const safeIndex = clampIndex(activeIndex, normalizedImages.length);
+    setActiveIndex(safeIndex);
+
+    if (!viewportRef.current) {
       return;
     }
 
-    const changedTouch = event.changedTouches[0];
-    if (!changedTouch) {
-      setTouchStartX(null);
-      return;
-    }
-
-    const swipeDelta = changedTouch.clientX - touchStartX;
-    const minimumSwipe = 28;
-
-    if (swipeDelta > minimumSwipe) {
-      goToIndex(activeIndex - 1);
-    } else if (swipeDelta < -minimumSwipe) {
-      goToIndex(activeIndex + 1);
-    }
-
-    setTouchStartX(null);
-  }
+    const viewport = viewportRef.current;
+    const targetLeft = safeIndex * viewport.clientWidth;
+    viewport.scrollTo({
+      left: targetLeft,
+      behavior: 'auto',
+    });
+  }, [imagesFingerprint]);
 
   return (
-    <div
-      className={cn('relative h-full w-full overflow-hidden', className)}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className={cn('relative h-full w-full overflow-hidden', className)}>
       {normalizedImages.length > 0 ? (
-        normalizedImages.map((imageUrl, index) => (
-          <Image
-            key={`${imageUrl}-${index}`}
-            removeWrapper
-            alt={normalizedImages.length > 1 ? `${alt} ${index + 1}` : alt}
-            src={imageUrl}
-            className={cn(
-              'absolute inset-0 z-0 h-full w-full object-cover transition-opacity duration-300',
-              index === activeIndex ? 'opacity-100' : 'pointer-events-none opacity-0',
-              imageClassName,
-            )}
-          />
-        ))
+        <div
+          ref={viewportRef}
+          className={cn(
+            'relative h-full w-full overflow-x-auto overflow-y-hidden touch-pan-x snap-x snap-mandatory',
+            '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+          )}
+          onScroll={handleScroll}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            setIsInteracting(true);
+          }}
+          onPointerUp={(event) => {
+            event.stopPropagation();
+            setIsInteracting(false);
+          }}
+          onPointerCancel={(event) => {
+            event.stopPropagation();
+            setIsInteracting(false);
+          }}
+          onPointerLeave={() => setIsInteracting(false)}
+          onClick={(event) => {
+            if (isInteracting) {
+              event.stopPropagation();
+            }
+          }}
+        >
+          <div className="flex h-full w-full">
+            {normalizedImages.map((imageUrl, index) => (
+              <div key={`${imageUrl}-${index}`} className="h-full min-w-full snap-start">
+                <Image
+                  removeWrapper
+                  alt={normalizedImages.length > 1 ? `${alt} ${index + 1}` : alt}
+                  src={imageUrl}
+                  className={cn('h-full w-full object-cover', imageClassName)}
+                  draggable={false}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         fallback
       )}
@@ -135,7 +148,11 @@ export function MediaShowcase({
         <>
           <button
             type="button"
-            onClick={handlePrevious}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              scrollToIndex(activeIndex - 1);
+            }}
             aria-label="Imagen anterior"
             className="absolute left-3 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-slate-950/55 text-white backdrop-blur-sm transition hover:bg-slate-950/75 md:inline-flex"
           >
@@ -143,7 +160,11 @@ export function MediaShowcase({
           </button>
           <button
             type="button"
-            onClick={handleNext}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              scrollToIndex(activeIndex + 1);
+            }}
             aria-label="Imagen siguiente"
             className="absolute right-3 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-slate-950/55 text-white backdrop-blur-sm transition hover:bg-slate-950/75 md:inline-flex"
           >
@@ -161,7 +182,7 @@ export function MediaShowcase({
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
-                goToIndex(index);
+                scrollToIndex(index);
               }}
               aria-label={`Ver imagen ${index + 1}`}
               className={cn(

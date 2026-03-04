@@ -1483,9 +1483,12 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   } en esta zona`;
   const mobileViewportContentHeight = isMobileViewport && mobileViewportHeight ? mobileViewportHeight : null;
   const mobileSheetHeight = mobileViewportContentHeight ? Math.max(mobileViewportContentHeight - 16, 0) : null;
+  const shouldHideMobileSheetForMapPreview = isMobileViewport && Boolean(mapPreviewShop);
   const mobileSheetStyle = isMobileViewport
     ? {
-        transform: `translateY(calc(${getMobileSheetStageTranslate(mobileSheetStage, mobileSheetHeight)}% + ${mobileSheetDragOffset}px))`,
+        transform: shouldHideMobileSheetForMapPreview
+          ? 'translateY(calc(100% + 1.5rem))'
+          : `translateY(calc(${getMobileSheetStageTranslate(mobileSheetStage, mobileSheetHeight)}% + ${mobileSheetDragOffset}px))`,
         height: mobileSheetHeight ? `${mobileSheetHeight}px` : undefined,
         maxHeight: mobileSheetHeight ? `${mobileSheetHeight}px` : undefined,
       }
@@ -1508,6 +1511,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       ? 'mobile-marketplace-sheet flex w-full h-[calc(100svh-9.5rem)] max-h-[calc(100svh-9.5rem)] flex-col rounded-t-[2.25rem] rounded-b-none border border-slate-200 bg-white shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] dark:border-white/10 dark:bg-slate-950'
       : 'relative z-10 rounded-[2.25rem] border border-white/70 bg-white/95 p-4 shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/94 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none xl:backdrop-blur-0',
     !isMobileViewport && '-mt-14 xl:mt-0',
+    shouldHideMobileSheetForMapPreview && 'pointer-events-none opacity-0',
     !isMobileSheetDragging && isMobileViewport && 'transition-transform duration-300 ease-out',
   );
 
@@ -1948,7 +1952,12 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                     </div>
                     <button
                       type="button"
-                      onClick={() => setMapPreviewShopId(null)}
+                      onClick={() => {
+                        setMapPreviewShopId(null);
+                        if (isMobileViewport) {
+                          setMobileSheetSnap('collapsed');
+                        }
+                      }}
                       aria-label="Cerrar vista previa"
                       className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/92 text-ink shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)] transition hover:bg-white dark:bg-slate-950/90 dark:text-slate-100 dark:hover:bg-slate-900"
                     >

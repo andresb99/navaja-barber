@@ -1,5 +1,6 @@
 'use server';
 
+import { randomUUID } from 'node:crypto';
 import {
   courseSessionUpsertSchema,
   courseUpsertSchema,
@@ -28,6 +29,10 @@ import {
   stripPendingTimeOffReason,
 } from '@/lib/time-off-requests';
 import { buildAdminHref } from '@/lib/workspace-routes';
+
+const PUBLIC_ASSETS_BUCKET = 'public-assets';
+const MAX_COURSE_IMAGE_SIZE = 8 * 1024 * 1024;
+const ALLOWED_COURSE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 function formValue(formData: FormData, key: string): string | undefined {
   const raw = formData.get(key);
@@ -78,6 +83,69 @@ function parsePriceCentsValue(value?: string): number {
   }
 
   return Number(digitsOnly);
+}
+
+function isBucketAlreadyExistsError(error: unknown) {
+  if (!error) {
+    return false;
+  }
+
+  const maybeError = error as { statusCode?: number | string; status?: number | string; message?: string };
+  const statusCode = String(maybeError.statusCode ?? maybeError.status ?? '').trim();
+  const message = String(maybeError.message || error || '').toLowerCase();
+
+  return statusCode === '409' || message.includes('already exists') || message.includes('duplicate');
+}
+
+async function ensurePublicAssetsBucket(admin: ReturnType<typeof createSupabaseAdminClient>) {
+  const { error } = await admin.storage.createBucket(PUBLIC_ASSETS_BUCKET, {
+    public: true,
+    allowedMimeTypes: Array.from(ALLOWED_COURSE_IMAGE_TYPES),
+    fileSizeLimit: `${MAX_COURSE_IMAGE_SIZE}`,
+  });
+
+  if (error && !isBucketAlreadyExistsError(error)) {
+    throw new Error(error.message || 'No se pudo preparar el bucket de imagenes.');
+  }
+}
+
+function sanitizeStorageFilename(name: string) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120);
+}
+
+function getImageFileExtension(file: File) {
+  if (file.name.includes('.')) {
+    const fromName = file.name.split('.').pop()?.trim().toLowerCase();
+    if (fromName) {
+      return fromName;
+    }
+  }
+
+  if (file.type === 'image/png') {
+    return 'png';
+  }
+
+  if (file.type === 'image/webp') {
+    return 'webp';
+  }
+
+  return 'jpg';
+}
+
+function parsePublicAssetsStoragePath(publicUrl: string | null | undefined) {
+  const normalized = String(publicUrl || '').trim();
+  if (!normalized) {
+    return null;
+  }
+
+  const marker = `/storage/v1/object/public/${PUBLIC_ASSETS_BUCKET}/`;
+  const markerIndex = normalized.indexOf(marker);
+  if (markerIndex === -1) {
+    return null;
+  }
+
+  const storagePath = normalized.slice(markerIndex + marker.length).trim();
+  return storagePath || null;
 }
 
 function getValidationErrorMessage(
@@ -1087,7 +1155,20 @@ export async function updateAppointmentStatusAction(formData: FormData) {
 
 export async function upsertCourseAction(formData: FormData) {
   const shopId = requireFormShopId(formData);
+  const shopSlug = requireFormShopSlug(formData);
   await requireAdmin({ shopId });
+  const rawImageFile = formData.get('image_file');
+  const imageFile = rawImageFile instanceof File && rawImageFile.size > 0 ? rawImageFile : null;
+
+  if (imageFile) {
+    if (!ALLOWED_COURSE_IMAGE_TYPES.has(imageFile.type)) {
+      throw new Error('La imagen del curso debe ser JPG, PNG o WEBP.');
+    }
+
+    if (imageFile.size > MAX_COURSE_IMAGE_SIZE) {
+      throw new Error('La imagen del curso debe pesar menos de 8MB.');
+    }
+  }
 
   const parsed = courseUpsertSchema.safeParse({
     id: formValue(formData, 'id'),
@@ -1115,24 +1196,102 @@ export async function upsertCourseAction(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
-  if (parsed.data.id) {
-    const { error } = await supabase
-      .from('courses')
-      .update(parsed.data)
-      .eq('id', parsed.data.id)
-      .eq('shop_id', parsed.data.shop_id);
-    if (error) {
-      throw new Error(error.message);
+  const admin = createSupabaseAdminClient();
+  let uploadedStoragePath: string | null = null;
+  let previousImageStoragePath: string | null = null;
+  let nextImageUrl = parsed.data.image_url || null;
+
+  try {
+    if (parsed.data.id) {
+      const { data: existingCourse, error: existingCourseError } = await supabase
+        .from('courses')
+        .select('id, image_url')
+        .eq('id', parsed.data.id)
+        .eq('shop_id', parsed.data.shop_id)
+        .maybeSingle();
+
+      if (existingCourseError) {
+        throw new Error(existingCourseError.message);
+      }
+
+      if (!existingCourse?.id) {
+        throw new Error('No encontramos el curso que intentas editar en esta barberia.');
+      }
+
+      previousImageStoragePath = parsePublicAssetsStoragePath(String(existingCourse.image_url || ''));
     }
-  } else {
-    const { error } = await supabase.from('courses').insert(parsed.data);
-    if (error) {
-      throw new Error(error.message);
+
+    if (imageFile) {
+      await ensurePublicAssetsBucket(admin);
+
+      const fileExtension = getImageFileExtension(imageFile);
+      const safeName = sanitizeStorageFilename(imageFile.name || `course-image.${fileExtension}`);
+      const storagePath = `shops/${shopId}/courses/${parsed.data.id || randomUUID()}/${Date.now()}-${randomUUID()}-${safeName}`;
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+
+      const { error: uploadError } = await admin.storage.from(PUBLIC_ASSETS_BUCKET).upload(storagePath, buffer, {
+        contentType: imageFile.type || 'application/octet-stream',
+        upsert: false,
+      });
+
+      if (uploadError) {
+        throw new Error(uploadError.message);
+      }
+
+      uploadedStoragePath = storagePath;
+      const {
+        data: { publicUrl },
+      } = admin.storage.from(PUBLIC_ASSETS_BUCKET).getPublicUrl(storagePath);
+
+      nextImageUrl = publicUrl;
     }
+
+    const payload = {
+      ...parsed.data,
+      image_url: nextImageUrl,
+    };
+
+    if (payload.id) {
+      const { id, ...updatePayload } = payload;
+      const { error } = await supabase
+        .from('courses')
+        .update(updatePayload)
+        .eq('id', id)
+        .eq('shop_id', payload.shop_id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    } else {
+      const { error } = await supabase.from('courses').insert(payload);
+      if (error) {
+        throw new Error(error.message);
+      }
+    }
+
+    if (
+      uploadedStoragePath &&
+      previousImageStoragePath &&
+      previousImageStoragePath !== uploadedStoragePath
+    ) {
+      await admin.storage.from(PUBLIC_ASSETS_BUCKET).remove([previousImageStoragePath]);
+    }
+  } catch (error) {
+    if (uploadedStoragePath) {
+      await admin.storage.from(PUBLIC_ASSETS_BUCKET).remove([uploadedStoragePath]);
+    }
+
+    throw error;
   }
 
   revalidatePath('/admin/courses');
   revalidatePath('/courses');
+  if (shopSlug) {
+    revalidatePath(`/shops/${shopSlug}/courses`);
+    if (parsed.data.id) {
+      revalidatePath(`/shops/${shopSlug}/courses/${parsed.data.id}`);
+    }
+  }
 }
 
 export async function upsertCourseSessionAction(formData: FormData) {
