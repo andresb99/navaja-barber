@@ -1633,7 +1633,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                       window.setTimeout(() => setIsSearchFocused(false), 120);
                     }}
                     placeholder="Busca una zona o el nombre de una barberia"
-                    className="min-w-0 text-sm font-medium outline-none placeholder:text-slate/55 dark:placeholder:text-slate-400"
+                    className="min-w-0 text-base font-medium outline-none placeholder:text-slate/55 md:text-sm dark:placeholder:text-slate-400"
                   />
                   {isApplyingSearch ? (
                     <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate/60 dark:text-slate-400">
@@ -1926,7 +1926,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                         window.setTimeout(() => setIsSearchFocused(false), 120);
                       }}
                       placeholder="Buscar zona o barberia"
-                      className="min-w-0 text-sm font-medium outline-none placeholder:text-slate/55 dark:placeholder:text-slate-400"
+                      className="min-w-0 text-base font-medium outline-none placeholder:text-slate/55 md:text-sm dark:placeholder:text-slate-400"
                     />
                     {isApplyingSearch ? (
                       <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate/60 dark:text-slate-400">
