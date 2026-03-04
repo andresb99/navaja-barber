@@ -58,6 +58,7 @@ const adminHeaderLinks = [
   { href: '/admin/appointments', label: 'Citas' },
   { href: '/admin/staff', label: 'Equipo' },
   { href: '/admin/services', label: 'Servicios' },
+  { href: '/admin/barbershop', label: 'Barberia' },
   { href: '/admin/courses', label: 'Cursos' },
   { href: '/admin/modelos', label: 'Modelos' },
   { href: '/admin/applicants', label: 'Postulantes' },

@@ -9,6 +9,7 @@ const MAX_RECOMMENDED_SHOP_IMAGES = 3;
 const MAX_SHOP_IMAGES = 6;
 const MAX_SHOP_IMAGE_SIZE = 8 * 1024 * 1024;
 const ALLOWED_SHOP_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const PUBLIC_ASSETS_BUCKET = 'public-assets';
 
 const barbershopOnboardingPayloadSchema = z.object({
   shop_name: z.string().trim().min(2).max(120),
@@ -58,6 +59,51 @@ function getRequestErrorMessage(error: unknown, fallback: string) {
   }
 
   return fallback;
+}
+
+function isMissingShopGalleryTableError(error: unknown) {
+  if (!error) {
+    return false;
+  }
+
+  const maybeError = error as { code?: string; message?: string };
+  const code = String(maybeError.code || '').toUpperCase();
+  const message = String(maybeError.message || error || '').toLowerCase();
+
+  return (
+    code === 'PGRST205' ||
+    code === '42P01' ||
+    (message.includes('shop_gallery_images') &&
+      (message.includes('schema cache') || message.includes('does not exist') || message.includes('not found')))
+  );
+}
+
+function getMissingGalleryTableMessage() {
+  return 'Falta la tabla de galeria en tu base. Aplica la migracion 202603040001_shop_gallery_images.sql y vuelve a intentar.';
+}
+
+function isBucketAlreadyExistsError(error: unknown) {
+  if (!error) {
+    return false;
+  }
+
+  const maybeError = error as { statusCode?: number | string; status?: number | string; message?: string };
+  const statusCode = String(maybeError.statusCode ?? maybeError.status ?? '').trim();
+  const message = String(maybeError.message || error || '').toLowerCase();
+
+  return statusCode === '409' || message.includes('already exists') || message.includes('duplicate');
+}
+
+async function ensurePublicAssetsBucket(admin: ReturnType<typeof createSupabaseAdminClient>) {
+  const { error } = await admin.storage.createBucket(PUBLIC_ASSETS_BUCKET, {
+    public: true,
+    allowedMimeTypes: Array.from(ALLOWED_SHOP_IMAGE_TYPES),
+    fileSizeLimit: `${MAX_SHOP_IMAGE_SIZE}`,
+  });
+
+  if (error && !isBucketAlreadyExistsError(error)) {
+    throw new Error(error.message || 'No se pudo preparar el bucket de imagenes.');
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -119,6 +165,8 @@ export async function POST(request: NextRequest) {
   let createdShopSlug: string | null = null;
 
   try {
+    await ensurePublicAssetsBucket(admin);
+
     const { data, error: rpcError } = await supabase.rpc('bootstrap_shop_owner', {
       p_shop_name: parsedPayload.data.shop_name,
       p_shop_slug: parsedPayload.data.shop_slug,
@@ -162,7 +210,7 @@ export async function POST(request: NextRequest) {
       const storagePath = `shops/${createdShopId}/gallery/${index + 1}-${randomUUID()}-${safeName}`;
       const buffer = Buffer.from(await file.arrayBuffer());
 
-      const { error: uploadError } = await admin.storage.from('public-assets').upload(storagePath, buffer, {
+      const { error: uploadError } = await admin.storage.from(PUBLIC_ASSETS_BUCKET).upload(storagePath, buffer, {
         contentType: file.type || 'application/octet-stream',
         upsert: false,
       });
@@ -175,7 +223,7 @@ export async function POST(request: NextRequest) {
 
       const {
         data: { publicUrl },
-      } = admin.storage.from('public-assets').getPublicUrl(storagePath);
+      } = admin.storage.from(PUBLIC_ASSETS_BUCKET).getPublicUrl(storagePath);
 
       galleryRows.push({
         shop_id: createdShopId,
@@ -214,11 +262,15 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     if (storagePaths.length > 0) {
-      await admin.storage.from('public-assets').remove(storagePaths);
+      await admin.storage.from(PUBLIC_ASSETS_BUCKET).remove(storagePaths);
     }
 
     if (createdShopId) {
       await admin.from('shops').delete().eq('id', createdShopId);
+    }
+
+    if (isMissingShopGalleryTableError(error)) {
+      return new NextResponse(getMissingGalleryTableMessage(), { status: 503 });
     }
 
     return new NextResponse(getRequestErrorMessage(error, 'No se pudo completar el onboarding de la barberia.'), {

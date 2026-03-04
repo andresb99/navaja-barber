@@ -1145,6 +1145,7 @@ html.dark .meta-chip[data-tone='danger'] {
 }
 
 .mobile-marketplace-sheet {
+  --mobile-sheet-bg: rgb(255 255 255);
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -1155,23 +1156,27 @@ html.dark .meta-chip[data-tone='danger'] {
   -webkit-backface-visibility: hidden;
 }
 
+html.dark .mobile-marketplace-sheet {
+  --mobile-sheet-bg: rgb(2 6 23);
+}
+
 .mobile-marketplace-sheet::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   border-radius: inherit;
-  background: rgb(255 255 255);
+  background: var(--mobile-sheet-bg);
   pointer-events: none;
-}
-
-html.dark .mobile-marketplace-sheet::before {
-  background: rgb(2 6 23);
 }
 
 .mobile-marketplace-sheet > * {
   position: relative;
   z-index: 1;
+}
+
+.mobile-sheet-surface {
+  background-color: var(--mobile-sheet-bg) !important;
 }
 
 .marketplace-map-shell {

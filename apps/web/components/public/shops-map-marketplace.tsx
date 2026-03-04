@@ -22,6 +22,7 @@ import { MediaShowcase } from '@/components/public/media-showcase';
 import {
   type GoogleAutocompleteService,
   type GoogleGeocoder,
+  type GoogleGeocoderResult,
   type GoogleMap,
   type GoogleMapsApi,
   type GoogleMapsLibrary,
@@ -264,6 +265,55 @@ function isLikelyShopQuery(query: string, suggestion: SearchSuggestion | null) {
   }
 
   return normalizedName.includes(normalizedQuery) || normalizedQuery.includes(normalizedName);
+}
+
+const PRECISE_GEOCODER_TYPES = new Set([
+  'street_address',
+  'premise',
+  'subpremise',
+  'intersection',
+  'establishment',
+  'point_of_interest',
+]);
+
+const AREA_GEOCODER_TYPES = new Set([
+  'locality',
+  'neighborhood',
+  'sublocality',
+  'sublocality_level_1',
+  'administrative_area_level_1',
+  'administrative_area_level_2',
+  'administrative_area_level_3',
+  'postal_code',
+  'country',
+]);
+
+function getGeocoderResultZoom(query: string, result: GoogleGeocoderResult) {
+  const defaultAreaZoom = 13;
+  const preciseAddressZoom = 16;
+  const rawResult = result as GoogleGeocoderResult & { types?: string[] };
+  const resultTypes = Array.isArray(rawResult.types)
+    ? rawResult.types.map((type) => String(type || '').toLowerCase())
+    : [];
+  const componentTypes = (result.address_components || [])
+    .flatMap((item) => item.types || [])
+    .map((type) => String(type || '').toLowerCase());
+
+  const hasStreetNumber = componentTypes.includes('street_number');
+  const hasRoute = componentTypes.includes('route');
+  const looksLikeSpecificAddress = /\d/.test(query) || /[&/]/.test(query);
+  const hasPreciseType = resultTypes.some((type) => PRECISE_GEOCODER_TYPES.has(type));
+  const hasAreaType = resultTypes.some((type) => AREA_GEOCODER_TYPES.has(type));
+
+  if (hasStreetNumber || hasPreciseType || (hasRoute && looksLikeSpecificAddress)) {
+    return preciseAddressZoom;
+  }
+
+  if (hasAreaType) {
+    return defaultAreaZoom;
+  }
+
+  return looksLikeSpecificAddress ? preciseAddressZoom : defaultAreaZoom;
 }
 
 const MARKETPLACE_CARD_SKELETON_COUNT = 6;
@@ -1184,7 +1234,11 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     }
 
     try {
-      const resolved = await new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
+      const resolved = await new Promise<{
+        latitude: number;
+        longitude: number;
+        result: GoogleGeocoderResult;
+      }>((resolve, reject) => {
         geocoder.geocode(
           options?.placeId
             ? { placeId: options.placeId }
@@ -1208,6 +1262,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
             resolve({
               latitude: location.lat(),
               longitude: location.lng(),
+              result: results[0] as GoogleGeocoderResult,
             });
           },
         );
@@ -1220,7 +1275,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       const nextViewport = {
         latitude: resolved.latitude,
         longitude: resolved.longitude,
-        zoom: options?.zoom ?? 13,
+        zoom: options?.zoom ?? getGeocoderResultZoom(trimmedQuery, resolved.result),
       };
 
       const focused = await focusMapOnCoordinates(
@@ -1569,7 +1624,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
         <div ref={mobileSheetRef} className={mobileSheetClassName} style={mobileSheetStyle}>
           <div
-            className="absolute inset-x-0 top-0 z-10 flex h-7 cursor-grab touch-none justify-center bg-white pt-3 select-none active:cursor-grabbing dark:bg-slate-950 xl:hidden"
+            className="mobile-sheet-surface absolute inset-x-0 top-0 z-10 flex h-7 cursor-grab touch-none justify-center pt-3 select-none active:cursor-grabbing xl:hidden"
             onPointerDown={handleMobileSheetDragStart}
           >
             <div className="h-1.5 w-14 rounded-full bg-black/20 dark:bg-white/20" />
@@ -1577,7 +1632,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
           <div
             className={cn(
-              'relative z-10 bg-white dark:bg-slate-950 xl:hidden cursor-grab touch-none select-none active:cursor-grabbing',
+              'mobile-sheet-surface relative z-10 xl:hidden cursor-grab touch-none select-none active:cursor-grabbing',
               mobileSheetStage === 'collapsed'
                 ? 'h-[5.25rem] px-4 py-0 flex items-center justify-center'
                 : 'px-4 pb-3 pt-7',
@@ -1623,7 +1678,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
           <div
             className={cn(
               isMobileViewport
-                ? 'mt-0 min-h-0 flex-1 overflow-y-auto overscroll-contain bg-white px-4 pb-24 pt-5 dark:bg-slate-950'
+                ? 'mobile-sheet-surface mt-0 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-24 pt-5'
                 : 'mt-5',
               isMobileViewport && mobileSheetStage === 'collapsed' && 'pointer-events-none opacity-0',
             )}
