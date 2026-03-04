@@ -506,8 +506,8 @@ export function SiteHeader() {
       }}
     >
       <NavbarContent justify="start">
-        <NavbarBrand className="h-full items-center justify-center py-0 md:w-[14rem]">
-          <NextLink href={contextualHomeHref} className="flex h-full items-center justify-center no-underline md:w-full">
+        <NavbarBrand className="h-full items-center py-0 md:w-[14rem]">
+          <NextLink href={contextualHomeHref} className="flex h-full items-center no-underline md:w-full">
             <HeaderBrand />
           </NextLink>
         </NavbarBrand>
