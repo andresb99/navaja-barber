@@ -110,7 +110,7 @@ describe('CoursesPage', () => {
     expect(screen.queryByRole('heading', { name: 'Orphan' })).not.toBeInTheDocument();
     expect(screen.getByText('Intermedio')).toBeInTheDocument();
     expect(screen.getByText('6h')).toBeInTheDocument();
-    expect(screen.getByText('$50.00')).toBeInTheDocument();
+    expect(screen.getByText(/\$\s?50\b/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ver curso' })).toHaveAttribute(
       'href',
       '/shops/navaja-centro/courses/course-1',

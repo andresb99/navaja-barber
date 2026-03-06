@@ -36,7 +36,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   }
 
   return (
-    <section className="mx-auto w-full max-w-5xl">
+    <section className="mx-auto w-full max-w-6xl">
       <LoginForm initialMode={initialMode} nextPath={nextPath} initialMessage={params.message || null} />
     </section>
   );

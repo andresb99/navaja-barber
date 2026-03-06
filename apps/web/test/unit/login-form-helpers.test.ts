@@ -8,7 +8,9 @@ describe('login form helpers', () => {
 
   it('maps common auth provider errors to user-facing copy', () => {
     expect(mapAuthError('Invalid login credentials')).toBe('Email o contrasena incorrectos.');
-    expect(mapAuthError('Provider is not enabled')).toContain('Google no esta habilitado');
+    expect(mapAuthError('Provider is not enabled')).toContain(
+      'El provider social no esta habilitado en Supabase para este proyecto.',
+    );
     expect(mapAuthError('Algo inesperado')).toBe('Algo inesperado');
   });
 });

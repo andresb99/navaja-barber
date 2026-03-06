@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { LockKeyhole, MailCheck, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
+import { ChevronRight, LockKeyhole, MailCheck, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Input } from '@heroui/react';
 import { APP_NAME } from '@/lib/constants';
@@ -385,26 +385,51 @@ export function LoginForm({
   };
 
   const isPasswordMode = mode === 'login' || mode === 'register';
+  const modeButtonClassName = (isActive: boolean) =>
+    `flex min-h-[3.2rem] flex-col items-start justify-center rounded-[1rem] border px-3 py-2 text-left transition ${
+      isActive
+        ? 'border-sky-300/55 bg-white/90 text-ink shadow-[0_14px_28px_-20px_rgba(14,165,233,0.4)] dark:border-sky-300/35 dark:bg-white/[0.1] dark:text-slate-100'
+        : 'border-white/70 bg-white/55 text-slate/80 dark:border-white/10 dark:bg-white/[0.02] dark:text-slate-300'
+    }`;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+    <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] xl:gap-6">
       <aside className="section-hero p-6 text-ink md:p-8 dark:text-white">
-        <div className="relative z-10 space-y-4">
-          <p className="hero-eyebrow dark:border-white/10 dark:bg-white/[0.04] dark:text-white/82">
+        <div className="relative z-10 flex h-full flex-col">
+          <p className="hero-eyebrow w-fit dark:border-white/10 dark:bg-white/[0.04] dark:text-white/82">
             <Sparkles className="h-3.5 w-3.5" />
-            Acceso seguro
+            Acceso unificado
           </p>
-          <h1 className="font-[family-name:var(--font-heading)] text-3xl font-semibold leading-tight text-ink md:text-4xl dark:text-white">
+          <h1 className="mt-4 font-[family-name:var(--font-heading)] text-3xl font-semibold leading-tight text-ink md:text-4xl dark:text-white">
             {mode === 'reset' ? 'Actualiza tu clave' : `Tu cuenta en ${APP_NAME}`}
           </h1>
-          <p className="max-w-sm text-sm text-slate/80 dark:text-white/80">
-            Controla reservas, historial y accesos por rol desde un solo inicio de sesion.
+          <p className="mt-3 max-w-md text-sm text-slate/80 dark:text-white/80">
+            Gestiona reservas, historial y accesos de usuario/staff/admin con una sola autenticacion.
           </p>
 
-          <ul className="space-y-2 pt-2 text-sm text-slate/85 dark:text-white/85">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="surface-card rounded-[1.35rem] p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/62 dark:text-slate-400">
+                Seguridad
+              </p>
+              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                Validacion por correo y recuperacion de clave.
+              </p>
+            </div>
+            <div className="surface-card rounded-[1.35rem] p-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/62 dark:text-slate-400">
+                Continuidad
+              </p>
+              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                Sigue como invitado o entra para guardar historial.
+              </p>
+            </div>
+          </div>
+
+          <ul className="mt-5 space-y-2.5 rounded-[1.45rem] border border-white/75 bg-white/58 p-4 text-sm text-slate/85 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/85">
             <li className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-brass" />
-              Sesiones protegidas y por rol.
+              Sesiones protegidas y separacion por rol.
             </li>
             <li className="flex items-center gap-2">
               <MailCheck className="h-4 w-4 text-brass" />
@@ -412,63 +437,71 @@ export function LoginForm({
             </li>
             <li className="flex items-center gap-2">
               <UserRound className="h-4 w-4 text-brass" />
-              Cuenta de usuario conectada a reservas.
+              Perfil conectado a reservas y notificaciones.
             </li>
           </ul>
         </div>
       </aside>
 
-      <div className="soft-panel rounded-[2rem] border-0 p-6 md:p-8">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="pill-toggle"
-            data-testid="auth-mode-login"
-            data-active={String(mode === 'login')}
-            onClick={() => {
-              if (!isBusy) {
-                setMode('login');
-              }
-            }}
-          >
-            Ingresar
-          </button>
-          <button
-            type="button"
-            className="pill-toggle"
-            data-testid="auth-mode-register"
-            data-active={String(mode === 'register')}
-            onClick={() => {
-              if (!isBusy) {
-                setMode('register');
-              }
-            }}
-          >
-            Registro
-          </button>
-          <button
-            type="button"
-            className="pill-toggle"
-            data-testid="auth-mode-recover"
-            data-active={String(mode === 'recover')}
-            onClick={() => {
-              if (!isBusy) {
-                setMode('recover');
-              }
-            }}
-          >
-            Recuperar
-          </button>
-          <Button
-            as={Link}
-            href="/book"
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="action-secondary ml-auto"
-          >
-            Seguir invitado
-          </Button>
+      <div className="soft-panel rounded-[2rem] border-0 p-4 md:p-6">
+        <div className="rounded-[1.6rem] border border-white/75 bg-white/66 p-3 dark:border-white/10 dark:bg-white/[0.03]">
+          <div className="grid gap-2 sm:grid-cols-3">
+            <button
+              type="button"
+              className={modeButtonClassName(mode === 'login')}
+              data-testid="auth-mode-login"
+              data-active={String(mode === 'login')}
+              onClick={() => {
+                if (!isBusy) {
+                  setMode('login');
+                }
+              }}
+            >
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate/65 dark:text-slate-400">
+                Modo
+              </span>
+              <span className="mt-1 text-sm font-semibold">Ingresar</span>
+            </button>
+            <button
+              type="button"
+              className={modeButtonClassName(mode === 'register')}
+              data-testid="auth-mode-register"
+              data-active={String(mode === 'register')}
+              onClick={() => {
+                if (!isBusy) {
+                  setMode('register');
+                }
+              }}
+            >
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate/65 dark:text-slate-400">
+                Modo
+              </span>
+              <span className="mt-1 text-sm font-semibold">Registro</span>
+            </button>
+            <button
+              type="button"
+              className={modeButtonClassName(mode === 'recover')}
+              data-testid="auth-mode-recover"
+              data-active={String(mode === 'recover')}
+              onClick={() => {
+                if (!isBusy) {
+                  setMode('recover');
+                }
+              }}
+            >
+              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate/65 dark:text-slate-400">
+                Modo
+              </span>
+              <span className="mt-1 text-sm font-semibold">Recuperar</span>
+            </button>
+          </div>
+
+          <div className="mt-3 flex items-center justify-end">
+            <Link href="/book" className="action-secondary inline-flex items-center gap-1 rounded-full px-4 py-2 text-xs font-semibold">
+              Seguir invitado
+              <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
 
         <h2 className="mt-5 font-[family-name:var(--font-heading)] text-3xl font-semibold text-ink dark:text-slate-100">
@@ -487,201 +520,210 @@ export function LoginForm({
           </p>
         ) : null}
 
-        {mode === 'recover' ? (
-          <form className="mt-4 space-y-3" onSubmit={sendPasswordRecovery}>
-            <Input
-              id="recoverEmail"
-              type="email"
-              label="Email"
-              labelPlacement="inside"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-            <Button
-              type="submit"
-              isLoading={activeAction === 'recover'}
-              isDisabled={isBusy}
-              className="action-primary px-5 text-sm font-semibold"
-            >
-              {activeAction === 'recover' ? 'Enviando enlace...' : 'Enviar enlace de recuperacion'}
-            </Button>
-          </form>
-        ) : null}
-
-        {mode === 'reset' ? (
-          <form className="mt-4 space-y-3" onSubmit={updatePassword}>
-            {!hasRecoverySession ? (
-              <p className="rounded-xl border border-amber-300/70 bg-amber-100/75 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/35 dark:text-amber-200">
-                Tu sesion de recuperacion no esta activa. Solicita un nuevo enlace.
-              </p>
-            ) : null}
-            <Input
-              id="newPassword"
-              type="password"
-              label="Nueva contrasena"
-              labelPlacement="inside"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-              required
-              minLength={8}
-            />
-            <Input
-              id="confirmPassword"
-              type="password"
-              label="Confirmar contrasena"
-              labelPlacement="inside"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              required
-              minLength={8}
-            />
-            <div className="flex flex-wrap gap-2">
+        <div key={mode} className="page-enter mt-4 rounded-[1.65rem] border border-white/75 bg-white/65 p-4 dark:border-white/10 dark:bg-white/[0.04]">
+          {mode === 'recover' ? (
+            <form className="space-y-3" onSubmit={sendPasswordRecovery}>
+              <Input
+                id="recoverEmail"
+                type="email"
+                label="Email"
+                labelPlacement="inside"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
               <Button
                 type="submit"
-                isLoading={activeAction === 'reset'}
-                isDisabled={isBusy || !hasRecoverySession}
+                isLoading={activeAction === 'recover'}
+                isDisabled={isBusy}
                 className="action-primary px-5 text-sm font-semibold"
               >
-                {activeAction === 'reset' ? 'Actualizando...' : 'Guardar nueva contrasena'}
+                {activeAction === 'recover' ? 'Enviando enlace...' : 'Enviar enlace de recuperacion'}
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="action-secondary px-5 text-sm font-semibold"
-                onClick={() => {
-                  setMode('recover');
-                }}
-                isDisabled={isBusy}
-              >
-                Solicitar otro enlace
-              </Button>
-            </div>
-          </form>
-        ) : null}
+            </form>
+          ) : null}
 
-        {isPasswordMode ? (
-          <form
-            className="mt-4 space-y-3"
-            onSubmit={mode === 'login' ? loginWithPassword : registerWithPassword}
-          >
-            {mode === 'register' ? (
-              <Input
-                id="fullName"
-                label="Nombre y apellido"
-                labelPlacement="inside"
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-              />
-            ) : null}
-
-            <Input
-              id="email"
-              type="email"
-              label="Email"
-              labelPlacement="inside"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              required
-            />
-
-            <div>
-              <Input
-                id="password"
-                type="password"
-                label="Contrasena"
-                labelPlacement="inside"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                {...(mode === 'register' ? { minLength: 8 } : {})}
-              />
-              {mode === 'register' ? (
-                <p className="mt-1 text-xs text-slate/65 dark:text-slate-400">
-                  Minimo 8 caracteres.
+          {mode === 'reset' ? (
+            <form className="space-y-3" onSubmit={updatePassword}>
+              {!hasRecoverySession ? (
+                <p className="rounded-xl border border-amber-300/70 bg-amber-100/75 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/35 dark:text-amber-200">
+                  Tu sesion de recuperacion no esta activa. Solicita un nuevo enlace.
                 </p>
               ) : null}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button
-                type="submit"
-                isLoading={activeAction === (mode === 'login' ? 'login' : 'register')}
-                isDisabled={isBusy}
-                className="action-primary px-5 text-sm font-semibold"
-              >
-                {activeAction === 'login'
-                  ? 'Ingresando...'
-                  : activeAction === 'register'
-                    ? 'Creando cuenta...'
-                    : mode === 'login'
-                      ? 'Ingresar'
-                      : 'Crear cuenta'}
-              </Button>
-              {mode === 'login' ? (
+              <Input
+                id="newPassword"
+                type="password"
+                label="Nueva contrasena"
+                labelPlacement="inside"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                required
+                minLength={8}
+              />
+              <Input
+                id="confirmPassword"
+                type="password"
+                label="Confirmar contrasena"
+                labelPlacement="inside"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+                minLength={8}
+              />
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="submit"
+                  isLoading={activeAction === 'reset'}
+                  isDisabled={isBusy || !hasRecoverySession}
+                  className="action-primary px-5 text-sm font-semibold"
+                >
+                  {activeAction === 'reset' ? 'Actualizando...' : 'Guardar nueva contrasena'}
+                </Button>
                 <Button
                   type="button"
                   variant="ghost"
                   className="action-secondary px-5 text-sm font-semibold"
-                  isLoading={activeAction === 'magic-link'}
-                  isDisabled={isBusy || !email}
-                  onClick={(event) => {
-                    void sendMagicLink(event);
+                  onClick={() => {
+                    setMode('recover');
+                  }}
+                  isDisabled={isBusy}
+                >
+                  Solicitar otro enlace
+                </Button>
+              </div>
+            </form>
+          ) : null}
+
+          {isPasswordMode ? (
+            <form
+              className="space-y-3"
+              onSubmit={mode === 'login' ? loginWithPassword : registerWithPassword}
+            >
+              {mode === 'register' ? (
+                <Input
+                  id="fullName"
+                  label="Nombre y apellido"
+                  labelPlacement="inside"
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
+                />
+              ) : null}
+
+              <Input
+                id="email"
+                type="email"
+                label="Email"
+                labelPlacement="inside"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+
+              <div>
+                <Input
+                  id="password"
+                  type="password"
+                  label="Contrasena"
+                  labelPlacement="inside"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                  {...(mode === 'register' ? { minLength: 8 } : {})}
+                />
+                {mode === 'register' ? (
+                  <p className="mt-1 text-xs text-slate/65 dark:text-slate-400">
+                    Minimo 8 caracteres.
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="submit"
+                  isLoading={activeAction === (mode === 'login' ? 'login' : 'register')}
+                  isDisabled={isBusy}
+                  className="action-primary px-5 text-sm font-semibold"
+                >
+                  {activeAction === 'login'
+                    ? 'Ingresando...'
+                    : activeAction === 'register'
+                      ? 'Creando cuenta...'
+                      : mode === 'login'
+                        ? 'Ingresar'
+                        : 'Crear cuenta'}
+                </Button>
+                {mode === 'login' ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="action-secondary px-5 text-sm font-semibold"
+                    isLoading={activeAction === 'magic-link'}
+                    isDisabled={isBusy || !email}
+                    onClick={(event) => {
+                      void sendMagicLink(event);
+                    }}
+                  >
+                    {activeAction === 'magic-link' ? 'Enviando enlace...' : 'Enlace magico'}
+                  </Button>
+                ) : null}
+              </div>
+
+              <div className="relative py-1">
+                <div className="h-px w-full bg-slate-200/90 dark:bg-white/10" />
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/75 bg-white px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/65 dark:border-white/10 dark:bg-slate-950 dark:text-slate-400">
+                  Social
+                </span>
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="action-secondary w-full justify-center px-5 text-sm font-semibold"
+                  isLoading={activeAction === 'google'}
+                  isDisabled={isBusy}
+                  onClick={() => {
+                    void signInWithSocialProvider('google');
                   }}
                 >
-                  {activeAction === 'magic-link' ? 'Enviando enlace...' : 'Enlace magico'}
+                  {activeAction === 'google' ? 'Redirigiendo a Google...' : 'Continuar con Google'}
                 </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="action-secondary w-full justify-center px-5 text-sm font-semibold"
+                  isLoading={activeAction === 'facebook'}
+                  isDisabled={isBusy}
+                  onClick={() => {
+                    void signInWithSocialProvider('facebook');
+                  }}
+                >
+                  {activeAction === 'facebook'
+                    ? 'Redirigiendo a Facebook...'
+                    : 'Continuar con Facebook'}
+                </Button>
+              </div>
+
+              {mode === 'login' ? (
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-slate/80 transition-colors md:hover:text-ink dark:text-slate-300 dark:md:hover:text-slate-100"
+                  onClick={() => {
+                    if (!isBusy) {
+                      setMode('recover');
+                      setPassword('');
+                    }
+                  }}
+                >
+                  <LockKeyhole className="h-3.5 w-3.5" />
+                  Olvide mi contrasena
+                </button>
               ) : null}
-            </div>
+            </form>
+          ) : null}
+        </div>
 
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Button
-                type="button"
-                variant="ghost"
-                className="action-secondary w-full justify-center px-5 text-sm font-semibold"
-                isLoading={activeAction === 'google'}
-                isDisabled={isBusy}
-                onClick={() => {
-                  void signInWithSocialProvider('google');
-                }}
-              >
-                {activeAction === 'google' ? 'Redirigiendo a Google...' : 'Continuar con Google'}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="action-secondary w-full justify-center px-5 text-sm font-semibold"
-                isLoading={activeAction === 'facebook'}
-                isDisabled={isBusy}
-                onClick={() => {
-                  void signInWithSocialProvider('facebook');
-                }}
-              >
-                {activeAction === 'facebook'
-                  ? 'Redirigiendo a Facebook...'
-                  : 'Continuar con Facebook'}
-              </Button>
-            </div>
-
-            {mode === 'login' ? (
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 text-xs font-semibold text-slate/80 transition-colors md:hover:text-ink dark:text-slate-300 dark:md:hover:text-slate-100"
-                onClick={() => {
-                  if (!isBusy) {
-                    setMode('recover');
-                    setPassword('');
-                  }
-                }}
-              >
-                <LockKeyhole className="h-3.5 w-3.5" />
-                Olvide mi contrasena
-              </button>
-            ) : null}
-          </form>
-        ) : null}
-
-        <div className="mt-6 space-y-2 rounded-[1.6rem] border border-white/75 bg-white/62 p-4 dark:border-white/8 dark:bg-white/[0.04]">
+        <div className="mt-5 space-y-2 rounded-[1.6rem] border border-white/75 bg-white/62 p-4 dark:border-white/8 dark:bg-white/[0.04]">
           <h3 className="font-[family-name:var(--font-heading)] text-lg font-semibold text-ink dark:text-slate-100">
             Acceso por rol
           </h3>

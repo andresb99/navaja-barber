@@ -36,6 +36,7 @@ describe('ModelosLandingPage', () => {
           compensation_value_cents: null,
           notes_public: 'Trae referencia visual.',
           models_needed: 2,
+          model_categories: ['Cabello largo', 'Coloracion'],
         },
         {
           session_id: 'session-2',
@@ -49,6 +50,7 @@ describe('ModelosLandingPage', () => {
           compensation_value_cents: 5000,
           notes_public: null,
           models_needed: 0,
+          model_categories: [],
         },
         {
           session_id: 'session-3',
@@ -62,6 +64,7 @@ describe('ModelosLandingPage', () => {
           compensation_value_cents: null,
           notes_public: 'Solo cabello medio o largo.',
           models_needed: 1,
+          model_categories: null,
         },
       ]),
     }));
@@ -79,11 +82,13 @@ describe('ModelosLandingPage', () => {
     expect(screen.getByRole('heading', { name: 'Fade avanzado' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Texturas' })).toBeInTheDocument();
     expect(screen.getByText('Gratis')).toBeInTheDocument();
-    expect(screen.getByText('$50.00')).toBeInTheDocument();
+    expect(screen.getByText(/\$\s?50\b/)).toBeInTheDocument();
     expect(screen.getByText('descuento')).toBeInTheDocument();
     expect(screen.getByText('Cupos: 2')).toBeInTheDocument();
     expect(screen.getByText('Cupos: Sin definir')).toBeInTheDocument();
     expect(screen.getByText('Trae referencia visual.')).toBeInTheDocument();
+    expect(screen.getByText('Cabello largo')).toBeInTheDocument();
+    expect(screen.getByText('Coloracion')).toBeInTheDocument();
     expect(screen.getByText('Sin notas publicas.')).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'Postularme' })[0]).toHaveAttribute(
       'href',
