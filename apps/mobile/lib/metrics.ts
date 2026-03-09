@@ -371,24 +371,30 @@ function toMonthPeriodStart(value: string) {
 export async function getDashboardMetrics(
   range: MetricRange,
   channelView: BookingMetricsChannelView = 'ALL',
+  shopId = env.EXPO_PUBLIC_SHOP_ID,
 ): Promise<DashboardMetrics> {
+  const resolvedShopId = String(shopId || '').trim();
+  if (!resolvedShopId) {
+    throw new Error('No hay una barberia activa para cargar metricas.');
+  }
+
   const { start, end, label } = getDateRange(range);
 
   const [{ data: appointments }, { data: workingHours }, { data: timeOff }] = await Promise.all([
     supabase
       .from('appointments')
       .select('status, price_cents, start_at, end_at, source_channel, services(name), staff(id, name)')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', resolvedShopId)
       .gte('start_at', start.toISOString())
       .lt('start_at', end.toISOString()),
     supabase
       .from('working_hours')
       .select('staff_id, day_of_week, start_time, end_time')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID),
+      .eq('shop_id', resolvedShopId),
     supabase
       .from('time_off')
       .select('staff_id, start_at, end_at')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', resolvedShopId)
       .lt('start_at', end.toISOString())
       .gt('end_at', start.toISOString()),
   ]);
@@ -626,10 +632,16 @@ export async function getDashboardMetrics(
 export async function getStaffPerformanceDetail(
   staffId: string,
   range: MetricRange,
+  shopId = env.EXPO_PUBLIC_SHOP_ID,
 ): Promise<StaffPerformanceDetail | null> {
   const parsedStaffId = String(staffId || '').trim();
   if (!parsedStaffId) {
     return null;
+  }
+
+  const resolvedShopId = String(shopId || '').trim();
+  if (!resolvedShopId) {
+    throw new Error('No hay una barberia activa para cargar performance.');
   }
 
   const { start, end, label } = getDateRange(range);
@@ -645,32 +657,32 @@ export async function getStaffPerformanceDetail(
     supabase
       .from('staff')
       .select('id, name')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', resolvedShopId)
       .eq('id', parsedStaffId)
       .maybeSingle(),
     supabase
       .from('appointments')
       .select('id, status, price_cents, start_at, end_at, cancelled_by, customer_id')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', resolvedShopId)
       .eq('staff_id', parsedStaffId)
       .gte('start_at', start.toISOString())
       .lt('start_at', end.toISOString()),
     supabase
       .from('working_hours')
       .select('day_of_week, start_time, end_time')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', resolvedShopId)
       .eq('staff_id', parsedStaffId),
     supabase
       .from('time_off')
       .select('start_at, end_at')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', resolvedShopId)
       .eq('staff_id', parsedStaffId)
       .lt('start_at', end.toISOString())
       .gt('end_at', start.toISOString()),
     supabase
       .from('appointment_reviews')
       .select('id, rating, comment, submitted_at, customers(name)')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', resolvedShopId)
       .eq('staff_id', parsedStaffId)
       .eq('status', 'published')
       .gte('submitted_at', start.toISOString())
@@ -679,7 +691,7 @@ export async function getStaffPerformanceDetail(
     supabase
       .from('appointment_reviews')
       .select('rating')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', resolvedShopId)
       .eq('status', 'published')
       .gte('submitted_at', start.toISOString())
       .lt('submitted_at', end.toISOString()),

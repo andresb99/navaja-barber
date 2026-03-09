@@ -24,6 +24,9 @@ interface AdminBarbershopSettingsFormProps {
   initialLatitude: number | null;
   initialLongitude: number | null;
   initialCoverImageUrl: string | null;
+  initialBookingCancellationNoticeHours: number;
+  initialBookingRefundMode: 'automatic_full' | 'manual_review';
+  initialBookingPolicyText: string | null;
   initialGalleryImages: Array<{
     id: string;
     publicUrl: string;
@@ -77,6 +80,9 @@ export function AdminBarbershopSettingsForm({
   initialLatitude,
   initialLongitude,
   initialCoverImageUrl,
+  initialBookingCancellationNoticeHours,
+  initialBookingRefundMode,
+  initialBookingPolicyText,
   initialGalleryImages,
 }: AdminBarbershopSettingsFormProps) {
   const router = useRouter();
@@ -86,6 +92,13 @@ export function AdminBarbershopSettingsForm({
   const [timezone, setTimezone] = useState(initialTimezone);
   const [phone, setPhone] = useState(initialPhone || '');
   const [description, setDescription] = useState(initialDescription || '');
+  const [bookingCancellationNoticeHours, setBookingCancellationNoticeHours] = useState(
+    String(initialBookingCancellationNoticeHours || 6),
+  );
+  const [bookingRefundMode, setBookingRefundMode] = useState<
+    'automatic_full' | 'manual_review'
+  >(initialBookingRefundMode);
+  const [bookingPolicyText, setBookingPolicyText] = useState(initialBookingPolicyText || '');
   const [locationLabel, setLocationLabel] = useState(initialLocationLabel || '');
   const [city, setCity] = useState(initialCity || '');
   const [region, setRegion] = useState(initialRegion || '');
@@ -204,9 +217,20 @@ export function AdminBarbershopSettingsForm({
 
     const latitude = normalizeNumberInput(latitudeInput);
     const longitude = normalizeNumberInput(longitudeInput);
+    const cancellationNoticeHours = Number(bookingCancellationNoticeHours.trim());
     if ((latitude === null) !== (longitude === null)) {
       setSubmitting(false);
       setError('Si completas coordenadas, debes completar latitud y longitud.');
+      return;
+    }
+
+    if (
+      !Number.isInteger(cancellationNoticeHours) ||
+      cancellationNoticeHours < 0 ||
+      cancellationNoticeHours > 168
+    ) {
+      setSubmitting(false);
+      setError('La ventana de cancelacion debe estar entre 0 y 168 horas.');
       return;
     }
 
@@ -226,6 +250,9 @@ export function AdminBarbershopSettingsForm({
         timezone: timezone.trim() || 'UTC',
         phone: phone.trim() || null,
         description: description.trim() || null,
+        booking_cancellation_notice_hours: cancellationNoticeHours,
+        booking_staff_cancellation_refund_mode: bookingRefundMode,
+        booking_cancellation_policy_text: bookingPolicyText.trim() || null,
         location_label: locationLabel.trim() || shopName.trim() || null,
         city: city.trim() || null,
         region: region.trim() || null,
@@ -292,6 +319,50 @@ export function AdminBarbershopSettingsForm({
       </div>
 
       <Textarea label="Descripcion" labelPlacement="inside" minRows={3} value={description} onChange={(event) => setDescription(event.target.value)} />
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Input
+          label="Cancelacion sin friccion (horas)"
+          labelPlacement="inside"
+          type="number"
+          min={0}
+          max={168}
+          value={bookingCancellationNoticeHours}
+          onChange={(event) => setBookingCancellationNoticeHours(event.target.value)}
+        />
+        <div className="rounded-[1.5rem] border border-white/70 bg-white/75 p-4 shadow-[0_20px_38px_-28px_rgba(15,23,42,0.2)] dark:border-white/10 dark:bg-white/[0.05]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate/60 dark:text-slate-400">
+            Reembolso si el local cancela
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="pill-toggle"
+              data-active={String(bookingRefundMode === 'automatic_full')}
+              onClick={() => setBookingRefundMode('automatic_full')}
+            >
+              Automatico 100%
+            </button>
+            <button
+              type="button"
+              className="pill-toggle"
+              data-active={String(bookingRefundMode === 'manual_review')}
+              onClick={() => setBookingRefundMode('manual_review')}
+            >
+              Revision manual
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <Textarea
+        label="Politica visible para clientes"
+        labelPlacement="inside"
+        minRows={3}
+        value={bookingPolicyText}
+        onChange={(event) => setBookingPolicyText(event.target.value)}
+        description="Este texto aparece durante la reserva para explicar cambios, cancelaciones y devoluciones."
+      />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Input label="Nombre de ubicacion" labelPlacement="inside" value={locationLabel} onChange={(event) => setLocationLabel(event.target.value)} />

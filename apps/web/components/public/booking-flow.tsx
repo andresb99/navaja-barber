@@ -32,6 +32,9 @@ interface BookingFlowProps {
   initialCustomerName?: string;
   initialCustomerPhone?: string;
   preferredPaymentMethod?: string | null;
+  cancellationNoticeHours?: number;
+  staffCancellationRefundMode?: 'automatic_full' | 'manual_review';
+  cancellationPolicyText?: string | null;
 }
 
 const stepLabels = [
@@ -103,6 +106,9 @@ export function BookingFlow({
   initialCustomerName = '',
   initialCustomerPhone = '',
   preferredPaymentMethod = null,
+  cancellationNoticeHours = 6,
+  staffCancellationRefundMode = 'automatic_full',
+  cancellationPolicyText = null,
 }: BookingFlowProps) {
   const router = useRouter();
 
@@ -494,6 +500,22 @@ export function BookingFlow({
               Metodo guardado: {preferredPaymentMethod}
             </p>
           ) : null}
+          <div className="mt-4 rounded-[1.4rem] border border-amber-300/40 bg-amber-50/80 p-4 text-sm text-slate-800 shadow-[0_18px_34px_-28px_rgba(146,64,14,0.28)] dark:border-amber-200/12 dark:bg-amber-300/[0.07] dark:text-slate-200">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700/90 dark:text-amber-200/80">
+              Politica de reserva
+            </p>
+            <p className="mt-2">
+              {cancellationNoticeHours === 0
+                ? 'Puedes cancelar sin friccion hasta el momento de la cita.'
+                : `Puedes cancelar sin friccion hasta ${cancellationNoticeHours} horas antes de la cita.`}
+            </p>
+            <p className="mt-2">
+              {staffCancellationRefundMode === 'automatic_full'
+                ? 'Si la barberia cancela una cita pagada, el reembolso se procesa automaticamente al 100%.'
+                : 'Si la barberia cancela una cita pagada, el reembolso queda marcado para revision manual del local.'}
+            </p>
+            {cancellationPolicyText ? <p className="mt-2">{cancellationPolicyText}</p> : null}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/55 pt-4 dark:border-white/8">

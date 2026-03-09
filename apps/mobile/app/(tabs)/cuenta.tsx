@@ -29,6 +29,7 @@ interface MyAppointment {
   start_at: string;
   end_at: string;
   status: string;
+  payment_status: string | null;
   service_name: string | null;
   staff_name: string | null;
   has_review: boolean;
@@ -73,6 +74,16 @@ const bookingStatusLabel: Record<string, string> = {
   cancelled: 'Cancelada',
   no_show: 'No asistio',
   done: 'Realizada',
+};
+
+const paymentStatusLabel: Record<string, string> = {
+  pending: 'Pago pendiente',
+  processing: 'Pago procesando',
+  approved: 'Pago aprobado',
+  rejected: 'Pago rechazado',
+  cancelled: 'Pago cancelado',
+  refunded: 'Pago devuelto',
+  expired: 'Pago vencido',
 };
 
 function isMissingAccountNotificationsTableError(error: unknown) {
@@ -244,6 +255,10 @@ export default function CuentaScreen() {
                     start_at: String(item.startAt),
                     end_at: String(item.startAt),
                     status: String(item.status || 'pending'),
+                    payment_status:
+                      typeof item.paymentStatus === 'string' && item.paymentStatus.trim()
+                        ? String(item.paymentStatus)
+                        : null,
                     service_name: item.serviceName ? String(item.serviceName) : null,
                     staff_name: item.staffName ? String(item.staffName) : null,
                     has_review: Boolean(item.hasReview),
@@ -282,6 +297,7 @@ export default function CuentaScreen() {
                 start_at: String(item.start_at),
                 end_at: String(item.end_at),
                 status: String(item.status),
+                payment_status: null,
                 service_name: item.service_name ? String(item.service_name) : null,
                 staff_name: item.staff_name ? String(item.staff_name) : null,
                 has_review: false,
@@ -689,6 +705,11 @@ export default function CuentaScreen() {
               <Text style={[styles.infoMeta, { color: colors.textMuted }]}>
                 Estado: {bookingStatusLabel[item.status] || item.status}
               </Text>
+              {item.payment_status ? (
+                <Text style={[styles.infoMeta, { color: colors.textMuted }]}>
+                  {paymentStatusLabel[item.payment_status] || `Pago: ${item.payment_status}`}
+                </Text>
+              ) : null}
               {item.status === 'done' && !item.has_review ? (
                 <Text style={[styles.infoHint, { color: '#92400e' }]}>Pendiente de calificar</Text>
               ) : null}

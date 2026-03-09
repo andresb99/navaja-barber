@@ -152,6 +152,9 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
         initialCustomerName={initialCustomerName}
         initialCustomerPhone={initialCustomerPhone}
         preferredPaymentMethod={preferredPaymentMethod}
+        cancellationNoticeHours={shop.bookingCancellationNoticeHours}
+        staffCancellationRefundMode={shop.bookingStaffCancellationRefundMode}
+        cancellationPolicyText={shop.bookingCancellationPolicyText}
         services={(services || []).map((item) => ({
           id: item.id as string,
           name: item.name as string,

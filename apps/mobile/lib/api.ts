@@ -60,6 +60,7 @@ export interface AccountAppointmentItemApi {
   staffId: string;
   startAt: string;
   status: string;
+  paymentStatus?: string | null;
   serviceName: string;
   staffName: string;
   hasReview: boolean;
@@ -333,6 +334,38 @@ export async function submitBookingViaApi(payload: BookingPayload) {
   return parseResponse<BookingApiResponse>(response);
 }
 
+export async function updateWorkspaceAppointmentStatusViaApi(options: {
+  accessToken: string;
+  appointmentId: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'no_show' | 'done';
+  priceCents?: number;
+}) {
+  const url = getApiUrl('/api/workspace/appointments/status');
+  if (!url) {
+    return null;
+  }
+
+  const response = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${options.accessToken}`,
+    },
+    body: JSON.stringify({
+      appointment_id: options.appointmentId,
+      status: options.status,
+      ...(typeof options.priceCents === 'number' ? { price_cents: options.priceCents } : {}),
+    }),
+  });
+
+  return parseResponse<{
+    success: boolean;
+    appointment_id: string;
+    shop_id: string;
+    review_link: string | null;
+  }>(response);
+}
+
 export async function submitModelRegistrationViaApi(payload: ModelRegistrationPayload) {
   const url = getApiUrl('/api/modelos/registro');
   if (!url) {
@@ -394,4 +427,260 @@ export async function submitNetworkJobApplicationViaApi(
   }, 30000);
 
   return parseResponse<{ profile_id: string }>(response);
+}
+
+export async function listAdminServicesViaApi(options: {
+  accessToken: string;
+  shopId: string;
+}) {
+  const baseUrl = getApiUrl('/api/workspace/admin/services');
+  if (!baseUrl) {
+    return null;
+  }
+
+  const params = new URLSearchParams();
+  appendQueryParam(params, 'shop_id', options.shopId);
+
+  const response = await fetchWithTimeout(`${baseUrl}?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      authorization: `Bearer ${options.accessToken}`,
+    },
+  });
+
+  return parseResponse<{
+    items: Array<{
+      id: string;
+      name: string;
+      price_cents: number;
+      duration_minutes: number;
+      is_active: boolean;
+    }>;
+  }>(response);
+}
+
+export async function createAdminServiceViaApi(options: {
+  accessToken: string;
+  payload: {
+    id?: string | undefined;
+    shop_id: string;
+    name: string;
+    price_cents: number;
+    duration_minutes: number;
+    is_active: boolean;
+  };
+}) {
+  const url = getApiUrl('/api/workspace/admin/services');
+  if (!url) {
+    return null;
+  }
+
+  const response = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${options.accessToken}`,
+    },
+    body: JSON.stringify(options.payload),
+  });
+
+  return parseResponse<{ success: boolean }>(response);
+}
+
+export async function listAdminStaffResourcesViaApi(options: {
+  accessToken: string;
+  shopId: string;
+}) {
+  const baseUrl = getApiUrl('/api/workspace/admin/staff');
+  if (!baseUrl) {
+    return null;
+  }
+
+  const params = new URLSearchParams();
+  appendQueryParam(params, 'shop_id', options.shopId);
+
+  const response = await fetchWithTimeout(`${baseUrl}?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      authorization: `Bearer ${options.accessToken}`,
+    },
+  });
+
+  return parseResponse<{
+    staff: Array<{
+      id: string;
+      name: string;
+      role: string;
+      phone: string;
+      is_active: boolean;
+    }>;
+    working_hours: Array<{
+      id: string;
+      staff_id: string;
+      day_of_week: number;
+      start_time: string;
+      end_time: string;
+      staff_name: string;
+    }>;
+    time_off: Array<{
+      id: string;
+      staff_id: string;
+      start_at: string;
+      end_at: string;
+      reason: string;
+      staff_name: string;
+    }>;
+  }>(response);
+}
+
+export async function createAdminStaffResourceViaApi(options: {
+  accessToken: string;
+  payload:
+    | {
+        action: 'staff';
+        payload: {
+          id?: string | undefined;
+          shop_id: string;
+          auth_user_id?: string | null | undefined;
+          name: string;
+          role: 'admin' | 'staff';
+          phone: string;
+          is_active: boolean;
+        };
+      }
+    | {
+        action: 'working_hours';
+        payload: {
+          id?: string | undefined;
+          shop_id: string;
+          staff_id: string;
+          day_of_week: number;
+          start_time: string;
+          end_time: string;
+        };
+      }
+    | {
+        action: 'time_off';
+        payload: {
+          id?: string | undefined;
+          shop_id: string;
+          staff_id: string;
+          start_at: string;
+          end_at: string;
+          reason?: string | null | undefined;
+        };
+      };
+}) {
+  const url = getApiUrl('/api/workspace/admin/staff');
+  if (!url) {
+    return null;
+  }
+
+  const response = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${options.accessToken}`,
+    },
+    body: JSON.stringify(options.payload),
+  });
+
+  return parseResponse<{ success: boolean }>(response);
+}
+
+export async function listAdminCoursesViaApi(options: {
+  accessToken: string;
+  shopId: string;
+}) {
+  const baseUrl = getApiUrl('/api/workspace/admin/courses');
+  if (!baseUrl) {
+    return null;
+  }
+
+  const params = new URLSearchParams();
+  appendQueryParam(params, 'shop_id', options.shopId);
+
+  const response = await fetchWithTimeout(`${baseUrl}?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      authorization: `Bearer ${options.accessToken}`,
+    },
+  });
+
+  return parseResponse<{
+    courses: Array<{
+      id: string;
+      title: string;
+      level: string;
+      price_cents: number;
+      duration_hours: number;
+      is_active: boolean;
+    }>;
+    sessions: Array<{
+      id: string;
+      course_id: string;
+      start_at: string;
+      capacity: number;
+      location: string;
+      status: string;
+    }>;
+    enrollments: Array<{
+      id: string;
+      session_id: string;
+      name: string;
+      phone: string;
+      email: string;
+      status: string;
+      created_at: string;
+    }>;
+  }>(response);
+}
+
+export async function createAdminCourseResourceViaApi(options: {
+  accessToken: string;
+  payload:
+    | {
+        action: 'course';
+        payload: {
+          id?: string | undefined;
+          shop_id: string;
+          title: string;
+          description: string;
+          price_cents: number;
+          duration_hours: number;
+          level: string;
+          requires_model?: boolean;
+          model_categories?: string[];
+          is_active: boolean;
+          image_url?: string | null | undefined;
+        };
+      }
+    | {
+        action: 'session';
+        shop_id: string;
+        payload: {
+          id?: string | undefined;
+          course_id: string;
+          start_at: string;
+          capacity: number;
+          location: string;
+          status: 'scheduled' | 'cancelled' | 'completed';
+        };
+      };
+}) {
+  const url = getApiUrl('/api/workspace/admin/courses');
+  if (!url) {
+    return null;
+  }
+
+  const response = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${options.accessToken}`,
+    },
+    body: JSON.stringify(options.payload),
+  });
+
+  return parseResponse<{ success: boolean }>(response);
 }

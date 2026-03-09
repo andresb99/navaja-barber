@@ -22,6 +22,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { getCurrentAuthContext, requireAdmin, requireAuthenticated, requireStaff } from '@/lib/auth';
 import { env } from '@/lib/env';
+import { updateAppointmentStatusForActor } from '@/lib/appointment-status.server';
 import { createSignedReviewToken } from '@/lib/review-links';
 import { createAppointmentFromBookingIntent } from '@/lib/booking-payments.server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
@@ -1258,42 +1259,22 @@ export async function updateAppointmentStatusAction(formData: FormData) {
     throw new Error(parsed.error.flatten().formErrors.join(', ') || 'Datos de actualizacion de cita invalidos.');
   }
 
-  if (parsed.data.status === 'done') {
-    return markAppointmentCompletedAction(
-      typeof parsed.data.price_cents === 'number'
-        ? {
-            appointmentId: parsed.data.appointment_id,
-            shopId,
-            priceCents: parsed.data.price_cents,
-          }
-        : {
-            appointmentId: parsed.data.appointment_id,
-            shopId,
-          },
-    );
-  }
-
-  const supabase = await createSupabaseServerClient();
-  const updatePayload: Record<string, unknown> = {
+  const result = await updateAppointmentStatusForActor({
+    appointmentId: parsed.data.appointment_id,
     status: parsed.data.status,
-    completed_at: null,
-    cancelled_by: parsed.data.status === 'cancelled' ? 'admin' : null,
-    cancellation_reason: null,
-  };
-
-  const { error } = await supabase
-    .from('appointments')
-    .update(updatePayload)
-    .eq('id', parsed.data.appointment_id)
-    .eq('shop_id', ctx.shopId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+    actorRole: 'admin',
+    actorUserId: ctx.userId,
+    actorStaffId: ctx.staffId || '',
+    priceCents: parsed.data.price_cents ?? null,
+  });
 
   revalidateAppointmentMetrics();
 
-  return null;
+  return parsed.data.status === 'done'
+    ? {
+        reviewLink: result.reviewLink,
+      }
+    : null;
 }
 
 export async function createManualAppointmentAction(formData: FormData) {
@@ -1891,29 +1872,13 @@ export async function updateOwnAppointmentStatusAction(formData: FormData) {
     throw new Error('Estado no permitido para el equipo.');
   }
 
-  if (parsed.data.status === 'done') {
-    await markAppointmentCompletedAction({
-      appointmentId: parsed.data.appointment_id,
-      shopId,
-    });
-    return;
-  }
-
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase
-    .from('appointments')
-    .update({
-      status: parsed.data.status,
-      completed_at: null,
-      cancelled_by: parsed.data.status === 'cancelled' ? 'staff' : null,
-      cancellation_reason: null,
-    })
-    .eq('id', parsed.data.appointment_id)
-    .eq('staff_id', ctx.staffId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  await updateAppointmentStatusForActor({
+    appointmentId: parsed.data.appointment_id,
+    status: parsed.data.status,
+    actorRole: 'staff',
+    actorUserId: ctx.userId,
+    actorStaffId: ctx.staffId,
+  });
 
   revalidateAppointmentMetrics();
 }

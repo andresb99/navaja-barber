@@ -39,35 +39,13 @@ export default function AdminBarbershopScreen() {
     setMessage(null);
 
     const auth = await getAuthContext();
-    if (auth.role !== 'admin' || !auth.userId) {
+    if (auth.role !== 'admin' || !auth.shopId) {
       setAllowed(false);
       setLoading(false);
       return;
     }
     setAllowed(true);
-
-    const { data: adminStaff, error: staffError } = await supabase
-      .from('staff')
-      .select('shop_id')
-      .eq('auth_user_id', auth.userId)
-      .eq('role', 'admin')
-      .eq('is_active', true)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle();
-
-    if (staffError) {
-      setError(staffError.message);
-      setLoading(false);
-      return;
-    }
-
-    const resolvedShopId = String(adminStaff?.shop_id || '').trim();
-    if (!resolvedShopId) {
-      setError('No se encontro una barberia admin asociada a tu usuario.');
-      setLoading(false);
-      return;
-    }
+    const resolvedShopId = String(auth.shopId || '').trim();
 
     setActiveShopId(resolvedShopId);
 

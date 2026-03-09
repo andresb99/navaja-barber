@@ -26,6 +26,7 @@ describe('AdminAppointmentsTable', () => {
             staffName: 'Luis',
             sourceChannelLabel: 'Web',
             status: 'pending',
+            paymentStatus: 'approved',
             priceLabel: '$890',
           },
         ]}
@@ -35,9 +36,11 @@ describe('AdminAppointmentsTable', () => {
     expect(screen.getByText('CITA')).toBeInTheDocument();
     expect(screen.getByText('CLIENTE')).toBeInTheDocument();
     expect(screen.getByText('ACCIONES')).toBeInTheDocument();
+    expect(screen.getByText('PAGO')).toBeInTheDocument();
     expect(screen.getByText('Juan Perez')).toBeInTheDocument();
     expect(screen.getByText('Corte')).toBeInTheDocument();
     expect(screen.getByText('Pendiente')).toBeInTheDocument();
+    expect(screen.getByText('Aprobado')).toBeInTheDocument();
     expect(container.querySelector('a[href="tel:+59891234567"]')).not.toBeNull();
   });
 
@@ -61,6 +64,7 @@ describe('AdminAppointmentsTable', () => {
             staffName: 'Carlos',
             sourceChannelLabel: 'Presencial',
             status: 'confirmed',
+            paymentStatus: null,
             priceLabel: '$490',
           },
         ]}
@@ -68,6 +72,7 @@ describe('AdminAppointmentsTable', () => {
     );
 
     expect(screen.getByText('Confirmada')).toBeInTheDocument();
+    expect(screen.getByText('Sin pago online')).toBeInTheDocument();
     expect(container.querySelector('a[href^="tel:"]')).toBeNull();
   });
 });

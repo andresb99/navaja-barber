@@ -16,6 +16,7 @@ interface AppointmentRow {
   staffName: string;
   sourceChannelLabel: string;
   status: string;
+  paymentStatus: string | null;
   priceLabel: string;
 }
 

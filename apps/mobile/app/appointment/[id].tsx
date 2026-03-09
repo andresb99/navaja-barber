@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { ActionButton, Card, ErrorText, Screen } from '../../components/ui/primitives';
 import { formatCurrency, formatDateTime } from '../../lib/format';
+import { hasExternalApi, updateWorkspaceAppointmentStatusViaApi } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
 import { palette } from '../../lib/theme';
 
@@ -11,12 +12,23 @@ interface AppointmentDetail {
   start_at: string;
   end_at: string;
   status: string;
+  payment_status: string | null;
   price_cents: number;
   notes: string;
   customer_name: string;
   customer_phone: string;
   service_name: string;
 }
+
+const PAYMENT_STATUS_LABEL: Record<string, string> = {
+  pending: 'Pago pendiente',
+  processing: 'Pago procesando',
+  approved: 'Pago aprobado',
+  rejected: 'Pago rechazado',
+  cancelled: 'Pago cancelado',
+  refunded: 'Pago devuelto',
+  expired: 'Pago vencido',
+};
 
 export default function AppointmentDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -34,13 +46,13 @@ export default function AppointmentDetailsScreen() {
 
     const { data, error: fetchError } = await supabase
       .from('appointments')
-      .select('id, start_at, end_at, status, price_cents, notes, customers(name, phone), services(name)')
+      .select('id, start_at, end_at, status, price_cents, notes, customers(name, phone), services(name), payment_intents(status)')
       .eq('id', id)
       .maybeSingle();
 
     if (fetchError || !data) {
       setLoading(false);
-      setError(fetchError?.message || 'No se encontró la cita.');
+      setError(fetchError?.message || 'No se encontro la cita.');
       setAppointment(null);
       return;
     }
@@ -50,6 +62,9 @@ export default function AppointmentDetailsScreen() {
       start_at: String(data.start_at),
       end_at: String(data.end_at),
       status: String(data.status),
+      payment_status: (data.payment_intents as { status?: string } | null)?.status
+        ? String((data.payment_intents as { status?: string } | null)?.status)
+        : null,
       price_cents: Number(data.price_cents || 0),
       notes: String(data.notes || ''),
       customer_name: String((data.customers as { name?: string } | null)?.name || 'Invitado'),
@@ -68,14 +83,33 @@ export default function AppointmentDetailsScreen() {
     if (!appointment) {
       return;
     }
+    if (!hasExternalApi) {
+      setError('Configura EXPO_PUBLIC_API_BASE_URL para actualizar citas desde mobile.');
+      return;
+    }
     setUpdating(true);
     setError(null);
 
-    const { error: updateError } = await supabase.from('appointments').update({ status }).eq('id', appointment.id);
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const accessToken = session?.access_token || '';
 
-    if (updateError) {
+    if (!accessToken) {
       setUpdating(false);
-      setError(updateError.message);
+      setError('Debes iniciar sesion para actualizar citas.');
+      return;
+    }
+
+    try {
+      await updateWorkspaceAppointmentStatusViaApi({
+        accessToken,
+        appointmentId: appointment.id,
+        status,
+      });
+    } catch (cause) {
+      setUpdating(false);
+      setError(cause instanceof Error ? cause.message : 'No se pudo actualizar la cita.');
       return;
     }
 
@@ -92,7 +126,7 @@ export default function AppointmentDetailsScreen() {
   }
 
   return (
-    <Screen title="Detalle de cita" subtitle="Actualiza estado y revisa información">
+    <Screen title="Detalle de cita" subtitle="Actualiza estado y revisa informacion">
       <ErrorText message={error} />
 
       {!appointment ? (
@@ -105,8 +139,11 @@ export default function AppointmentDetailsScreen() {
             <Text style={styles.title}>{formatDateTime(appointment.start_at)}</Text>
             <Text style={styles.item}>Servicio: {appointment.service_name}</Text>
             <Text style={styles.item}>Cliente: {appointment.customer_name}</Text>
-            <Text style={styles.item}>Teléfono: {appointment.customer_phone || '-'}</Text>
+            <Text style={styles.item}>Telefono: {appointment.customer_phone || '-'}</Text>
             <Text style={styles.item}>Estado: {appointment.status}</Text>
+            <Text style={styles.item}>
+              Pago: {PAYMENT_STATUS_LABEL[appointment.payment_status || ''] || (appointment.payment_status || 'sin pago')}
+            </Text>
             <Text style={styles.item}>Precio: {formatCurrency(appointment.price_cents)}</Text>
             <Text style={styles.item}>Notas: {appointment.notes || 'Sin notas'}</Text>
           </Card>
@@ -120,9 +157,9 @@ export default function AppointmentDetailsScreen() {
                 onPress={() => updateStatus('confirmed')}
                 disabled={updating}
               />
-              <ActionButton label="Marcar asistió" onPress={() => updateStatus('done')} disabled={updating} />
+              <ActionButton label="Marcar asistio" onPress={() => updateStatus('done')} disabled={updating} />
               <ActionButton
-                label="Marcar no se presentó"
+                label="Marcar no se presento"
                 variant="secondary"
                 onPress={() => updateStatus('no_show')}
                 disabled={updating}

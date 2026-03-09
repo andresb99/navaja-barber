@@ -26,6 +26,9 @@ interface ShopRow {
   custom_domain: string | null;
   domain_status: string | null;
   domain_verified_at: string | null;
+  booking_cancellation_notice_hours: number | null;
+  booking_staff_cancellation_refund_mode: string | null;
+  booking_cancellation_policy_text: string | null;
 }
 
 interface LocationRow {
@@ -97,7 +100,7 @@ export default async function AdminBarbershopSettingsPage({
       supabase
         .from('shops')
         .select(
-          'id, name, slug, timezone, phone, description, cover_image_url, custom_domain, domain_status, domain_verified_at',
+          'id, name, slug, timezone, phone, description, cover_image_url, custom_domain, domain_status, domain_verified_at, booking_cancellation_notice_hours, booking_staff_cancellation_refund_mode, booking_cancellation_policy_text',
         )
         .eq('id', ctx.shopId)
         .maybeSingle(),
@@ -168,6 +171,15 @@ export default async function AdminBarbershopSettingsPage({
             initialLatitude={locationData?.latitude ?? null}
             initialLongitude={locationData?.longitude ?? null}
             initialCoverImageUrl={shopData?.cover_image_url || null}
+            initialBookingCancellationNoticeHours={
+              shopData?.booking_cancellation_notice_hours ?? 6
+            }
+            initialBookingRefundMode={
+              shopData?.booking_staff_cancellation_refund_mode === 'manual_review'
+                ? 'manual_review'
+                : 'automatic_full'
+            }
+            initialBookingPolicyText={shopData?.booking_cancellation_policy_text || null}
             initialGalleryImages={galleryRows.map((item) => ({
               id: item.id,
               publicUrl: String(item.public_url),

@@ -1,16 +1,16 @@
 import { expect, test } from '@playwright/test';
 
-test('redirects the home route into the marketplace and shows mock shops', async ({ page }) => {
+test('renders the public home route with product positioning and core CTAs', async ({ page }) => {
   await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-  await expect(page).toHaveURL(/\/shops$/);
+  await expect(page).toHaveURL(/\/$/);
   await expect(
     page.getByRole('heading', {
-      name: /Descubre barberias, compara perfiles/i,
+      name: /Agenda, pagos, staff y crecimiento/i,
     }),
   ).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Navaja Centro' }).first()).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Navaja Pocitos' }).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: /Software para barberias/i }).first()).toBeVisible();
+  await expect(page.getByRole('link', { name: /Marketplace de barberias/i }).first()).toBeVisible();
   await page.screenshot({
     path: 'test-results/marketplace-home.png',
     fullPage: true,
@@ -20,14 +20,11 @@ test('redirects the home route into the marketplace and shows mock shops', async
 test('filters the marketplace list down to a matching shop', async ({ page }) => {
   await page.goto('/shops', { waitUntil: 'domcontentloaded' });
 
-  await page.getByPlaceholder('Buscar por barrio, ciudad o nombre').fill('Pocitos');
+  await page.getByRole('searchbox').first().fill('Pocitos');
+  await page.getByRole('button', { name: 'Buscar' }).first().click();
 
   await expect(page.getByRole('heading', { name: 'Navaja Pocitos' }).first()).toBeVisible();
-  await expect(page.getByText('1 resultados')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Reservar' }).first()).toHaveAttribute(
-    'href',
-    '/shops/navaja-pocitos/book',
-  );
+  await expect(page.locator('a[href=\"/shops/navaja-pocitos/book\"]').first()).toBeVisible();
 });
 
 test('renders the booking marketplace hub with deterministic mock data', async ({ page }) => {
@@ -70,11 +67,12 @@ test('renders login mode transitions without depending on live auth', async ({ p
 test('shows the empty search state for unmatched marketplace queries', async ({ page }) => {
   await page.goto('/shops', { waitUntil: 'domcontentloaded' });
 
-  await page.getByPlaceholder('Buscar por barrio, ciudad o nombre').fill('Atlantida Norte');
+  await page.getByRole('searchbox').first().fill('Atlantida Norte');
+  await page.getByRole('button', { name: 'Buscar' }).first().click();
 
   await expect(
-    page.getByText(
-      'No encontramos barberias para ese filtro. Prueba con otra ciudad o limpia la busqueda.',
-    ),
+    page
+      .getByText('No encontramos barberias visibles en esta zona todavia. Mueve el mapa para seguir explorando.')
+      .first(),
   ).toBeVisible();
 });

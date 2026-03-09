@@ -7,6 +7,7 @@ export const staffRoleSchema = z.enum(['admin', 'staff']);
 export const shopMembershipRoleSchema = z.enum(['owner', 'admin', 'staff']);
 export const shopStatusSchema = z.enum(['draft', 'setup_in_progress', 'active', 'suspended']);
 export const shopDomainStatusSchema = z.enum(['pending', 'verified', 'active', 'failed']);
+export const bookingRefundModeSchema = z.enum(['automatic_full', 'manual_review']);
 export const subscriptionPlanSchema = z.enum(['free', 'pro', 'business', 'app_admin']);
 export const subscriptionStatusSchema = z.enum(['trialing', 'active', 'past_due', 'cancelled']);
 export const appointmentStatusSchema = z.enum([
@@ -61,7 +62,16 @@ export const shopSchema = z.object({
   custom_domain: z.string().max(255).nullable().optional(),
   domain_status: shopDomainStatusSchema.nullable().optional(),
   domain_verified_at: isoDateTimeSchema.nullable().optional(),
+  booking_cancellation_notice_hours: z.number().int().min(0).max(168).optional(),
+  booking_staff_cancellation_refund_mode: bookingRefundModeSchema.optional(),
+  booking_cancellation_policy_text: z.string().max(2000).nullable().optional(),
   created_at: isoDateTimeSchema,
+});
+
+export const shopBookingPolicySchema = z.object({
+  booking_cancellation_notice_hours: z.number().int().min(0).max(168).default(6),
+  booking_staff_cancellation_refund_mode: bookingRefundModeSchema.default('automatic_full'),
+  booking_cancellation_policy_text: z.string().max(2000).nullable().optional(),
 });
 
 export const shopMembershipSchema = z.object({
@@ -575,6 +585,7 @@ export const waiverInputSchema = z.object({
 });
 
 export type Shop = z.infer<typeof shopSchema>;
+export type ShopBookingPolicy = z.infer<typeof shopBookingPolicySchema>;
 export type ShopMembership = z.infer<typeof shopMembershipSchema>;
 export type ShopLocation = z.infer<typeof shopLocationSchema>;
 export type Subscription = z.infer<typeof subscriptionSchema>;
@@ -605,6 +616,7 @@ export type StaffRole = z.infer<typeof staffRoleSchema>;
 export type ShopMembershipRole = z.infer<typeof shopMembershipRoleSchema>;
 export type ShopStatus = z.infer<typeof shopStatusSchema>;
 export type ShopDomainStatus = z.infer<typeof shopDomainStatusSchema>;
+export type BookingRefundMode = z.infer<typeof bookingRefundModeSchema>;
 export type SubscriptionPlan = z.infer<typeof subscriptionPlanSchema>;
 export type SubscriptionStatus = z.infer<typeof subscriptionStatusSchema>;
 export type EnrollmentStatus = z.infer<typeof enrollmentStatusSchema>;

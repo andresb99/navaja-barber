@@ -25,6 +25,31 @@ const statusLabel: Record<string, string> = {
   done: 'Realizada',
 };
 
+const paymentStatusTone: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
+  pending: 'warning',
+  processing: 'warning',
+  approved: 'success',
+  refunded: 'default',
+  rejected: 'danger',
+  cancelled: 'danger',
+  expired: 'danger',
+};
+
+const paymentStatusLabel: Record<string, string> = {
+  pending: 'Pendiente',
+  processing: 'Procesando',
+  approved: 'Aprobado',
+  refunded: 'Devuelto',
+  rejected: 'Rechazado',
+  cancelled: 'Cancelado',
+  expired: 'Expirado',
+};
+
+interface PaymentIntentStatusItem {
+  id: string | null;
+  status: string | null;
+}
+
 function formatHours(minutes: number) {
   return `${(minutes / 60).toFixed(1)} h`;
 }
@@ -61,7 +86,7 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
     await Promise.all([
       supabase
         .from('appointments')
-        .select('id, start_at, end_at, status, services(name), customers(name, phone), notes')
+        .select('id, start_at, end_at, status, payment_intent_id, services(name), customers(name, phone), notes')
         .eq('staff_id', ctx.staffId)
         .gte('start_at', start.toISOString())
         .lt('start_at', end.toISOString())
@@ -106,6 +131,31 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
     ]);
 
   const appointments = appointmentsResult.data || [];
+  const paymentIntentIds = Array.from(
+    new Set(
+      appointments
+        .map((item) => String((item as { payment_intent_id?: string | null }).payment_intent_id || '').trim())
+        .filter(Boolean),
+    ),
+  );
+  const paymentStatusByIntentId = new Map<string, string>();
+
+  if (paymentIntentIds.length) {
+    const { data: paymentIntents } = await supabase
+      .from('payment_intents')
+      .select('id, status')
+      .in('id', paymentIntentIds);
+
+    (paymentIntents || []).forEach((item) => {
+      const row = item as PaymentIntentStatusItem;
+      const intentId = String(row.id || '').trim();
+      const status = String(row.status || '').trim().toLowerCase();
+      if (intentId && status) {
+        paymentStatusByIntentId.set(intentId, status);
+      }
+    });
+  }
+
   const timeOffRows = timeOffResult.data || [];
   const staffOptions = staffResult.data || [];
   const serviceOptions = servicesResult.data || [];
@@ -416,32 +466,50 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
               <p className="text-sm text-slate/70">No hay citas en este periodo.</p>
             ) : null}
 
-            {appointments.map((item) => (
-              <div key={String(item.id)} className="surface-card rounded-2xl p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-medium text-ink dark:text-slate-100">
-                    {new Date(String(item.start_at)).toLocaleString('es-UY')} -{' '}
-                    {String((item.services as { name?: string } | null)?.name || 'Servicio')}
+            {appointments.map((item) => {
+              const paymentStatus = paymentStatusByIntentId.get(
+                String((item as { payment_intent_id?: string | null }).payment_intent_id || '').trim(),
+              ) || null;
+              const normalizedPaymentStatus = String(paymentStatus || '').trim().toLowerCase();
+              const paymentLabel = normalizedPaymentStatus
+                ? paymentStatusLabel[normalizedPaymentStatus] || normalizedPaymentStatus
+                : 'Sin pago online';
+              const paymentTone = normalizedPaymentStatus
+                ? paymentStatusTone[normalizedPaymentStatus] || 'default'
+                : 'default';
+
+              return (
+                <div key={String(item.id)} className="surface-card rounded-2xl p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-medium text-ink dark:text-slate-100">
+                      {new Date(String(item.start_at)).toLocaleString('es-UY')} -{' '}
+                      {String((item.services as { name?: string } | null)?.name || 'Servicio')}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Chip
+                        size="sm"
+                        radius="full"
+                        variant="flat"
+                        color={statusTone[String(item.status)] || 'default'}
+                      >
+                        {statusLabel[String(item.status)] || String(item.status)}
+                      </Chip>
+                      <Chip size="sm" radius="full" variant="flat" color={paymentTone}>
+                        Pago: {paymentLabel}
+                      </Chip>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-slate/70">
+                    Cliente:{' '}
+                    {String((item.customers as { name?: string } | null)?.name || 'Sin nombre')} -{' '}
+                    {String((item.customers as { phone?: string } | null)?.phone || 'Sin telefono')}
                   </p>
-                  <Chip
-                    size="sm"
-                    radius="full"
-                    variant="flat"
-                    color={statusTone[String(item.status)] || 'default'}
-                  >
-                    {statusLabel[String(item.status)] || String(item.status)}
-                  </Chip>
+                  {item.notes ? (
+                    <p className="mt-1 text-xs text-slate/70">Notas: {String(item.notes)}</p>
+                  ) : null}
                 </div>
-                <p className="mt-1 text-xs text-slate/70">
-                  Cliente:{' '}
-                  {String((item.customers as { name?: string } | null)?.name || 'Sin nombre')} -{' '}
-                  {String((item.customers as { phone?: string } | null)?.phone || 'Sin telefono')}
-                </p>
-                {item.notes ? (
-                  <p className="mt-1 text-xs text-slate/70">Notas: {String(item.notes)}</p>
-                ) : null}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardBody>
       </Card>

@@ -4,6 +4,7 @@ import { Card, CardBody } from '@heroui/card';
 import { reviewStaffTimeOffRequestAction } from '@/app/admin/actions';
 import { requireAdmin } from '@/lib/auth';
 import { getDashboardMetrics } from '@/lib/metrics';
+import { getProductFunnelSnapshot } from '@/lib/product-analytics';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isPendingTimeOffReason, stripPendingTimeOffReason } from '@/lib/time-off-requests';
 import { buildAdminHref } from '@/lib/workspace-routes';
@@ -15,7 +16,10 @@ interface AdminHomePageProps {
 export default async function AdminHomePage({ searchParams }: AdminHomePageProps) {
   const params = await searchParams;
   const ctx = await requireAdmin({ shopSlug: params.shop });
-  const metrics = await getDashboardMetrics('today', ctx.shopId);
+  const [metrics, funnel] = await Promise.all([
+    getDashboardMetrics('today', ctx.shopId),
+    getProductFunnelSnapshot({ shopId: ctx.shopId, sinceDays: 30, stalePendingMinutes: 30 }),
+  ]);
   const supabase = await createSupabaseServerClient();
   const recentCancellationSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const [{ data: memberships }, { data: cancelledAppointments }, { data: timeOffRows }] =
@@ -170,6 +174,67 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
           </p>
         </Link>
       </div>
+
+      <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
+        <CardBody className="space-y-4 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-[family-name:var(--font-heading)] text-xl font-semibold text-ink dark:text-slate-100">
+                Funnel de reservas y pagos
+              </h2>
+              <p className="text-sm text-slate/80 dark:text-slate-300">
+                Ultimos 30 dias de eventos instrumentados y alertas de cobros pendientes.
+              </p>
+            </div>
+            <span className="meta-chip" data-tone={funnel.stalePendingIntents > 0 ? 'warning' : 'success'}>
+              {funnel.stalePendingIntents} pendientes viejos
+            </span>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div className="surface-card">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Booking iniciado
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {funnel.counts['booking.submitted'] || 0}
+              </p>
+            </div>
+            <div className="surface-card">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Checkout creado
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {funnel.counts['booking.payment_checkout_created'] || 0}
+              </p>
+            </div>
+            <div className="surface-card">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Intent procesado
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {funnel.counts['payment.intent_processed'] || 0}
+              </p>
+            </div>
+            <div className="surface-card">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Refunds
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {funnel.refundedIntents}
+              </p>
+            </div>
+            <div className="surface-card">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Revision manual
+              </p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {funnel.counts['payment.intent_manual_refund_required'] || 0}
+              </p>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
 
       <Card
         id="notificaciones"

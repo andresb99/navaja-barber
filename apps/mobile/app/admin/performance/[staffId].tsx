@@ -34,6 +34,7 @@ export default function AdminStaffPerformanceScreen() {
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<MetricRange>(normalizeRange(params.range));
   const [error, setError] = useState<string | null>(null);
+  const [workspaceName, setWorkspaceName] = useState('');
   const [detail, setDetail] = useState<StaffPerformanceDetail | null>(null);
 
   const maxTrendValue = useMemo(() => {
@@ -54,16 +55,17 @@ export default function AdminStaffPerformanceScreen() {
     setError(null);
 
     const auth = await getAuthContext();
-    if (auth.role !== 'admin') {
+    if (auth.role !== 'admin' || !auth.shopId) {
       setAllowed(false);
       setLoading(false);
       return;
     }
 
     setAllowed(true);
+    setWorkspaceName(auth.shopName || 'Barberia');
 
     try {
-      const result = await getStaffPerformanceDetail(staffId, range);
+      const result = await getStaffPerformanceDetail(staffId, range, auth.shopId);
       if (!result) {
         setDetail(null);
         setError('No se encontro informacion para este perfil.');
@@ -97,7 +99,14 @@ export default function AdminStaffPerformanceScreen() {
   const metric = detail?.metric || null;
 
   return (
-    <Screen title={metric?.staffName || 'Performance'} subtitle={detail?.rangeLabel || 'Detalle por barbero'}>
+    <Screen
+      title={metric?.staffName || 'Performance'}
+      subtitle={
+        workspaceName
+          ? `${detail?.rangeLabel || 'Detalle por barbero'} · ${workspaceName}`
+          : (detail?.rangeLabel || 'Detalle por barbero')
+      }
+    >
       <View style={styles.rangeRow}>
         <RangeChip label="Hoy" active={range === 'today'} onPress={() => setRange('today')} />
         <RangeChip label="Ultimos 7 dias" active={range === 'last7'} onPress={() => setRange('last7')} />

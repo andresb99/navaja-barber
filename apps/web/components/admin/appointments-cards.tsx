@@ -26,6 +26,7 @@ interface AppointmentCardRow {
   staffName: string;
   sourceChannelLabel: string;
   status: string;
+  paymentStatus: string | null;
   priceLabel: string;
 }
 
@@ -49,6 +50,26 @@ const statusLabel: Record<string, string> = {
   cancelled: 'Cancelada',
   no_show: 'No asistio',
   done: 'Realizada',
+};
+
+const paymentStatusTone: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
+  pending: 'warning',
+  processing: 'warning',
+  approved: 'success',
+  refunded: 'default',
+  rejected: 'danger',
+  cancelled: 'danger',
+  expired: 'danger',
+};
+
+const paymentStatusLabel: Record<string, string> = {
+  pending: 'Pendiente',
+  processing: 'Procesando',
+  approved: 'Aprobado',
+  refunded: 'Devuelto',
+  rejected: 'Rechazado',
+  cancelled: 'Cancelado',
+  expired: 'Expirado',
 };
 
 function getPhoneHref(phone: string) {
@@ -75,6 +96,13 @@ export const AdminAppointmentsCards = memo(function AdminAppointmentsCards({
     <div className={`grid gap-3 md:grid-cols-2 xl:grid-cols-3 ${className || ''}`.trim()}>
       {appointments.map((item) => {
         const phoneHref = getPhoneHref(item.customerPhone);
+        const normalizedPaymentStatus = String(item.paymentStatus || '').trim().toLowerCase();
+        const paymentLabel = normalizedPaymentStatus
+          ? paymentStatusLabel[normalizedPaymentStatus] || normalizedPaymentStatus
+          : 'Sin pago online';
+        const paymentTone = normalizedPaymentStatus
+          ? paymentStatusTone[normalizedPaymentStatus] || 'default'
+          : 'default';
 
         return (
           <article
@@ -139,6 +167,16 @@ export const AdminAppointmentsCards = memo(function AdminAppointmentsCards({
                   Precio
                 </dt>
                 <dd className="text-slate-900 dark:text-zinc-100">{item.priceLabel}</dd>
+              </div>
+              <div>
+                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500">
+                  Pago
+                </dt>
+                <dd>
+                  <Chip size="sm" radius="full" variant="flat" color={paymentTone}>
+                    {paymentLabel}
+                  </Chip>
+                </dd>
               </div>
             </dl>
 

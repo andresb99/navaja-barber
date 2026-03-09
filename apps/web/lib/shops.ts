@@ -18,6 +18,9 @@ interface ShopRow {
   status: string;
   custom_domain: string | null;
   domain_status: string | null;
+  booking_cancellation_notice_hours: number | null;
+  booking_staff_cancellation_refund_mode: string | null;
+  booking_cancellation_policy_text: string | null;
 }
 
 interface ShopSubscriptionRow {
@@ -80,6 +83,9 @@ export interface MarketplaceShop {
   domainStatus: string | null;
   plan: string | null;
   subscriptionStatus: string | null;
+  bookingCancellationNoticeHours: number;
+  bookingStaffCancellationRefundMode: 'automatic_full' | 'manual_review';
+  bookingCancellationPolicyText: string | null;
 }
 
 function buildMarketplaceShop(
@@ -104,7 +110,7 @@ function buildMarketplaceShop(
         .map((value) => String(value || '').trim())
         .filter(Boolean),
     ),
-  );
+  ).slice(0, 4);
 
   return {
     id: shop.id,
@@ -131,6 +137,18 @@ function buildMarketplaceShop(
     domainStatus: shop.domain_status,
     plan: subscription?.plan || 'free',
     subscriptionStatus: subscription?.status || 'active',
+    bookingCancellationNoticeHours:
+      Number.isInteger(shop.booking_cancellation_notice_hours) &&
+      Number(shop.booking_cancellation_notice_hours) >= 0
+        ? Number(shop.booking_cancellation_notice_hours)
+        : 6,
+    bookingStaffCancellationRefundMode:
+      String(shop.booking_staff_cancellation_refund_mode || '').trim().toLowerCase() ===
+      'manual_review'
+        ? 'manual_review'
+        : 'automatic_full',
+    bookingCancellationPolicyText:
+      String(shop.booking_cancellation_policy_text || '').trim() || null,
   };
 }
 
@@ -392,7 +410,7 @@ export async function listMarketplaceShopsInBounds(
   const { data: shops, error: shopsError } = await supabase
     .from('shops')
     .select(
-      'id, name, slug, timezone, description, phone, is_verified, logo_url, cover_image_url, status, custom_domain, domain_status',
+      'id, name, slug, timezone, description, phone, is_verified, logo_url, cover_image_url, status, custom_domain, domain_status, booking_cancellation_notice_hours, booking_staff_cancellation_refund_mode, booking_cancellation_policy_text',
     )
     .in('id', shopIds)
     .eq('status', 'active');
@@ -487,7 +505,7 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
   const { data: shops, error: shopsError } = await supabase
     .from('shops')
     .select(
-      'id, name, slug, timezone, description, phone, is_verified, logo_url, cover_image_url, status, custom_domain, domain_status',
+      'id, name, slug, timezone, description, phone, is_verified, logo_url, cover_image_url, status, custom_domain, domain_status, booking_cancellation_notice_hours, booking_staff_cancellation_refund_mode, booking_cancellation_policy_text',
     )
     .eq('status', 'active')
     .order('is_verified', { ascending: false })

@@ -3,8 +3,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { parseCurrencyInputToCents } from '@navaja/shared';
 import { ActionButton, Card, Field, Label, MutedText, Screen } from '../../components/ui/primitives';
+import { hasExternalApi, updateWorkspaceAppointmentStatusViaApi } from '../../lib/api';
 import { getAuthContext } from '../../lib/auth';
-import { env } from '../../lib/env';
 import { formatCurrency, formatDateTime } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
 import { palette } from '../../lib/theme';
@@ -19,6 +19,7 @@ interface AppointmentItem {
   staff_id: string;
   start_at: string;
   status: string;
+  payment_status: string | null;
   price_cents: number;
   customer_name: string;
   customer_phone: string;
@@ -27,6 +28,15 @@ interface AppointmentItem {
 }
 
 const STATUS_OPTIONS = ['pending', 'confirmed', 'cancelled', 'no_show', 'done'] as const;
+const PAYMENT_STATUS_LABEL: Record<string, string> = {
+  pending: 'pendiente',
+  processing: 'procesando',
+  approved: 'aprobado',
+  rejected: 'rechazado',
+  cancelled: 'cancelado',
+  refunded: 'devuelto',
+  expired: 'vencido',
+};
 
 function isoDate(value: Date) {
   return value.toISOString().slice(0, 10);
@@ -36,6 +46,7 @@ export default function AdminAppointmentsScreen() {
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [workspaceName, setWorkspaceName] = useState('');
 
   const [fromDate, setFromDate] = useState(isoDate(new Date()));
   const [toDate, setToDate] = useState(isoDate(new Date()));
@@ -66,24 +77,25 @@ export default function AdminAppointmentsScreen() {
     setError(null);
 
     const auth = await getAuthContext();
-    if (auth.role !== 'admin') {
+    if (auth.role !== 'admin' || !auth.shopId) {
       setAllowed(false);
       setLoading(false);
       return;
     }
     setAllowed(true);
+    setWorkspaceName(auth.shopName || 'Barberia');
 
     const [{ data: staffRows }, { data: appointmentsRows, error: appointmentsError }] = await Promise.all([
       supabase
         .from('staff')
         .select('id, name')
-        .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+        .eq('shop_id', auth.shopId)
         .eq('is_active', true)
         .order('name'),
       supabase
         .from('appointments')
-        .select('id, staff_id, start_at, status, price_cents, customers(name, phone), services(name), staff(name)')
-        .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+        .select('id, staff_id, start_at, status, price_cents, customers(name, phone), services(name), staff(name), payment_intents(status)')
+        .eq('shop_id', auth.shopId)
         .gte('start_at', `${fromDate}T00:00:00.000Z`)
         .lte('start_at', `${toDate}T23:59:59.999Z`)
         .order('start_at'),
@@ -109,6 +121,9 @@ export default function AdminAppointmentsScreen() {
         staff_id: String(item.staff_id),
         start_at: String(item.start_at),
         status: String(item.status),
+        payment_status: (item.payment_intents as { status?: string } | null)?.status
+          ? String((item.payment_intents as { status?: string } | null)?.status)
+          : null,
         price_cents: Number(item.price_cents || 0),
         customer_name: String((item.customers as { name?: string } | null)?.name || 'Sin nombre'),
         customer_phone: String((item.customers as { phone?: string } | null)?.phone || ''),
@@ -126,6 +141,10 @@ export default function AdminAppointmentsScreen() {
   );
 
   async function updateStatus(appointmentId: string, status: string) {
+    if (!hasExternalApi) {
+      setError('Configura EXPO_PUBLIC_API_BASE_URL para actualizar citas desde mobile.');
+      return;
+    }
     setSavingId(appointmentId);
     setError(null);
 
@@ -141,11 +160,30 @@ export default function AdminAppointmentsScreen() {
       updatePayload.price_cents = priceCents;
     }
 
-    const { error: updateError } = await supabase.from('appointments').update(updatePayload).eq('id', appointmentId);
-
-    if (updateError) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const accessToken = session?.access_token || '';
+    if (!accessToken) {
       setSavingId(null);
-      setError(updateError.message);
+      setError('Debes iniciar sesion para actualizar citas.');
+      return;
+    }
+
+    try {
+      const requestPayload = {
+        accessToken,
+        appointmentId,
+        status: status as 'pending' | 'confirmed' | 'cancelled' | 'no_show' | 'done',
+        ...(typeof updatePayload.price_cents === 'number'
+          ? { priceCents: Number(updatePayload.price_cents) }
+          : {}),
+      };
+
+      await updateWorkspaceAppointmentStatusViaApi(requestPayload);
+    } catch (cause) {
+      setSavingId(null);
+      setError(cause instanceof Error ? cause.message : 'No se pudo actualizar la cita.');
       return;
     }
 
@@ -170,7 +208,10 @@ export default function AdminAppointmentsScreen() {
   }
 
   return (
-    <Screen title="Citas" subtitle="Filtra y actualiza estados de reservas">
+    <Screen
+      title="Citas"
+      subtitle={workspaceName ? `Filtra y actualiza estados de reservas · ${workspaceName}` : 'Filtra y actualiza estados de reservas'}
+    >
       <Card>
         <Label>Desde (YYYY-MM-DD)</Label>
         <Field value={fromDate} onChangeText={setFromDate} />
@@ -205,7 +246,9 @@ export default function AdminAppointmentsScreen() {
             <Text style={styles.itemTitle}>{formatDateTime(item.start_at)}</Text>
             <Text style={styles.itemMeta}>{item.customer_name} - {item.customer_phone || '-'}</Text>
             <Text style={styles.itemMeta}>{item.service_name} - {item.staff_name}</Text>
-            <Text style={styles.itemMeta}>Estado: {item.status} - {formatCurrency(item.price_cents)}</Text>
+            <Text style={styles.itemMeta}>
+              Estado: {item.status} - Pago: {PAYMENT_STATUS_LABEL[item.payment_status || ''] || (item.payment_status || 'sin pago')} - {formatCurrency(item.price_cents)}
+            </Text>
             <Label>Precio override (pesos UYU, opcional)</Label>
             <Field
               value={priceOverrides[item.id] || ''}

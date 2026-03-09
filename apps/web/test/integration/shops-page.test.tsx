@@ -7,6 +7,9 @@ describe('ShopsMarketplacePage', () => {
   });
 
   it('renders the map shell without requiring preloaded shops', async () => {
+    vi.doMock('@/lib/shops', () => ({
+      listMarketplaceShops: vi.fn().mockResolvedValue([]),
+    }));
     vi.doMock('@/components/public/shops-map-marketplace', () => ({
       ShopsMapMarketplace: ({ initialShops = [] }: { initialShops?: Array<{ name: string }> }) => (
         <div data-testid="shops-map-marketplace">
@@ -22,6 +25,9 @@ describe('ShopsMarketplacePage', () => {
   });
 
   it('matches the current empty-state copy rendered by the marketplace shell', async () => {
+    vi.doMock('@/lib/shops', () => ({
+      listMarketplaceShops: vi.fn().mockResolvedValue([]),
+    }));
     vi.doMock('@/components/public/shops-map-marketplace', () => ({
       ShopsMapMarketplace: () => (
         <div data-testid="shops-map-marketplace">Aun no hay barberias visibles en esta vista.</div>

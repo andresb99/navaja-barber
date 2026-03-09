@@ -17,6 +17,10 @@ const mercadoPagoServerEnvSchema = z.object({
   MERCADO_PAGO_API_BASE_URL: z.string().url().optional(),
 });
 
+const paymentOpsEnvSchema = z.object({
+  PAYMENT_RECONCILE_CRON_SECRET: z.string().min(20),
+});
+
 function getInvalidKeys(error: z.ZodError) {
   return Object.entries(error.flatten().fieldErrors)
     .filter(([, messages]) => (messages?.length || 0) > 0)
@@ -66,5 +70,11 @@ export function getMercadoPagoServerEnv() {
     MERCADO_PAGO_WEBHOOK_TOKEN: process.env.MERCADO_PAGO_WEBHOOK_TOKEN,
     MERCADO_PAGO_WEBHOOK_SECRET: process.env.MERCADO_PAGO_WEBHOOK_SECRET,
     MERCADO_PAGO_API_BASE_URL: process.env.MERCADO_PAGO_API_BASE_URL,
+  });
+}
+
+export function getPaymentOpsEnv() {
+  return parseServerSection(paymentOpsEnvSchema, {
+    PAYMENT_RECONCILE_CRON_SECRET: process.env.PAYMENT_RECONCILE_CRON_SECRET,
   });
 }

@@ -3,8 +3,12 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { courseSessionUpsertSchema, courseUpsertSchema, parseCurrencyInputToCents } from '@navaja/shared';
 import { ActionButton, Card, ErrorText, Field, Label, MutedText, MultilineField, Screen } from '../../components/ui/primitives';
-import { getAuthContext } from '../../lib/auth';
-import { env } from '../../lib/env';
+import {
+  createAdminCourseResourceViaApi,
+  hasExternalApi,
+  listAdminCoursesViaApi,
+} from '../../lib/api';
+import { getAccessToken, getAuthContext } from '../../lib/auth';
 import { formatCurrency, formatDateTime } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
 import { palette } from '../../lib/theme';
@@ -72,17 +76,41 @@ export default function AdminCoursesScreen() {
     setError(null);
 
     const auth = await getAuthContext();
-    if (auth.role !== 'admin') {
+    if (auth.role !== 'admin' || !auth.shopId) {
       setAllowed(false);
       setLoading(false);
       return;
     }
     setAllowed(true);
 
+    const accessToken = await getAccessToken();
+    if (hasExternalApi && accessToken) {
+      const response = await listAdminCoursesViaApi({
+        accessToken,
+        shopId: auth.shopId,
+      });
+
+      if (!response) {
+        setLoading(false);
+        setError('No se pudo conectar con la API de cursos.');
+        return;
+      }
+
+      setCourses(response.courses);
+      const firstCourse = response.courses[0];
+      if (firstCourse && !sessionCourseId) {
+        setSessionCourseId(firstCourse.id);
+      }
+      setSessions(response.sessions);
+      setEnrollments(response.enrollments);
+      setLoading(false);
+      return;
+    }
+
     const { data: courseRows, error: courseError } = await supabase
       .from('courses')
       .select('id, title, level, price_cents, duration_hours, is_active')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', auth.shopId)
       .order('title');
 
     if (courseError) {
@@ -106,21 +134,21 @@ export default function AdminCoursesScreen() {
     }
 
     const courseIds = mappedCourses.map((item) => item.id);
-    const [{ data: sessionRows }, { data: enrollmentRows }] = await Promise.all([
-      courseIds.length
-        ? supabase
-            .from('course_sessions')
-            .select('id, course_id, start_at, capacity, location, status')
-            .in('course_id', courseIds)
-            .order('start_at')
-        : { data: [] as Array<Record<string, unknown>> },
-      courseIds.length
-        ? supabase
-            .from('course_enrollments')
-            .select('id, session_id, name, phone, email, status, created_at')
-            .order('created_at', { ascending: false })
-        : { data: [] as Array<Record<string, unknown>> },
-    ]);
+    const { data: sessionRows } = courseIds.length
+      ? await supabase
+          .from('course_sessions')
+          .select('id, course_id, start_at, capacity, location, status')
+          .in('course_id', courseIds)
+          .order('start_at')
+      : { data: [] as Array<Record<string, unknown>> };
+    const sessionIds = (sessionRows || []).map((item) => String(item.id));
+    const { data: enrollmentRows } = sessionIds.length
+      ? await supabase
+          .from('course_enrollments')
+          .select('id, session_id, name, phone, email, status, created_at')
+          .in('session_id', sessionIds)
+          .order('created_at', { ascending: false })
+      : { data: [] as Array<Record<string, unknown>> };
 
     setSessions(
       (sessionRows || []).map((item) => ({
@@ -153,8 +181,14 @@ export default function AdminCoursesScreen() {
   );
 
   async function createCourse() {
+    const auth = await getAuthContext();
+    if (auth.role !== 'admin' || !auth.shopId) {
+      setError('No tienes una barberia activa para crear cursos.');
+      return;
+    }
+
     const parsed = courseUpsertSchema.safeParse({
-      shop_id: env.EXPO_PUBLIC_SHOP_ID,
+      shop_id: auth.shopId,
       title: courseTitle,
       description: courseDescription,
       price_cents: parseCurrencyInputToCents(coursePriceUy),
@@ -170,6 +204,32 @@ export default function AdminCoursesScreen() {
     }
 
     setSaving(true);
+    const accessToken = await getAccessToken();
+    if (hasExternalApi && accessToken) {
+      try {
+        await createAdminCourseResourceViaApi({
+          accessToken,
+          payload: {
+            action: 'course',
+            payload: parsed.data,
+          },
+        });
+      } catch (cause) {
+        setSaving(false);
+        setError(cause instanceof Error ? cause.message : 'No se pudo guardar el curso.');
+        return;
+      }
+
+      setSaving(false);
+      setCourseTitle('');
+      setCourseDescription('');
+      setCoursePriceUy('');
+      setCourseHours('');
+      setCourseLevel('');
+      await loadData();
+      return;
+    }
+
     const { error: insertError } = await supabase.from('courses').insert(parsed.data);
     if (insertError) {
       setSaving(false);
@@ -187,6 +247,12 @@ export default function AdminCoursesScreen() {
   }
 
   async function createSession() {
+    const auth = await getAuthContext();
+    if (auth.role !== 'admin' || !auth.shopId) {
+      setError('No tienes una barberia activa para crear sesiones.');
+      return;
+    }
+
     const parsed = courseSessionUpsertSchema.safeParse({
       course_id: sessionCourseId,
       start_at: sessionStartAt,
@@ -201,6 +267,32 @@ export default function AdminCoursesScreen() {
     }
 
     setSaving(true);
+    const accessToken = await getAccessToken();
+    if (hasExternalApi && accessToken) {
+      try {
+        await createAdminCourseResourceViaApi({
+          accessToken,
+          payload: {
+            action: 'session',
+            shop_id: auth.shopId,
+            payload: parsed.data,
+          },
+        });
+      } catch (cause) {
+        setSaving(false);
+        setError(cause instanceof Error ? cause.message : 'No se pudo guardar la sesion.');
+        return;
+      }
+
+      setSaving(false);
+      setSessionStartAt('');
+      setSessionCapacity('10');
+      setSessionLocation('');
+      setSessionStatus('scheduled');
+      await loadData();
+      return;
+    }
+
     const { error: insertError } = await supabase.from('course_sessions').insert(parsed.data);
     if (insertError) {
       setSaving(false);

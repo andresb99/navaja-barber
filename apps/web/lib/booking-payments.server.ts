@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { bookingInputSchema, type AppointmentSourceChannel } from '@navaja/shared';
+import { isAvailabilitySlotStillOpen } from '@/lib/availability';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 function normalizeEmail(value: string | null | undefined) {
@@ -178,7 +179,7 @@ export async function createAppointmentFromBookingIntent(
       .maybeSingle(),
     supabase
       .from('services')
-      .select('id')
+      .select('id, duration_minutes')
       .eq('id', payload.service_id)
       .eq('shop_id', payload.shop_id)
       .eq('is_active', true)
@@ -200,8 +201,26 @@ export async function createAppointmentFromBookingIntent(
     throw new Error('El servicio seleccionado no esta disponible.');
   }
 
+  const serviceDurationMinutes = Number(
+    (service as { duration_minutes?: number | null }).duration_minutes || 0,
+  );
+  if (!Number.isFinite(serviceDurationMinutes) || serviceDurationMinutes <= 0) {
+    throw new Error('El servicio seleccionado no tiene una duracion valida.');
+  }
+
   if (!staffMember) {
     throw new Error('El barbero seleccionado no esta disponible.');
+  }
+
+  const slotStillOpen = await isAvailabilitySlotStillOpen({
+    shopId: payload.shop_id,
+    serviceId: payload.service_id,
+    staffId: payload.staff_id,
+    startAt: payload.start_at,
+  });
+
+  if (!slotStillOpen) {
+    throw new Error('El horario seleccionado ya no esta disponible.');
   }
 
   const { data: existingCustomer, error: existingCustomerError } = await supabase
@@ -277,6 +296,9 @@ export async function createAppointmentFromBookingIntent(
     customer_id: customerId,
     service_id: payload.service_id,
     start_at: payload.start_at,
+    end_at: new Date(
+      new Date(payload.start_at).getTime() + serviceDurationMinutes * 60 * 1000,
+    ).toISOString(),
     status: 'pending' as const,
     notes: payload.notes || null,
   };

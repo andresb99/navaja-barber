@@ -11,6 +11,7 @@ export default function AdminHomeScreen() {
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [workspaceName, setWorkspaceName] = useState('');
   const [revenue, setRevenue] = useState(0);
   const [avgTicket, setAvgTicket] = useState(0);
   const [occupancy, setOccupancy] = useState(0);
@@ -21,13 +22,14 @@ export default function AdminHomeScreen() {
 
     try {
       const auth = await getAuthContext();
-      if (auth.role !== 'admin') {
+      if (auth.role !== 'admin' || !auth.shopId) {
         setAllowed(false);
         return;
       }
       setAllowed(true);
+      setWorkspaceName(auth.shopName || 'Barberia');
 
-      const metrics = await getDashboardMetrics('today');
+      const metrics = await getDashboardMetrics('today', 'ALL', auth.shopId);
       setRevenue(metrics.estimatedRevenueCents);
       setAvgTicket(metrics.averageTicketCents);
       setOccupancy(Math.round(metrics.occupancyRatio * 100));
@@ -62,7 +64,10 @@ export default function AdminHomeScreen() {
   }
 
   return (
-    <Screen title="Panel admin" subtitle="Resumen operativo de hoy">
+    <Screen
+      title="Panel admin"
+      subtitle={workspaceName ? `Resumen operativo de hoy · ${workspaceName}` : 'Resumen operativo de hoy'}
+    >
       <ErrorText message={error} />
       {loading ? <MutedText>Cargando métricas...</MutedText> : null}
 
@@ -75,6 +80,7 @@ export default function AdminHomeScreen() {
       <Card>
         <Text style={styles.section}>Gestión</Text>
         <View style={styles.grid}>
+          <AdminNav label="Mis barberias" onPress={() => router.push('/mis-barberias')} />
           <AdminNav label="Citas" onPress={() => router.push('/admin/appointments')} />
           <AdminNav label="Equipo" onPress={() => router.push('/admin/staff')} />
           <AdminNav label="Barbería" onPress={() => router.push('/admin/barbershop')} />

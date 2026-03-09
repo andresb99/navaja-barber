@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { ShopsMapMarketplace } from '@/components/public/shops-map-marketplace';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
+import { listMarketplaceShops } from '@/lib/shops';
 
 export const metadata: Metadata = buildSitePageMetadata({
   title: 'Marketplace de barberias',
@@ -10,5 +11,7 @@ export const metadata: Metadata = buildSitePageMetadata({
 });
 
 export default async function ShopsMarketplacePage() {
-  return <ShopsMapMarketplace />;
+  const initialShops = await listMarketplaceShops();
+
+  return <ShopsMapMarketplace initialShops={initialShops.slice(0, 16)} />;
 }

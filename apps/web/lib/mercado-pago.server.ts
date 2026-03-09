@@ -27,7 +27,7 @@ interface MercadoPagoPreferenceResponse {
   sandbox_init_point?: string;
 }
 
-interface MercadoPagoPaymentResponse {
+export interface MercadoPagoPaymentResponse {
   id: number | string;
   status: string;
   status_detail?: string;
@@ -38,6 +38,17 @@ interface MercadoPagoPaymentResponse {
   payer?: {
     email?: string;
   };
+}
+
+interface MercadoPagoPaymentSearchResponse {
+  results?: MercadoPagoPaymentResponse[];
+}
+
+interface MercadoPagoRefundResponse {
+  id: number | string;
+  payment_id?: number | string;
+  amount?: number;
+  status?: string;
 }
 
 function getApiBaseUrl() {
@@ -133,4 +144,45 @@ export async function getMercadoPagoPayment(paymentId: string) {
   }
 
   return mercadoPagoRequest<MercadoPagoPaymentResponse>(`/v1/payments/${normalizedPaymentId}`);
+}
+
+export async function searchLatestMercadoPagoPaymentByExternalReference(externalReference: string) {
+  const normalizedExternalReference = String(externalReference || '').trim();
+  if (!normalizedExternalReference) {
+    throw new Error('External reference invalida para buscar pagos en Mercado Pago.');
+  }
+
+  const params = new URLSearchParams({
+    external_reference: normalizedExternalReference,
+    sort: 'date_created',
+    criteria: 'desc',
+    limit: '1',
+  });
+  const payload = await mercadoPagoRequest<MercadoPagoPaymentSearchResponse>(
+    `/v1/payments/search?${params.toString()}`,
+  );
+
+  return payload.results?.[0] || null;
+}
+
+export async function createMercadoPagoRefund(paymentId: string) {
+  const normalizedPaymentId = String(paymentId || '').trim();
+  if (!normalizedPaymentId) {
+    throw new Error('Payment id invalido para crear reembolso en Mercado Pago.');
+  }
+
+  const payload = await mercadoPagoRequest<MercadoPagoRefundResponse>(
+    `/v1/payments/${normalizedPaymentId}/refunds`,
+    {
+      method: 'POST',
+      body: JSON.stringify({}),
+    },
+  );
+
+  return {
+    refundId: String(payload.id),
+    paymentId: String(payload.payment_id || normalizedPaymentId),
+    amount: typeof payload.amount === 'number' ? payload.amount : null,
+    status: String(payload.status || '').trim() || null,
+  };
 }

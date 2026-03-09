@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { resolveActiveWorkspaceForUser, type StaffWorkspace } from './workspace';
 
 export type AppRole = 'guest' | 'user' | 'staff' | 'admin';
 
@@ -8,12 +9,19 @@ export interface AuthContext {
   email: string | null;
   staffId: string | null;
   staffName: string | null;
+  shopId: string | null;
+  shopName: string | null;
+  shopSlug: string | null;
+  workspaces: StaffWorkspace[];
 }
 
 export interface StaffContext {
   staffId: string;
   name: string;
   role: 'admin' | 'staff';
+  shopId: string;
+  shopName: string;
+  shopSlug: string | null;
 }
 
 function guestAuthContext(): AuthContext {
@@ -23,6 +31,10 @@ function guestAuthContext(): AuthContext {
     email: null,
     staffId: null,
     staffName: null,
+    shopId: null,
+    shopName: null,
+    shopSlug: null,
+    workspaces: [],
   };
 }
 
@@ -79,38 +91,41 @@ export async function getAuthContext(): Promise<AuthContext> {
       return guestAuthContext();
     }
 
-    const { data: staffRows, error: staffError } = await supabase
-      .from('staff')
-      .select('id, name, role')
-      .eq('auth_user_id', user.id)
-      .eq('is_active', true)
-      .order('created_at', { ascending: true });
+    let workspaces: StaffWorkspace[] = [];
+    let activeWorkspace: StaffWorkspace | null = null;
 
-    if (staffError) {
-      throw staffError;
+    try {
+      const resolved = await resolveActiveWorkspaceForUser(user.id);
+      workspaces = resolved.workspaces;
+      activeWorkspace = resolved.activeWorkspace;
+    } catch (workspaceError) {
+      console.warn('No se pudo resolver el workspace activo en mobile:', workspaceError);
     }
 
-    const staff =
-      (staffRows || []).find((item) => String((item as { role?: string } | null)?.role) === 'admin') ||
-      (staffRows || [])[0] ||
-      null;
-
-    if (!staff) {
+    if (!activeWorkspace) {
       return {
         role: 'user',
         userId: user.id,
         email: user.email || null,
         staffId: null,
         staffName: null,
+        shopId: null,
+        shopName: null,
+        shopSlug: null,
+        workspaces,
       };
     }
 
     return {
-      role: ((staff.role as 'admin' | 'staff') || 'staff') as AppRole,
+      role: activeWorkspace.role as AppRole,
       userId: user.id,
       email: user.email || null,
-      staffId: String(staff.id),
-      staffName: String(staff.name),
+      staffId: activeWorkspace.staffId,
+      staffName: activeWorkspace.staffName,
+      shopId: activeWorkspace.shopId,
+      shopName: activeWorkspace.shopName,
+      shopSlug: activeWorkspace.shopSlug,
+      workspaces,
     };
   } catch (cause) {
     if (isInvalidRefreshToken(cause)) {
@@ -137,5 +152,25 @@ export async function getStaffContext(): Promise<StaffContext | null> {
     staffId: ctx.staffId as string,
     name: ctx.staffName || 'Staff',
     role: ctx.role,
+    shopId: ctx.shopId as string,
+    shopName: ctx.shopName || 'Barberia',
+    shopSlug: ctx.shopSlug || null,
   };
+}
+
+export async function getAccessToken(): Promise<string | null> {
+  try {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error || !session?.access_token) {
+      return null;
+    }
+
+    return session.access_token;
+  } catch {
+    return null;
+  }
 }

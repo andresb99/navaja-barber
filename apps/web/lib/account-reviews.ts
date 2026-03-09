@@ -8,6 +8,7 @@ interface RawAccountAppointmentRow {
   staff_id: string | null;
   start_at: string | null;
   status: string | null;
+  payment_intent_id: string | null;
   services: { name?: string } | null;
   staff: { name?: string } | null;
 }
@@ -27,6 +28,7 @@ export interface AccountAppointmentItem {
   staffId: string;
   startAt: string;
   status: string;
+  paymentStatus: string | null;
   serviceName: string;
   staffName: string;
   hasReview: boolean;
@@ -47,12 +49,14 @@ export interface AccountAppointmentReviewAccess {
 function mapAppointmentRow(
   row: RawAccountAppointmentRow,
   reviewsByAppointmentId: Map<string, RawAppointmentReviewRow>,
+  paymentStatusByIntentId: Map<string, string>,
 ): AccountAppointmentItem | null {
   if (!row.id || !row.shop_id || !row.customer_id || !row.staff_id || !row.start_at) {
     return null;
   }
 
   const existingReview = reviewsByAppointmentId.get(String(row.id));
+  const paymentIntentId = String(row.payment_intent_id || '').trim();
 
   return {
     id: String(row.id),
@@ -61,6 +65,7 @@ function mapAppointmentRow(
     staffId: String(row.staff_id),
     startAt: String(row.start_at),
     status: String(row.status || 'pending'),
+    paymentStatus: paymentIntentId ? paymentStatusByIntentId.get(paymentIntentId) || null : null,
     serviceName: String(row.services?.name || 'Servicio'),
     staffName: String(row.staff?.name || 'Barbero'),
     hasReview: Boolean(existingReview?.id),
@@ -104,7 +109,7 @@ async function fetchAccountAppointmentsRaw(customerIds: string[]) {
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from('appointments')
-    .select('id, shop_id, customer_id, staff_id, start_at, status, services(name), staff(name)')
+    .select('id, shop_id, customer_id, staff_id, start_at, status, payment_intent_id, services(name), staff(name)')
     .in('customer_id', customerIds)
     .order('start_at', { ascending: false })
     .limit(50);
@@ -114,6 +119,34 @@ async function fetchAccountAppointmentsRaw(customerIds: string[]) {
   }
 
   return (data || []) as RawAccountAppointmentRow[];
+}
+
+async function fetchPaymentStatusesForIntents(paymentIntentIds: string[]) {
+  if (!paymentIntentIds.length) {
+    return new Map<string, string>();
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from('payment_intents')
+    .select('id, status')
+    .in('id', paymentIntentIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return ((data || []) as Array<{ id?: string | null; status?: string | null }>).reduce(
+    (acc, item) => {
+      const intentId = String(item.id || '').trim();
+      const status = String(item.status || '').trim();
+      if (intentId && status) {
+        acc.set(intentId, status);
+      }
+      return acc;
+    },
+    new Map<string, string>(),
+  );
 }
 
 async function fetchReviewsForAppointments(appointmentIds: string[]) {
@@ -143,12 +176,17 @@ async function fetchReviewsForAppointments(appointmentIds: string[]) {
 export async function getAccountAppointments(userId: string): Promise<AccountAppointmentItem[]> {
   const customerIds = await listLinkedCustomerIds(userId);
   const appointments = await fetchAccountAppointmentsRaw(customerIds);
+  const paymentStatusByIntentId = await fetchPaymentStatusesForIntents(
+    appointments
+      .map((item) => String(item.payment_intent_id || '').trim())
+      .filter(Boolean),
+  );
   const reviewsByAppointmentId = await fetchReviewsForAppointments(
     appointments.map((item) => String(item.id || '')).filter(Boolean),
   );
 
   return appointments
-    .map((item) => mapAppointmentRow(item, reviewsByAppointmentId))
+    .map((item) => mapAppointmentRow(item, reviewsByAppointmentId, paymentStatusByIntentId))
     .filter((item): item is AccountAppointmentItem => item !== null);
 }
 
@@ -164,7 +202,7 @@ export async function getAppointmentReviewAccessForUser(
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from('appointments')
-    .select('id, shop_id, customer_id, staff_id, start_at, status, services(name), staff(name)')
+    .select('id, shop_id, customer_id, staff_id, start_at, status, payment_intent_id, services(name), staff(name)')
     .eq('id', appointmentId)
     .in('customer_id', customerIds)
     .maybeSingle();
@@ -191,8 +229,14 @@ export async function getAppointmentReviewAccessForUser(
   if (review) {
     reviewsByAppointmentId.set(appointmentId, review as RawAppointmentReviewRow);
   }
-
-  const appointment = mapAppointmentRow(data as RawAccountAppointmentRow, reviewsByAppointmentId);
+  const paymentStatusByIntentId = await fetchPaymentStatusesForIntents(
+    [String((data as RawAccountAppointmentRow).payment_intent_id || '').trim()].filter(Boolean),
+  );
+  const appointment = mapAppointmentRow(
+    data as RawAccountAppointmentRow,
+    reviewsByAppointmentId,
+    paymentStatusByIntentId,
+  );
   if (!appointment) {
     return null;
   }

@@ -3,8 +3,12 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { parseCurrencyInputToCents, serviceUpsertSchema } from '@navaja/shared';
 import { ActionButton, Card, ErrorText, Field, Label, MutedText, Screen } from '../../components/ui/primitives';
-import { getAuthContext } from '../../lib/auth';
-import { env } from '../../lib/env';
+import {
+  createAdminServiceViaApi,
+  hasExternalApi,
+  listAdminServicesViaApi,
+} from '../../lib/api';
+import { getAccessToken, getAuthContext } from '../../lib/auth';
 import { formatCurrency } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
 import { palette } from '../../lib/theme';
@@ -23,6 +27,7 @@ export default function AdminServicesScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [workspaceName, setWorkspaceName] = useState('');
 
   const [name, setName] = useState('');
   const [priceUy, setPriceUy] = useState('');
@@ -32,17 +37,37 @@ export default function AdminServicesScreen() {
     setLoading(true);
     setError(null);
     const auth = await getAuthContext();
-    if (auth.role !== 'admin') {
+    if (auth.role !== 'admin' || !auth.shopId) {
       setAllowed(false);
       setLoading(false);
       return;
     }
     setAllowed(true);
+    setWorkspaceName(auth.shopName || 'Barberia');
+
+    const accessToken = await getAccessToken();
+    if (hasExternalApi && accessToken) {
+      const response = await listAdminServicesViaApi({
+        accessToken,
+        shopId: auth.shopId,
+      });
+
+      if (!response) {
+        setLoading(false);
+        setServices([]);
+        setError('No se pudo conectar con la API de servicios.');
+        return;
+      }
+
+      setServices(response.items);
+      setLoading(false);
+      return;
+    }
 
     const { data, error: fetchError } = await supabase
       .from('services')
       .select('id, name, price_cents, duration_minutes, is_active')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', auth.shopId)
       .order('name');
 
     if (fetchError) {
@@ -71,8 +96,14 @@ export default function AdminServicesScreen() {
   );
 
   async function createService() {
+    const auth = await getAuthContext();
+    if (auth.role !== 'admin' || !auth.shopId) {
+      setError('No tienes una barberia activa para crear servicios.');
+      return;
+    }
+
     const parsed = serviceUpsertSchema.safeParse({
-      shop_id: env.EXPO_PUBLIC_SHOP_ID,
+      shop_id: auth.shopId,
       name,
       price_cents: parseCurrencyInputToCents(priceUy),
       duration_minutes: Number(durationMinutes),
@@ -86,6 +117,27 @@ export default function AdminServicesScreen() {
 
     setSaving(true);
     setError(null);
+
+    const accessToken = await getAccessToken();
+    if (hasExternalApi && accessToken) {
+      try {
+        await createAdminServiceViaApi({
+          accessToken,
+          payload: parsed.data,
+        });
+      } catch (cause) {
+        setSaving(false);
+        setError(cause instanceof Error ? cause.message : 'No se pudo guardar el servicio.');
+        return;
+      }
+
+      setSaving(false);
+      setName('');
+      setPriceUy('');
+      setDurationMinutes('');
+      await loadServices();
+      return;
+    }
 
     const { error: insertError } = await supabase.from('services').insert(parsed.data);
     if (insertError) {
@@ -112,14 +164,17 @@ export default function AdminServicesScreen() {
   }
 
   return (
-    <Screen title="Servicios" subtitle="Alta y gestión de catálogo">
+    <Screen
+      title="Servicios"
+      subtitle={workspaceName ? `Alta y gestion de catalogo · ${workspaceName}` : 'Alta y gestion de catalogo'}
+    >
       <Card>
         <Text style={styles.section}>Agregar servicio</Text>
         <Label>Nombre</Label>
         <Field value={name} onChangeText={setName} />
         <Label>Precio (pesos UYU)</Label>
         <Field value={priceUy} onChangeText={setPriceUy} keyboardType="numeric" />
-        <Label>Duración (minutos)</Label>
+        <Label>Duracion (minutos)</Label>
         <Field value={durationMinutes} onChangeText={setDurationMinutes} keyboardType="numeric" />
         <ErrorText message={error} />
         <ActionButton

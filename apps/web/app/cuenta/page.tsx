@@ -16,6 +16,16 @@ const statusLabel: Record<string, string> = {
   done: 'Realizada',
 };
 
+const paymentStatusLabel: Record<string, string> = {
+  pending: 'Pago pendiente',
+  processing: 'Pago procesando',
+  approved: 'Pago aprobado',
+  rejected: 'Pago rechazado',
+  cancelled: 'Pago cancelado',
+  refunded: 'Pago devuelto',
+  expired: 'Pago vencido',
+};
+
 const roleLabel: Record<'guest' | 'user' | 'staff' | 'admin', string> = {
   guest: 'Invitado',
   user: 'Usuario',
@@ -313,6 +323,11 @@ export default async function CuentaPage() {
                     <p className="mt-1 text-xs text-slate/70">
                       Estado: {statusLabel[item.status] || item.status}
                     </p>
+                    {item.paymentStatus ? (
+                      <p className="mt-1 text-xs text-slate/70">
+                        {paymentStatusLabel[item.paymentStatus] || `Pago: ${item.paymentStatus}`}
+                      </p>
+                    ) : null}
                     {item.status === 'done' && !item.hasReview ? (
                       <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
                         Pendiente de calificar

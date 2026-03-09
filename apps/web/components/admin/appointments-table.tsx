@@ -38,6 +38,7 @@ interface AppointmentRow {
   staffName: string;
   sourceChannelLabel: string;
   status: string;
+  paymentStatus: string | null;
   priceLabel: string;
 }
 
@@ -53,6 +54,7 @@ type ColumnKey =
   | 'staff'
   | 'channel'
   | 'status'
+  | 'payment'
   | 'price'
   | 'actions';
 
@@ -70,6 +72,26 @@ const statusLabel: Record<string, string> = {
   cancelled: 'Cancelada',
   no_show: 'No asistio',
   done: 'Realizada',
+};
+
+const paymentStatusTone: Record<string, 'default' | 'success' | 'warning' | 'danger'> = {
+  pending: 'warning',
+  processing: 'warning',
+  approved: 'success',
+  refunded: 'default',
+  rejected: 'danger',
+  cancelled: 'danger',
+  expired: 'danger',
+};
+
+const paymentStatusLabel: Record<string, string> = {
+  pending: 'Pendiente',
+  processing: 'Procesando',
+  approved: 'Aprobado',
+  refunded: 'Devuelto',
+  rejected: 'Rechazado',
+  cancelled: 'Cancelado',
+  expired: 'Expirado',
 };
 
 function getPhoneHref(phone: string) {
@@ -142,6 +164,21 @@ export function AdminAppointmentsTable({ shopId, appointments }: AdminAppointmen
               {statusLabel[item.status] || item.status}
             </Chip>
           );
+        case 'payment': {
+          const normalizedPaymentStatus = String(item.paymentStatus || '').trim().toLowerCase();
+          const paymentLabel = normalizedPaymentStatus
+            ? paymentStatusLabel[normalizedPaymentStatus] || normalizedPaymentStatus
+            : 'Sin pago online';
+          const paymentTone = normalizedPaymentStatus
+            ? paymentStatusTone[normalizedPaymentStatus] || 'default'
+            : 'default';
+
+          return (
+            <Chip size="sm" radius="full" variant="flat" color={paymentTone}>
+              {paymentLabel}
+            </Chip>
+          );
+        }
         case 'price':
           return <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{item.priceLabel}</p>;
         case 'actions': {
@@ -218,6 +255,7 @@ export function AdminAppointmentsTable({ shopId, appointments }: AdminAppointmen
           <TableColumn key="staff">BARBERO</TableColumn>
           <TableColumn key="channel">CANAL</TableColumn>
           <TableColumn key="status">ESTADO</TableColumn>
+          <TableColumn key="payment">PAGO</TableColumn>
           <TableColumn key="price">PRECIO</TableColumn>
           <TableColumn key="actions" align="end">
             ACCIONES

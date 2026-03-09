@@ -4,7 +4,6 @@ import { useFocusEffect } from 'expo-router';
 import { jobApplicationUpdateSchema } from '@navaja/shared';
 import { ActionButton, Card, ErrorText, Field, Label, MutedText, Screen } from '../../components/ui/primitives';
 import { getAuthContext } from '../../lib/auth';
-import { env } from '../../lib/env';
 import { formatDateTime } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
 import { palette } from '../../lib/theme';
@@ -53,7 +52,7 @@ export default function AdminApplicantsScreen() {
     setSuccess(null);
 
     const auth = await getAuthContext();
-    if (auth.role !== 'admin') {
+    if (auth.role !== 'admin' || !auth.shopId) {
       setAllowed(false);
       setLoading(false);
       return;
@@ -65,7 +64,7 @@ export default function AdminApplicantsScreen() {
       .select(
         'id, name, phone, email, instagram, experience_years, availability, cv_path, status, notes, created_at',
       )
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', auth.shopId)
       .order('created_at', { ascending: false })
       .limit(120);
 

@@ -30,6 +30,7 @@ export default function AdminMetricsScreen() {
   const [range, setRange] = useState<MetricRange>('today');
   const [channelView, setChannelView] = useState<BookingMetricsChannelView>('ALL');
   const [error, setError] = useState<string | null>(null);
+  const [workspaceName, setWorkspaceName] = useState('');
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
 
   const maxTopServices = useMemo(() => {
@@ -65,15 +66,16 @@ export default function AdminMetricsScreen() {
     setError(null);
 
     const auth = await getAuthContext();
-    if (auth.role !== 'admin') {
+    if (auth.role !== 'admin' || !auth.shopId) {
       setAllowed(false);
       setLoading(false);
       return;
     }
     setAllowed(true);
+    setWorkspaceName(auth.shopName || 'Barberia');
 
     try {
-      const result = await getDashboardMetrics(range, channelView);
+      const result = await getDashboardMetrics(range, channelView, auth.shopId);
       setMetrics(result);
     } catch {
       setMetrics(null);
@@ -100,7 +102,14 @@ export default function AdminMetricsScreen() {
   }
 
   return (
-    <Screen title="Metricas" subtitle={metrics?.rangeLabel || 'KPI operativos'}>
+    <Screen
+      title="Metricas"
+      subtitle={
+        workspaceName
+          ? `${metrics?.rangeLabel || 'KPI operativos'} · ${workspaceName}`
+          : (metrics?.rangeLabel || 'KPI operativos')
+      }
+    >
       <View style={styles.rangeRow}>
         <RangeChip label="Hoy" active={range === 'today'} onPress={() => setRange('today')} />
         <RangeChip label="Ultimos 7 dias" active={range === 'last7'} onPress={() => setRange('last7')} />

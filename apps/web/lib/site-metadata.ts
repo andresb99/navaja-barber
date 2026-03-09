@@ -114,7 +114,7 @@ export function buildRootMetadata(): Metadata {
       siteName: APP_NAME,
       locale: 'es_UY',
       type: 'website',
-      ...(buildAbsoluteSiteUrl('/shops') ? { url: buildAbsoluteSiteUrl('/shops') || undefined } : {}),
+      ...(buildAbsoluteSiteUrl('/') ? { url: buildAbsoluteSiteUrl('/') || undefined } : {}),
     },
     twitter: {
       card: 'summary_large_image',

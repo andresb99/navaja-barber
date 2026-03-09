@@ -19,6 +19,11 @@ const barbershopUpdatePayloadSchema = z.object({
   timezone: z.string().trim().min(1).max(100),
   phone: z.string().trim().max(40).optional().nullable(),
   description: z.string().trim().max(1500).optional().nullable(),
+  booking_cancellation_notice_hours: z.number().int().min(0).max(168).optional(),
+  booking_staff_cancellation_refund_mode: z
+    .enum(['automatic_full', 'manual_review'])
+    .optional(),
+  booking_cancellation_policy_text: z.string().trim().max(1500).optional().nullable(),
   location_label: z.string().trim().max(200).optional().nullable(),
   city: z.string().trim().max(120).optional().nullable(),
   region: z.string().trim().max(120).optional().nullable(),
@@ -298,6 +303,10 @@ export async function POST(request: NextRequest) {
         timezone: data.timezone.trim(),
         phone: data.phone?.trim() || null,
         description: data.description?.trim() || null,
+        booking_cancellation_notice_hours: data.booking_cancellation_notice_hours ?? 6,
+        booking_staff_cancellation_refund_mode:
+          data.booking_staff_cancellation_refund_mode || 'automatic_full',
+        booking_cancellation_policy_text: data.booking_cancellation_policy_text?.trim() || null,
         cover_image_url: coverImageUrl,
       })
       .eq('id', data.shop_id);

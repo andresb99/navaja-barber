@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { ActionButton, Card, ErrorText, Field, Label, MultilineField, MutedText, Screen } from '../../components/ui/primitives';
 import { getAuthContext } from '../../lib/auth';
-import { env } from '../../lib/env';
 import { formatDateTime } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
 import { palette } from '../../lib/theme';
@@ -59,7 +58,7 @@ export default function AdminModelosScreen() {
     setSuccess(null);
 
     const auth = await getAuthContext();
-    if (auth.role !== 'admin') {
+    if (auth.role !== 'admin' || !auth.shopId) {
       setAllowed(false);
       setLoading(false);
       return;
@@ -71,7 +70,7 @@ export default function AdminModelosScreen() {
       .select(
         'id, full_name, phone, email, instagram, notes_internal, attributes, photo_paths, marketing_opt_in, created_at',
       )
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+      .eq('shop_id', auth.shopId)
       .order('created_at', { ascending: false })
       .limit(200);
 

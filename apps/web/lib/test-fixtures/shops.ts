@@ -26,6 +26,9 @@ export const mockMarketplaceShops: MarketplaceShop[] = [
     domainStatus: null,
     plan: 'free',
     subscriptionStatus: 'active',
+    bookingCancellationNoticeHours: 6,
+    bookingStaffCancellationRefundMode: 'automatic_full',
+    bookingCancellationPolicyText: null,
   },
   {
     id: '22222222-2222-2222-2222-222222222222',
@@ -52,5 +55,8 @@ export const mockMarketplaceShops: MarketplaceShop[] = [
     domainStatus: null,
     plan: 'free',
     subscriptionStatus: 'active',
+    bookingCancellationNoticeHours: 6,
+    bookingStaffCancellationRefundMode: 'automatic_full',
+    bookingCancellationPolicyText: null,
   },
 ];

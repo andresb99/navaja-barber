@@ -118,3 +118,31 @@ export async function getAvailabilityForDate(params: AvailabilityParams): Promis
   return slots.sort((a, b) => (a.start_at < b.start_at ? -1 : 1));
 }
 
+export async function isAvailabilitySlotStillOpen(input: {
+  shopId: string;
+  serviceId: string;
+  staffId: string;
+  startAt: string;
+}) {
+  const normalizedStartAt = String(input.startAt || '').trim();
+  if (!normalizedStartAt) {
+    return false;
+  }
+
+  const date = normalizedStartAt.slice(0, 10);
+  if (!date) {
+    return false;
+  }
+
+  const slots = await getAvailabilityForDate({
+    shopId: input.shopId,
+    serviceId: input.serviceId,
+    staffId: input.staffId,
+    date,
+  });
+
+  return slots.some(
+    (slot) => slot.staff_id === input.staffId && String(slot.start_at || '').trim() === normalizedStartAt,
+  );
+}
+

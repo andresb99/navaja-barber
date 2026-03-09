@@ -22,12 +22,18 @@ interface AppointmentListItem {
   staff_id: string | null;
   start_at: string | null;
   status: string | null;
+  payment_intent_id?: string | null;
   source_channel?: string | null;
   price_cents: number | null;
   notes: string | null;
   customers: { name?: string | null; phone?: string | null } | null;
   services: { name?: string | null } | null;
   staff: { name?: string | null } | null;
+}
+
+interface PaymentIntentStatusItem {
+  id: string | null;
+  status: string | null;
 }
 
 function formatDateInput(date: Date, timeZone: string) {
@@ -52,6 +58,18 @@ function isMissingSourceChannelColumnError(error: unknown) {
 
   return (
     message.includes('source_channel') &&
+    message.includes('appointments') &&
+    (message.includes('schema cache') || message.includes('column'))
+  );
+}
+
+function isMissingPaymentIntentColumnError(error: unknown) {
+  const message = String((error as { message?: string } | null)?.message || '')
+    .trim()
+    .toLowerCase();
+
+  return (
+    message.includes('payment_intent_id') &&
     message.includes('appointments') &&
     (message.includes('schema cache') || message.includes('column'))
   );
@@ -116,6 +134,10 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
   const to = params.to || (params.from ? params.from : defaultTo);
 
   const appointmentSelectWithSource =
+    'id, staff_id, start_at, end_at, status, payment_intent_id, source_channel, price_cents, notes, customers(name, phone), services(name), staff(name)';
+  const appointmentSelectWithoutSource =
+    'id, staff_id, start_at, end_at, status, payment_intent_id, price_cents, notes, customers(name, phone), services(name), staff(name)';
+  const appointmentSelectWithoutPaymentIntent =
     'id, staff_id, start_at, end_at, status, source_channel, price_cents, notes, customers(name, phone), services(name), staff(name)';
   const appointmentSelectFallback =
     'id, staff_id, start_at, end_at, status, price_cents, notes, customers(name, phone), services(name), staff(name)';
@@ -143,10 +165,25 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
   ]);
 
   let appointments = (appointmentsResult.data || []) as AppointmentListItem[];
-  if (appointmentsResult.error && isMissingSourceChannelColumnError(appointmentsResult.error)) {
+  let canReadPaymentIntentColumn = true;
+  if (appointmentsResult.error) {
+    const missingSourceColumn = isMissingSourceChannelColumnError(appointmentsResult.error);
+    const missingPaymentColumn = isMissingPaymentIntentColumnError(appointmentsResult.error);
+
+    if (!missingSourceColumn && !missingPaymentColumn) {
+      throw new Error(appointmentsResult.error.message || 'No se pudieron cargar las citas.');
+    }
+
+    canReadPaymentIntentColumn = !missingPaymentColumn;
+    const fallbackSelect = missingSourceColumn
+      ? missingPaymentColumn
+        ? appointmentSelectFallback
+        : appointmentSelectWithoutSource
+      : appointmentSelectWithoutPaymentIntent;
+
     const fallbackResult = await supabase
       .from('appointments')
-      .select(appointmentSelectFallback)
+      .select(fallbackSelect)
       .eq('shop_id', ctx.shopId)
       .gte('start_at', `${from}T00:00:00.000Z`)
       .lte('start_at', `${to}T23:59:59.999Z`)
@@ -156,9 +193,7 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
       throw new Error(fallbackResult.error.message || 'No se pudieron cargar las citas.');
     }
 
-    appointments = (fallbackResult.data || []) as AppointmentListItem[];
-  } else if (appointmentsResult.error) {
-    throw new Error(appointmentsResult.error.message || 'No se pudieron cargar las citas.');
+    appointments = ((fallbackResult.data || []) as unknown) as AppointmentListItem[];
   }
 
   if (selectedStaffId) {
@@ -169,11 +204,41 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
     appointments = appointments.filter((item) => item.status === selectedStatus);
   }
 
+  const paymentIntentIds = canReadPaymentIntentColumn
+    ? Array.from(
+        new Set(
+          appointments
+            .map((item) => String(item.payment_intent_id || '').trim())
+            .filter(Boolean),
+        ),
+      )
+    : [];
+  const paymentStatusByIntentId = new Map<string, string>();
+
+  if (paymentIntentIds.length) {
+    const { data: paymentIntents } = await supabase
+      .from('payment_intents')
+      .select('id, status')
+      .in('id', paymentIntentIds);
+
+    (paymentIntents || []).forEach((item) => {
+      const row = item as PaymentIntentStatusItem;
+      const intentId = String(row.id || '').trim();
+      const status = String(row.status || '').trim().toLowerCase();
+      if (intentId && status) {
+        paymentStatusByIntentId.set(intentId, status);
+      }
+    });
+  }
+
   const pendingCount = appointments.filter((item) => item.status === 'pending').length;
   const doneCount = appointments.filter((item) => item.status === 'done').length;
   const hasManualBookingOptions = Boolean((staff || []).length && (services || []).length);
   const defaultManualStartAt = `${from}T09:00`;
   const appointmentRows = appointments.map((item) => ({
+    paymentStatus: canReadPaymentIntentColumn
+      ? paymentStatusByIntentId.get(String(item.payment_intent_id || '').trim()) || null
+      : null,
     id: String(item.id),
     startAtLabel: new Date(String(item.start_at)).toLocaleString('es-UY', {
       timeZone: shopTimeZone,
