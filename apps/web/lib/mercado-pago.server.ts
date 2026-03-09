@@ -50,6 +50,10 @@ function getAccessToken() {
   return env.MERCADO_PAGO_ACCESS_TOKEN;
 }
 
+function isTestAccessToken(value: string | null | undefined) {
+  return String(value || '').trim().toUpperCase().startsWith('TEST-');
+}
+
 async function mercadoPagoRequest<TResponse>(path: string, init?: RequestInit): Promise<TResponse> {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
@@ -80,6 +84,8 @@ export async function createMercadoPagoCheckoutPreference(
 ) {
   const quantity = input.item.quantity || 1;
   const unitPrice = Number((input.item.amountCents / 100).toFixed(2));
+  const accessToken = getAccessToken();
+  const isTestMode = isTestAccessToken(accessToken);
 
   const payload = await mercadoPagoRequest<MercadoPagoPreferenceResponse>('/checkout/preferences', {
     method: 'POST',
@@ -107,7 +113,9 @@ export async function createMercadoPagoCheckoutPreference(
     }),
   });
 
-  const checkoutUrl = payload.init_point || payload.sandbox_init_point || null;
+  const checkoutUrl = isTestMode
+    ? payload.sandbox_init_point || payload.init_point || null
+    : payload.init_point || payload.sandbox_init_point || null;
   if (!checkoutUrl) {
     throw new Error('Mercado Pago no devolvio una URL de checkout.');
   }
@@ -126,4 +134,3 @@ export async function getMercadoPagoPayment(paymentId: string) {
 
   return mercadoPagoRequest<MercadoPagoPaymentResponse>(`/v1/payments/${normalizedPaymentId}`);
 }
-

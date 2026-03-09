@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
           description: `Reserva en barbershop ${parsed.data.shop_id.slice(0, 8)}`,
           amountCents,
         },
-        payerEmail: resolvedCustomerEmail,
+        payerEmail: isTestMode ? null : resolvedCustomerEmail,
         externalReference,
         successUrl: `${requestOrigin}/book/success?${bookingStateParams.toString()}&payment_status=approved`,
         pendingUrl: `${requestOrigin}/book/success?${bookingStateParams.toString()}&payment_status=pending`,
