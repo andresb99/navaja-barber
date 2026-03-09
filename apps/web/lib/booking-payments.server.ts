@@ -65,11 +65,52 @@ export interface BookingIntentPayload {
 export interface CreatedAppointmentResult {
   appointmentId: string;
   startAt: string;
+  customerId: string;
+}
+
+function isMissingCustomerAuthLinksTableError(error: unknown) {
+  const maybeError = error as { code?: string; message?: string } | null;
+  const code = String(maybeError?.code || '').toUpperCase();
+  const message = String(maybeError?.message || '').toLowerCase();
+
+  return (
+    code === 'PGRST205' ||
+    code === '42P01' ||
+    (message.includes('customer_auth_links') &&
+      (message.includes('does not exist') || message.includes('schema cache') || message.includes('not found')))
+  );
+}
+
+async function upsertCustomerAuthLink(options: {
+  customerId: string;
+  userId: string;
+  source: 'authenticated_booking' | 'authenticated_payment';
+}) {
+  const supabase = createSupabaseAdminClient();
+  const { error } = await supabase.from('customer_auth_links').upsert(
+    {
+      customer_id: options.customerId,
+      user_id: options.userId,
+      source: options.source,
+      verified_at: new Date().toISOString(),
+      last_seen_at: new Date().toISOString(),
+    },
+    { onConflict: 'customer_id,user_id' },
+  );
+
+  if (error && !isMissingCustomerAuthLinksTableError(error)) {
+    throw new Error(error.message || 'No se pudo vincular la cuenta del cliente.');
+  }
 }
 
 export async function createAppointmentFromBookingIntent(
   payload: BookingIntentPayload,
-  options?: { paymentIntentId?: string | null; sourceChannel?: AppointmentSourceChannel },
+  options?: {
+    paymentIntentId?: string | null;
+    sourceChannel?: AppointmentSourceChannel;
+    customerAuthUserId?: string | null;
+    customerAuthUserEmail?: string | null;
+  },
 ): Promise<CreatedAppointmentResult> {
   const parsed = bookingInputSchema.safeParse({
     ...payload,
@@ -82,6 +123,9 @@ export async function createAppointmentFromBookingIntent(
 
   const normalizedPaymentIntentId = String(options?.paymentIntentId || '').trim() || null;
   const sourceChannel = options?.sourceChannel || 'WEB';
+  const customerAuthUserId = String(options?.customerAuthUserId || '').trim() || null;
+  const customerAuthUserEmail = normalizeEmail(options?.customerAuthUserEmail);
+  const resolvedCustomerEmail = normalizeEmail(payload.customer_email);
   const supabase = createSupabaseAdminClient();
   let canUsePaymentIntentColumn = true;
   let canUseSourceChannelColumn = true;
@@ -89,7 +133,7 @@ export async function createAppointmentFromBookingIntent(
   if (normalizedPaymentIntentId) {
     const { data: existingAppointment, error: existingAppointmentError } = await supabase
       .from('appointments')
-      .select('id, start_at')
+      .select('id, start_at, customer_id')
       .eq('payment_intent_id', normalizedPaymentIntentId)
       .maybeSingle();
 
@@ -102,14 +146,28 @@ export async function createAppointmentFromBookingIntent(
     }
 
     if (existingAppointment?.id) {
+      const existingCustomerId = String((existingAppointment as { customer_id?: string | null })?.customer_id || '').trim();
+      if (
+        existingCustomerId &&
+        customerAuthUserId &&
+        resolvedCustomerEmail &&
+        customerAuthUserEmail &&
+        resolvedCustomerEmail === customerAuthUserEmail
+      ) {
+        await upsertCustomerAuthLink({
+          customerId: existingCustomerId,
+          userId: customerAuthUserId,
+          source: normalizedPaymentIntentId ? 'authenticated_payment' : 'authenticated_booking',
+        });
+      }
+
       return {
         appointmentId: String(existingAppointment.id),
         startAt: String(existingAppointment.start_at),
+        customerId: existingCustomerId,
       };
     }
   }
-
-  const resolvedCustomerEmail = normalizeEmail(payload.customer_email);
 
   const [{ data: shop }, { data: service }, { data: staffMember }] = await Promise.all([
     supabase
@@ -199,6 +257,20 @@ export async function createAppointmentFromBookingIntent(
     customerId = customer.id as string;
   }
 
+  if (
+    customerId &&
+    customerAuthUserId &&
+    resolvedCustomerEmail &&
+    customerAuthUserEmail &&
+    resolvedCustomerEmail === customerAuthUserEmail
+  ) {
+    await upsertCustomerAuthLink({
+      customerId,
+      userId: customerAuthUserId,
+      source: normalizedPaymentIntentId ? 'authenticated_payment' : 'authenticated_booking',
+    });
+  }
+
   const baseInsertPayload = {
     shop_id: payload.shop_id,
     staff_id: payload.staff_id,
@@ -269,5 +341,6 @@ export async function createAppointmentFromBookingIntent(
   return {
     appointmentId: String(appointment.id),
     startAt: String(appointment.start_at),
+    customerId: String(customerId),
   };
 }

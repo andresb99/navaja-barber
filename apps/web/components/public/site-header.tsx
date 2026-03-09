@@ -113,13 +113,21 @@ function getCurrentShopSlug(pathname: string): string | null {
   return segments[1];
 }
 
-function buildPublicHeaderHref(segment: string, shopSlug: string | null) {
+function buildPublicHeaderHref(
+  segment: string,
+  shopSlug: string | null,
+  mode: 'path' | 'custom_domain' | 'platform_subdomain',
+) {
   if (!shopSlug) {
     if (!segment) {
       return '/shops';
     }
 
     return `/${segment}`;
+  }
+
+  if (mode === 'custom_domain' || mode === 'platform_subdomain') {
+    return segment ? `/${segment}` : '/';
   }
 
   const basePath = `/shops/${shopSlug}`;
@@ -130,7 +138,11 @@ function buildPublicHeaderHref(segment: string, shopSlug: string | null) {
   return `${basePath}/${segment}`;
 }
 
-function getHomeHref(role: NavRole, shopSlug: string | null) {
+function getHomeHref(
+  role: NavRole,
+  shopSlug: string | null,
+  mode: 'path' | 'custom_domain' | 'platform_subdomain',
+) {
   if (role === 'admin') {
     return '/admin';
   }
@@ -139,7 +151,7 @@ function getHomeHref(role: NavRole, shopSlug: string | null) {
     return '/staff';
   }
 
-  return buildPublicHeaderHref('', shopSlug);
+  return buildPublicHeaderHref('', shopSlug, mode);
 }
 
 function areWorkspaceDirectoriesEqual(
@@ -177,7 +189,11 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentShopSlug = useMemo(() => getCurrentShopSlug(pathname), [pathname]);
+  const currentShopSlug = useMemo(
+    () => getCurrentShopSlug(pathname) || initialState.publicTenantSlug,
+    [initialState.publicTenantSlug, pathname],
+  );
+  const publicTenantMode = initialState.publicTenantMode;
   const activeWorkspaceSlug = useMemo(
     () => searchParams.get('shop')?.trim() || null,
     [searchParams],
@@ -270,11 +286,11 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
     }
 
     return publicHeaderItems.map((item) => ({
-      href: buildPublicHeaderHref(item.segment, currentShopSlug),
+      href: buildPublicHeaderHref(item.segment, currentShopSlug, publicTenantMode),
       label: item.label,
       key: `${item.segment || 'home'}:${item.label}`,
     }));
-  }, [activeWorkspaceSlug, currentShopSlug, navigationContext]);
+  }, [activeWorkspaceSlug, currentShopSlug, navigationContext, publicTenantMode]);
   const homeHref = useMemo(
     () =>
       getHomeHref(
@@ -284,8 +300,9 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
             ? 'staff'
             : 'guest',
         currentShopSlug,
+        publicTenantMode,
       ),
-    [currentShopSlug, navigationContext],
+    [currentShopSlug, navigationContext, publicTenantMode],
   );
   const contextualHomeHref = useMemo(() => {
     if (navigationContext === 'admin') {

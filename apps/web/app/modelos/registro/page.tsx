@@ -1,11 +1,21 @@
+import type { Metadata } from 'next';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
 import { ModelRegistrationForm } from '@/components/public/model-registration-form';
 import { listMarketplaceOpenModelCalls } from '@/lib/modelos';
+import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
 
 interface ModelRegistrationPageProps {
   searchParams: Promise<{ session_id?: string }>;
 }
+
+export const metadata: Metadata = buildSitePageMetadata({
+  title: 'Registro de modelos',
+  description:
+    'Crea tu perfil para postularte a futuras convocatorias y sesiones academicas del marketplace.',
+  path: '/modelos/registro',
+  noIndex: true,
+});
 
 export default async function ModelRegistrationPage({ searchParams }: ModelRegistrationPageProps) {
   const [shops, openCalls, params] = await Promise.all([

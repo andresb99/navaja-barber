@@ -4,6 +4,7 @@ import { cache } from 'react';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isPendingTimeOffReason } from '@/lib/time-off-requests';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import {
   DEFAULT_SITE_HEADER_STATE,
   type SiteHeaderInitialState,
@@ -47,13 +48,18 @@ function resolveRoleFromWorkspaces(workspaces: Array<{ accessRole: string }>) {
 }
 
 export const getSiteHeaderInitialState = cache(async (): Promise<SiteHeaderInitialState> => {
+  const publicTenantContext = await getPublicTenantRouteContext();
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return DEFAULT_SITE_HEADER_STATE;
+    return {
+      ...DEFAULT_SITE_HEADER_STATE,
+      publicTenantSlug: publicTenantContext.shopSlug,
+      publicTenantMode: publicTenantContext.mode,
+    };
   }
 
   const catalog = await getAccessibleWorkspacesForCurrentUser();
@@ -145,5 +151,7 @@ export const getSiteHeaderInitialState = cache(async (): Promise<SiteHeaderIniti
     hasWorkspaceAccess: workspaceDirectory.length > 0,
     workspaceDirectory,
     isPlatformAdmin: Boolean(platformAdminRow?.user_id),
+    publicTenantSlug: publicTenantContext.shopSlug,
+    publicTenantMode: publicTenantContext.mode,
   };
 });

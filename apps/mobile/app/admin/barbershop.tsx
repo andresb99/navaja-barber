@@ -3,7 +3,6 @@ import { StyleSheet, Text } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { ActionButton, Card, ErrorText, Field, Label, MutedText, MultilineField, Screen } from '../../components/ui/primitives';
 import { getAuthContext } from '../../lib/auth';
-import { env } from '../../lib/env';
 import { supabase } from '../../lib/supabase';
 
 function slugify(value: string) {
@@ -20,6 +19,7 @@ export default function AdminBarbershopScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [activeShopId, setActiveShopId] = useState<string | null>(null);
 
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -39,24 +39,49 @@ export default function AdminBarbershopScreen() {
     setMessage(null);
 
     const auth = await getAuthContext();
-    if (auth.role !== 'admin') {
+    if (auth.role !== 'admin' || !auth.userId) {
       setAllowed(false);
       setLoading(false);
       return;
     }
     setAllowed(true);
 
+    const { data: adminStaff, error: staffError } = await supabase
+      .from('staff')
+      .select('shop_id')
+      .eq('auth_user_id', auth.userId)
+      .eq('role', 'admin')
+      .eq('is_active', true)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (staffError) {
+      setError(staffError.message);
+      setLoading(false);
+      return;
+    }
+
+    const resolvedShopId = String(adminStaff?.shop_id || '').trim();
+    if (!resolvedShopId) {
+      setError('No se encontro una barberia admin asociada a tu usuario.');
+      setLoading(false);
+      return;
+    }
+
+    setActiveShopId(resolvedShopId);
+
     const [{ data: shop, error: shopError }, { data: location, error: locationError }] =
       await Promise.all([
         supabase
           .from('shops')
           .select('name, slug, timezone, phone, description')
-          .eq('id', env.EXPO_PUBLIC_SHOP_ID)
+          .eq('id', resolvedShopId)
           .maybeSingle(),
         supabase
           .from('shop_locations')
           .select('label, city, region, country_code, latitude, longitude')
-          .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
+          .eq('shop_id', resolvedShopId)
           .maybeSingle(),
       ]);
 
@@ -105,6 +130,12 @@ export default function AdminBarbershopScreen() {
     setError(null);
     setMessage(null);
 
+    if (!activeShopId) {
+      setSaving(false);
+      setError('No se encontro una barberia activa para actualizar.');
+      return;
+    }
+
     const parsedLatitude = latitude.trim() ? Number(latitude.replace(',', '.')) : null;
     const parsedLongitude = longitude.trim() ? Number(longitude.replace(',', '.')) : null;
 
@@ -139,7 +170,7 @@ export default function AdminBarbershopScreen() {
         phone: phone.trim() || null,
         description: description.trim() || null,
       })
-      .eq('id', env.EXPO_PUBLIC_SHOP_ID);
+      .eq('id', activeShopId);
 
     if (shopError) {
       setSaving(false);
@@ -149,7 +180,7 @@ export default function AdminBarbershopScreen() {
 
     const { error: locationError } = await supabase.from('shop_locations').upsert(
       {
-        shop_id: env.EXPO_PUBLIC_SHOP_ID,
+        shop_id: activeShopId,
         label: locationLabel.trim() || null,
         city: city.trim() || null,
         region: region.trim() || null,

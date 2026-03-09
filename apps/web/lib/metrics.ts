@@ -15,6 +15,15 @@ export interface DashboardMetrics {
   averageTicketCents: number;
   topServices: Array<{ service: string; count: number }>;
   revenueByStaff: Array<{ staff: string; revenue_cents: number }>;
+  staffBreakdown: Array<{
+    staffId: string;
+    staffName: string;
+    appointments: number;
+    doneAppointments: number;
+    revenueCents: number;
+    averageRating: number;
+    reviewCount: number;
+  }>;
   availableMinutes: number;
   bookedMinutes: number;
   occupancyRatio: number;
@@ -41,6 +50,12 @@ export interface DashboardMetrics {
     revenueCents: number;
     onlineAppointments: number;
     walkInAppointments: number;
+  }>;
+  dailyRatingSeries: Array<{
+    date: string;
+    label: string;
+    averageRating: number;
+    reviewCount: number;
   }>;
   peakHours: Array<{
     hour: number;
@@ -351,22 +366,8 @@ function isWalkInChannel(value: unknown) {
 }
 
 function isOnlineChannel(value: unknown) {
-  return normalizeSourceChannel(value) === 'WEB';
-}
-
-function filterAppointmentsByChannel<T extends { source_channel?: unknown }>(
-  rows: T[],
-  channelView: BookingMetricsChannelView,
-) {
-  if (channelView === 'ONLINE_ONLY') {
-    return rows.filter((item) => isOnlineChannel(item.source_channel));
-  }
-
-  if (channelView === 'WALK_INS_ONLY') {
-    return rows.filter((item) => isWalkInChannel(item.source_channel));
-  }
-
-  return rows;
+  const channel = normalizeSourceChannel(value);
+  return channel === 'WEB' || channel === 'MOBILE';
 }
 
 function getSourceChannelLabel(value: unknown) {
@@ -374,6 +375,10 @@ function getSourceChannelLabel(value: unknown) {
 
   if (channel === 'WEB') {
     return 'Web';
+  }
+
+  if (channel === 'MOBILE') {
+    return 'Mobile app';
   }
 
   if (channel === 'WALK_IN') {
@@ -823,16 +828,37 @@ async function loadDashboardMetricsForRange(
   dateRange: ResolvedMetricsRange,
   shopId: string,
   channelView: BookingMetricsChannelView,
+  staffId?: string,
 ): Promise<DashboardMetrics> {
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: appointments }, { data: workingHours }, { data: timeOff }] = await Promise.all([
-    supabase
-      .from('appointments')
-      .select('status, price_cents, start_at, end_at, source_channel, services(name), staff(name)')
-      .eq('shop_id', shopId)
-      .gte('start_at', dateRange.startAtIso)
-      .lt('start_at', dateRange.endAtIso),
+  const appointmentsQuery = supabase
+    .from('appointments')
+    .select('id, staff_id, status, price_cents, start_at, end_at, source_channel, services(name), staff(name)')
+    .eq('shop_id', shopId)
+    .gte('start_at', dateRange.startAtIso)
+    .lt('start_at', dateRange.endAtIso);
+
+  if (staffId) {
+    appointmentsQuery.eq('staff_id', staffId);
+  }
+
+  const reviewsQuery = supabase
+    .from('appointment_reviews')
+    .select('appointment_id, rating, submitted_at')
+    .eq('shop_id', shopId)
+    .eq('status', 'published')
+    .gte('submitted_at', dateRange.startAtIso)
+    .lt('submitted_at', dateRange.endAtIso);
+
+  if (staffId) {
+    reviewsQuery.eq('staff_id', staffId);
+  }
+
+  const [{ data: appointments }, { data: reviews }, { data: workingHours }, { data: timeOff }] =
+    await Promise.all([
+    appointmentsQuery,
+    reviewsQuery,
     supabase
       .from('working_hours')
       .select('staff_id, day_of_week, start_time, end_time')
@@ -843,9 +869,11 @@ async function loadDashboardMetricsForRange(
       .eq('shop_id', shopId)
       .lt('start_at', dateRange.endAtIso)
       .gt('end_at', dateRange.startAtIso),
-  ]);
+    ]);
 
   const allAppointments = (appointments || []) as Array<{
+    id: string | null;
+    staff_id: string | null;
     status: string | null;
     price_cents: number | null;
     start_at: string | null;
@@ -854,47 +882,68 @@ async function loadDashboardMetricsForRange(
     services?: { name?: string | null } | null;
     staff?: { name?: string | null } | null;
   }>;
-  const filteredAppointments = filterAppointmentsByChannel(allAppointments, channelView);
-  const countsByStatus = filteredAppointments.reduce<Record<string, number>>((acc, item) => {
-    const status = String(item.status || 'desconocido');
-    acc[status] = (acc[status] || 0) + 1;
-    return acc;
-  }, {});
-
-  const doneAppointments = filteredAppointments.filter((item) => item.status === 'done');
-  const estimatedRevenueCents = doneAppointments.reduce((acc, item) => acc + parseInteger(item.price_cents), 0);
-  const averageTicketCents = doneAppointments.length ? Math.round(estimatedRevenueCents / doneAppointments.length) : 0;
-
-  const serviceCounter = new Map<string, number>();
-  for (const row of filteredAppointments) {
-    const serviceName = String((row.services as { name?: string } | null)?.name || 'Sin servicio');
-    serviceCounter.set(serviceName, (serviceCounter.get(serviceName) || 0) + 1);
-  }
-
-  const topServices = [...serviceCounter.entries()]
-    .map(([service, count]) => ({ service, count }))
-    .sort((left, right) => right.count - left.count)
-    .slice(0, 5);
-
-  const revenueByStaffMap = new Map<string, number>();
-  for (const row of doneAppointments) {
-    const staffName = String((row.staff as { name?: string } | null)?.name || 'Sin asignar');
-    revenueByStaffMap.set(staffName, (revenueByStaffMap.get(staffName) || 0) + parseInteger(row.price_cents));
-  }
-
-  const revenueByStaff = [...revenueByStaffMap.entries()]
-    .map(([staff, revenue_cents]) => ({ staff, revenue_cents }))
-    .sort((left, right) => right.revenue_cents - left.revenue_cents);
-
+  const publishedReviews = (reviews || []) as Array<{
+    appointment_id: string | null;
+    rating: number | null;
+    submitted_at: string | null;
+  }>;
   const rangeStart = new Date(dateRange.startAtIso);
   const rangeEnd = new Date(dateRange.endAtIso);
-  const rangeDates: Date[] = [];
+  const rangeStartMs = rangeStart.getTime();
+  const rangeEndMs = rangeEnd.getTime();
+  const dayOfWeekCounts = [0, 0, 0, 0, 0, 0, 0];
+  const dailySeriesMap = new Map<
+    string,
+    {
+      date: string;
+      label: string;
+      appointments: number;
+      doneAppointments: number;
+      revenueCents: number;
+      onlineAppointments: number;
+      walkInAppointments: number;
+    }
+  >();
+  const dailyRatingMap = new Map<
+    string,
+    {
+      date: string;
+      label: string;
+      totalRating: number;
+      reviewCount: number;
+    }
+  >();
+
   for (
     let cursor = new Date(rangeStart);
     cursor < rangeEnd;
     cursor = new Date(cursor.getTime() + 24 * 60 * 60 * 1000)
   ) {
-    rangeDates.push(new Date(cursor));
+    const date = new Date(cursor);
+    const dateKey = date.toISOString().slice(0, 10);
+    const label = date.toLocaleDateString('es-UY', {
+      day: '2-digit',
+      month: 'short',
+      timeZone: 'UTC',
+    });
+
+    const dayOfWeek = date.getUTCDay();
+    dayOfWeekCounts[dayOfWeek] = (dayOfWeekCounts[dayOfWeek] || 0) + 1;
+    dailySeriesMap.set(dateKey, {
+      date: dateKey,
+      label,
+      appointments: 0,
+      doneAppointments: 0,
+      revenueCents: 0,
+      onlineAppointments: 0,
+      walkInAppointments: 0,
+    });
+    dailyRatingMap.set(dateKey, {
+      date: dateKey,
+      label,
+      totalRating: 0,
+      reviewCount: 0,
+    });
   }
 
   const workedMinutes = (workingHours || []).reduce((acc, item) => {
@@ -907,7 +956,8 @@ async function loadDashboardMetricsForRange(
       .slice(0, 2)
       .map((part) => Number(part) || 0);
     const minutes = endHour * 60 + endMinute - (startHour * 60 + startMinute);
-    const matchingDays = rangeDates.filter((date) => date.getUTCDay() === Number(item.day_of_week || 0)).length;
+    const dayIndex = Number(item.day_of_week || 0);
+    const matchingDays = dayOfWeekCounts[dayIndex] || 0;
     return acc + Math.max(0, minutes) * matchingDays;
   }, 0);
 
@@ -922,36 +972,10 @@ async function loadDashboardMetricsForRange(
     return acc + Math.max(0, intervalMinutes);
   }, 0);
 
-  const availableMinutes = Math.max(0, workedMinutes - timeOffMinutes);
-  const bookedMinutes = filteredAppointments
-    .filter((item) => item.status === 'done' || item.status === 'confirmed' || item.status === 'pending')
-    .reduce((acc, item) => {
-      const start = Math.max(rangeStart.getTime(), new Date(String(item.start_at)).getTime());
-      const end = Math.min(
-        rangeEnd.getTime(),
-        new Date(String(item.end_at || item.start_at)).getTime(),
-      );
-      if (start >= end) {
-        return acc;
-      }
-
-      return acc + Math.round((end - start) / 60000);
-    }, 0);
-
-  const totalAppointments = allAppointments.length;
-  const onlineAppointments = allAppointments.filter((item) => isOnlineChannel(item.source_channel)).length;
-  const walkInAppointments = allAppointments.filter((item) => isWalkInChannel(item.source_channel)).length;
-  const revenuePerAvailableHourCents =
-    availableMinutes > 0 ? Math.round((estimatedRevenueCents * 60) / availableMinutes) : 0;
-
-  const pendingAppointments = countsByStatus.pending || 0;
-  const confirmedAppointments = countsByStatus.confirmed || 0;
-  const doneAppointmentsCount = countsByStatus.done || 0;
-  const cancelledAppointments = countsByStatus.cancelled || 0;
-  const noShowAppointments = countsByStatus.no_show || 0;
-  const totalFilteredAppointments = filteredAppointments.length;
-  const activeQueueAppointments = pendingAppointments + confirmedAppointments;
-
+  const countsByStatus: Record<string, number> = {};
+  const serviceCounter = new Map<string, number>();
+  const revenueByStaffMap = new Map<string, number>();
+  const peakHoursMap = new Map<number, number>();
   const channelMixMap = new Map<
     string,
     {
@@ -962,82 +986,133 @@ async function loadDashboardMetricsForRange(
       revenueCents: number;
     }
   >();
+  const appointmentChannelById = new Map<string, string>();
+  const appointmentStaffById = new Map<string, { staffId: string; staffName: string }>();
+  const staffBreakdownMap = new Map<
+    string,
+    {
+      staffId: string;
+      staffName: string;
+      appointments: number;
+      doneAppointments: number;
+      revenueCents: number;
+      totalRating: number;
+      reviewCount: number;
+    }
+  >();
+
+  let totalFilteredAppointments = 0;
+  let doneAppointmentsCount = 0;
+  let estimatedRevenueCents = 0;
+  let bookedMinutes = 0;
+  let onlineAppointments = 0;
+  let walkInAppointments = 0;
 
   for (const row of allAppointments) {
+    const priceCents = parseInteger(row.price_cents);
     const channel = normalizeSourceChannel(row.source_channel);
-    const existing = channelMixMap.get(channel) || {
+    const appointmentId = String(row.id || '').trim();
+    const staffName = String((row.staff as { name?: string } | null)?.name || 'Sin asignar');
+    const normalizedStaffId = String(row.staff_id || '').trim() || `legacy:${staffName}`;
+
+    if (appointmentId) {
+      appointmentChannelById.set(appointmentId, channel);
+      appointmentStaffById.set(appointmentId, {
+        staffId: normalizedStaffId,
+        staffName,
+      });
+    }
+    const onlineChannel = isOnlineChannel(channel);
+    const walkInChannel = isWalkInChannel(channel);
+    const isInSelectedChannel =
+      channelView === 'ALL' ||
+      (channelView === 'ONLINE_ONLY' && onlineChannel) ||
+      (channelView === 'WALK_INS_ONLY' && walkInChannel);
+
+    if (onlineChannel) {
+      onlineAppointments += 1;
+    }
+    if (walkInChannel) {
+      walkInAppointments += 1;
+    }
+
+    const existingChannel = channelMixMap.get(channel) || {
       channel,
       label: getSourceChannelLabel(channel),
       appointments: 0,
       doneAppointments: 0,
       revenueCents: 0,
     };
-
-    existing.appointments += 1;
+    existingChannel.appointments += 1;
     if (row.status === 'done') {
-      existing.doneAppointments += 1;
-      existing.revenueCents += parseInteger(row.price_cents);
+      existingChannel.doneAppointments += 1;
+      existingChannel.revenueCents += priceCents;
     }
+    channelMixMap.set(channel, existingChannel);
 
-    channelMixMap.set(channel, existing);
-  }
-
-  const channelMix = [...channelMixMap.values()]
-    .sort((left, right) => right.appointments - left.appointments)
-    .map((item) => ({
-      ...item,
-      share: totalAppointments > 0 ? item.appointments / totalAppointments : 0,
-    }));
-
-  const dailySeriesMap = new Map<
-    string,
-    {
-      date: string;
-      label: string;
-      appointments: number;
-      doneAppointments: number;
-      revenueCents: number;
-      onlineAppointments: number;
-      walkInAppointments: number;
-    }
-  >();
-
-  for (const date of rangeDates) {
-    const dateKey = date.toISOString().slice(0, 10);
-    dailySeriesMap.set(dateKey, {
-      date: dateKey,
-      label: date.toLocaleDateString('es-UY', {
-        day: '2-digit',
-        month: 'short',
-        timeZone: 'UTC',
-      }),
-      appointments: 0,
-      doneAppointments: 0,
-      revenueCents: 0,
-      onlineAppointments: 0,
-      walkInAppointments: 0,
-    });
-  }
-
-  const peakHoursMap = new Map<number, number>();
-  for (const row of filteredAppointments) {
-    const startAt = new Date(String(row.start_at || ''));
-    if (Number.isNaN(startAt.getTime())) {
+    if (!isInSelectedChannel) {
       continue;
+    }
+
+    totalFilteredAppointments += 1;
+
+    const status = String(row.status || 'desconocido');
+    countsByStatus[status] = (countsByStatus[status] || 0) + 1;
+
+    const serviceName = String((row.services as { name?: string } | null)?.name || 'Sin servicio');
+    serviceCounter.set(serviceName, (serviceCounter.get(serviceName) || 0) + 1);
+
+    const isDone = status === 'done';
+    const currentStaff =
+      staffBreakdownMap.get(normalizedStaffId) || {
+        staffId: normalizedStaffId,
+        staffName,
+        appointments: 0,
+        doneAppointments: 0,
+        revenueCents: 0,
+        totalRating: 0,
+        reviewCount: 0,
+      };
+    currentStaff.appointments += 1;
+
+    if (isDone) {
+      doneAppointmentsCount += 1;
+      estimatedRevenueCents += priceCents;
+      revenueByStaffMap.set(staffName, (revenueByStaffMap.get(staffName) || 0) + priceCents);
+      currentStaff.doneAppointments += 1;
+      currentStaff.revenueCents += priceCents;
+    }
+    staffBreakdownMap.set(normalizedStaffId, currentStaff);
+
+    const startAt = new Date(String(row.start_at || ''));
+    const startAtMs = startAt.getTime();
+    if (Number.isNaN(startAtMs)) {
+      continue;
+    }
+
+    if (status === 'done' || status === 'confirmed' || status === 'pending') {
+      const endAtMs = new Date(String(row.end_at || row.start_at || '')).getTime();
+      if (!Number.isNaN(endAtMs)) {
+        const start = Math.max(rangeStartMs, startAtMs);
+        const end = Math.min(rangeEndMs, endAtMs);
+        if (start < end) {
+          bookedMinutes += Math.round((end - start) / 60000);
+        }
+      }
     }
 
     const dateKey = startAt.toISOString().slice(0, 10);
     const day = dailySeriesMap.get(dateKey);
     if (day) {
       day.appointments += 1;
-      if (row.status === 'done') {
+      if (isDone) {
         day.doneAppointments += 1;
-        day.revenueCents += parseInteger(row.price_cents);
+        day.revenueCents += priceCents;
       }
-      if (isOnlineChannel(row.source_channel)) {
+      if (onlineChannel) {
         day.onlineAppointments += 1;
       }
-      if (isWalkInChannel(row.source_channel)) {
+      if (walkInChannel) {
         day.walkInAppointments += 1;
       }
     }
@@ -1046,7 +1121,99 @@ async function loadDashboardMetricsForRange(
     peakHoursMap.set(hour, (peakHoursMap.get(hour) || 0) + 1);
   }
 
+  const topServices = [...serviceCounter.entries()]
+    .map(([service, count]) => ({ service, count }))
+    .sort((left, right) => right.count - left.count)
+    .slice(0, 5);
+
+  const revenueByStaff = [...revenueByStaffMap.entries()]
+    .map(([staff, revenue_cents]) => ({ staff, revenue_cents }))
+    .sort((left, right) => right.revenue_cents - left.revenue_cents);
+
+  const averageTicketCents = doneAppointmentsCount
+    ? Math.round(estimatedRevenueCents / doneAppointmentsCount)
+    : 0;
+  const availableMinutes = Math.max(0, workedMinutes - timeOffMinutes);
+  const totalAppointments = allAppointments.length;
+  const revenuePerAvailableHourCents =
+    availableMinutes > 0 ? Math.round((estimatedRevenueCents * 60) / availableMinutes) : 0;
+
+  const pendingAppointments = countsByStatus.pending || 0;
+  const confirmedAppointments = countsByStatus.confirmed || 0;
+  const cancelledAppointments = countsByStatus.cancelled || 0;
+  const noShowAppointments = countsByStatus.no_show || 0;
+  const activeQueueAppointments = pendingAppointments + confirmedAppointments;
+
+  const channelMix = [...channelMixMap.values()]
+    .sort((left, right) => right.appointments - left.appointments)
+    .map((item) => ({
+      ...item,
+      share: totalAppointments > 0 ? item.appointments / totalAppointments : 0,
+    }));
+
+  for (const review of publishedReviews) {
+    const appointmentId = String(review.appointment_id || '').trim();
+    if (!appointmentId) {
+      continue;
+    }
+
+    if (channelView !== 'ALL') {
+      const reviewChannel = appointmentChannelById.get(appointmentId);
+      if (!reviewChannel) {
+        continue;
+      }
+
+      if (channelView === 'ONLINE_ONLY' && !isOnlineChannel(reviewChannel)) {
+        continue;
+      }
+
+      if (channelView === 'WALK_INS_ONLY' && !isWalkInChannel(reviewChannel)) {
+        continue;
+      }
+    }
+
+    const submittedAt = new Date(String(review.submitted_at || ''));
+    if (Number.isNaN(submittedAt.getTime())) {
+      continue;
+    }
+
+    const dateKey = submittedAt.toISOString().slice(0, 10);
+    const bucket = dailyRatingMap.get(dateKey);
+    if (!bucket) {
+      continue;
+    }
+
+    bucket.totalRating += parseNumeric(review.rating);
+    bucket.reviewCount += 1;
+
+    const staffForReview = appointmentStaffById.get(appointmentId);
+    if (!staffForReview) {
+      continue;
+    }
+
+    const staffBucket =
+      staffBreakdownMap.get(staffForReview.staffId) || {
+        staffId: staffForReview.staffId,
+        staffName: staffForReview.staffName,
+        appointments: 0,
+        doneAppointments: 0,
+        revenueCents: 0,
+        totalRating: 0,
+        reviewCount: 0,
+      };
+    staffBucket.totalRating += parseNumeric(review.rating);
+    staffBucket.reviewCount += 1;
+    staffBreakdownMap.set(staffForReview.staffId, staffBucket);
+  }
+
   const dailySeries = [...dailySeriesMap.values()];
+  const dailyRatingSeries = [...dailyRatingMap.values()].map((item) => ({
+    date: item.date,
+    label: item.label,
+    averageRating:
+      item.reviewCount > 0 ? Number((item.totalRating / item.reviewCount).toFixed(2)) : 0,
+    reviewCount: item.reviewCount,
+  }));
   const peakHours = [...peakHoursMap.entries()]
     .map(([hour, appointments]) => ({
       hour,
@@ -1061,6 +1228,25 @@ async function loadDashboardMetricsForRange(
       return left.hour - right.hour;
     })
     .slice(0, 5);
+  const staffBreakdown = [...staffBreakdownMap.values()]
+    .map((item) => ({
+      staffId: item.staffId,
+      staffName: item.staffName,
+      appointments: item.appointments,
+      doneAppointments: item.doneAppointments,
+      revenueCents: item.revenueCents,
+      averageRating: item.reviewCount > 0 ? Number((item.totalRating / item.reviewCount).toFixed(2)) : 0,
+      reviewCount: item.reviewCount,
+    }))
+    .sort((left, right) => {
+      if (right.revenueCents !== left.revenueCents) {
+        return right.revenueCents - left.revenueCents;
+      }
+      if (right.doneAppointments !== left.doneAppointments) {
+        return right.doneAppointments - left.doneAppointments;
+      }
+      return right.appointments - left.appointments;
+    });
 
   const idleMinutes = Math.max(0, availableMinutes - bookedMinutes);
 
@@ -1072,6 +1258,7 @@ async function loadDashboardMetricsForRange(
     averageTicketCents,
     topServices,
     revenueByStaff,
+    staffBreakdown,
     availableMinutes,
     bookedMinutes,
     occupancyRatio: availableMinutes > 0 ? bookedMinutes / availableMinutes : 0,
@@ -1091,6 +1278,7 @@ async function loadDashboardMetricsForRange(
       utilizationGapRatio: availableMinutes > 0 ? idleMinutes / availableMinutes : 0,
     },
     dailySeries,
+    dailyRatingSeries,
     peakHours,
     channelMix,
     channelBreakdown: {
@@ -1098,7 +1286,7 @@ async function loadDashboardMetricsForRange(
       totalAppointments,
       onlineAppointments,
       walkInAppointments,
-      filteredAppointments: filteredAppointments.length,
+      filteredAppointments: totalFilteredAppointments,
       onlineShare: totalAppointments > 0 ? onlineAppointments / totalAppointments : 0,
       walkInShare: totalAppointments > 0 ? walkInAppointments / totalAppointments : 0,
     },
@@ -1109,14 +1297,16 @@ export async function getDashboardMetrics(
   range: MetricRangeKey,
   shopId: string,
   channelView: BookingMetricsChannelView = 'ALL',
+  staffId?: string,
 ): Promise<DashboardMetrics> {
-  return loadDashboardMetricsForRange(resolveMetricsRange({ range }), shopId, channelView);
+  return loadDashboardMetricsForRange(resolveMetricsRange({ range }), shopId, channelView, staffId);
 }
 
 export async function getDashboardMetricsForDateRange(
   input: { range?: string | undefined; from?: string | undefined; to?: string | undefined },
   shopId: string,
   channelView: BookingMetricsChannelView = 'ALL',
+  staffId?: string,
 ): Promise<DashboardMetrics> {
-  return loadDashboardMetricsForRange(resolveMetricsRange(input), shopId, channelView);
+  return loadDashboardMetricsForRange(resolveMetricsRange(input), shopId, channelView, staffId);
 }

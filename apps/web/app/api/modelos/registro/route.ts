@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { modelRegistrationInputSchema } from '@navaja/shared';
+import { trackProductEvent } from '@/lib/product-analytics';
+import { readSanitizedJsonBody } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 type ResolvedSessionContext = {
@@ -139,7 +141,7 @@ async function findExistingTenantModel(
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => null);
+  const body = await readSanitizedJsonBody(request);
   const parsed = modelRegistrationInputSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -304,6 +306,19 @@ export async function POST(request: NextRequest) {
       );
     }
   }
+
+  void trackProductEvent({
+    eventName: 'models.registration_submitted',
+    shopId: context.shopId,
+    source: 'api',
+    metadata: {
+      session_id: context.sessionId,
+      marketplace_model_id: marketplaceModelId,
+      model_id: tenantModelId,
+      application_id: applicationId,
+      marketing_opt_in: parsed.data.marketing_opt_in,
+    },
+  });
 
   return NextResponse.json({
     marketplace_model_id: marketplaceModelId,

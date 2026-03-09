@@ -1,7 +1,9 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Card, CardBody } from '@heroui/card';
 import { SubscriptionBillingPanel } from '@/components/admin/subscription-billing-panel';
 import { getCurrentAuthContext } from '@/lib/auth';
+import { buildSitePageMetadata } from '@/lib/site-metadata';
 import {
   getSubscriptionPlanDescriptor,
   PUBLIC_MARKETPLACE_PLANS,
@@ -17,6 +19,13 @@ interface SubscriptionPageProps {
     billing?: string;
   }>;
 }
+
+export const metadata: Metadata = buildSitePageMetadata({
+  title: 'Planes y precios',
+  description:
+    'Compara los planes Free, Pro y Business para barberias, con reservas, operacion y dominios personalizados.',
+  path: '/suscripcion',
+});
 
 interface SubscriptionRow {
   shop_id: string;

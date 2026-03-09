@@ -1,6 +1,15 @@
+import type { Metadata } from 'next';
 import { BookShopCard } from '@/components/public/book-shop-card';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
+import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
+
+export const metadata: Metadata = buildSitePageMetadata({
+  title: 'Reservas en barberias',
+  description:
+    'Compara barberias activas y entra al flujo correcto de reserva para cada tenant desde el marketplace.',
+  path: '/book',
+});
 
 export default async function BookPage() {
   const shops = await listMarketplaceShops();

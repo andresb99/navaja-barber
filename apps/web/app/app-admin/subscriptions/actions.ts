@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { requirePlatformAdmin } from '@/lib/auth';
+import { sanitizeText } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import type { SubscriptionStatus, SubscriptionTier } from '@/lib/subscription-plans';
 
@@ -42,9 +43,9 @@ export async function setShopSubscriptionForTestingAction(formData: FormData) {
   await requirePlatformAdmin('/app-admin/subscriptions');
 
   const parsed = updateSubscriptionSchema.safeParse({
-    shop_id: formData.get('shop_id'),
-    plan: formData.get('plan'),
-    status: formData.get('status'),
+    shop_id: sanitizeText(formData.get('shop_id')),
+    plan: sanitizeText(formData.get('plan')),
+    status: sanitizeText(formData.get('status')),
   });
 
   if (!parsed.success) {
@@ -74,4 +75,3 @@ export async function setShopSubscriptionForTestingAction(formData: FormData) {
   revalidatePath('/app-admin/subscriptions');
   revalidatePath('/admin/barbershop');
 }
-

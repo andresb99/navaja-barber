@@ -4,6 +4,7 @@ import {
   WORKSPACE_COOKIE_MAX_AGE_SECONDS,
   WORKSPACE_FAVORITE_COOKIE_NAME,
 } from '@/lib/workspace-cookie';
+import { readSanitizedJsonBody, sanitizeText } from '@/lib/sanitize';
 
 interface FavoriteWorkspacePayload {
   shopId?: string;
@@ -11,16 +12,11 @@ interface FavoriteWorkspacePayload {
 }
 
 function parseShopId(payload: FavoriteWorkspacePayload | null | undefined) {
-  return String(payload?.shopId || '').trim();
+  return sanitizeText(payload?.shopId) || '';
 }
 
 export async function POST(request: NextRequest) {
-  let payload: FavoriteWorkspacePayload | null = null;
-  try {
-    payload = (await request.json()) as FavoriteWorkspacePayload;
-  } catch {
-    payload = null;
-  }
+  const payload = (await readSanitizedJsonBody(request)) as FavoriteWorkspacePayload | null;
 
   const shopId = parseShopId(payload);
   if (!shopId) {
@@ -37,7 +33,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'workspace_not_found' }, { status: 404 });
   }
 
-  const currentFavorite = String(request.cookies.get(WORKSPACE_FAVORITE_COOKIE_NAME)?.value || '');
+  const currentFavorite = sanitizeText(request.cookies.get(WORKSPACE_FAVORITE_COOKIE_NAME)?.value) || '';
   const requestedFavoriteState =
     typeof payload?.isFavorite === 'boolean' ? payload.isFavorite : null;
   const nextFavorite =

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
+import { sanitizeText, sanitizeUnknownDeep } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -117,12 +118,12 @@ export async function POST(request: NextRequest) {
   }
 
   const formData = await request.formData();
-  const payloadRaw = formData.get('payload');
+  const payloadRaw = sanitizeText(formData.get('payload'), { trim: true });
   const uploadedFiles = formData
     .getAll('shopPhotos')
     .filter((entry): entry is File => entry instanceof File && entry.size > 0);
 
-  if (typeof payloadRaw !== 'string') {
+  if (!payloadRaw) {
     return new NextResponse('Solicitud multipart invalida.', { status: 400 });
   }
 
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse('Datos del onboarding invalidos.', { status: 400 });
   }
 
-  const parsedPayload = barbershopOnboardingPayloadSchema.safeParse(payload);
+  const parsedPayload = barbershopOnboardingPayloadSchema.safeParse(sanitizeUnknownDeep(payload));
   if (!parsedPayload.success) {
     return new NextResponse(
       parsedPayload.error.flatten().formErrors.join(', ') || 'Datos del onboarding invalidos.',

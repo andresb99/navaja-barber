@@ -4,6 +4,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { formatCurrency } from '@navaja/shared';
 import { LoaderCircle, LocateFixed } from 'lucide-react';
 import { CourseMediaCard } from '@/components/public/course-media-card';
+import { buildShopHref } from '@/lib/shop-links';
+import type { MarketplaceShop } from '@/lib/shops';
 
 interface MarketplaceCourseCatalogItem {
   course: {
@@ -15,19 +17,7 @@ interface MarketplaceCourseCatalogItem {
     level: string;
     image_url: string | null;
   };
-  shop: {
-    id: string;
-    slug: string;
-    name: string;
-    logoUrl: string | null;
-    imageUrls: string[];
-    city: string | null;
-    region: string | null;
-    averageRating: number | null;
-    reviewCount: number;
-    latitude: number | null;
-    longitude: number | null;
-  };
+  shop: MarketplaceShop;
 }
 
 interface CoursesMarketplaceCatalogProps {
@@ -214,9 +204,9 @@ export function CoursesMarketplaceCatalog({ items }: CoursesMarketplaceCatalogPr
             metaRows={metaRows}
             priceLabel={priceLabel}
             subPriceLabel={`Hasta 12 cuotas sin interes de ${formatCurrency(monthlyInstallment)}`}
-            primaryHref={`/shops/${shop.slug}/courses/${course.id}`}
+            primaryHref={`${buildShopHref(shop.slug, 'courses')}/${encodeURIComponent(course.id)}`}
             primaryLabel="Ver curso"
-            secondaryHref={`/shops/${shop.slug}/courses`}
+            secondaryHref={buildShopHref(shop.slug, 'courses')}
             secondaryLabel="Ver academia"
           />
         );

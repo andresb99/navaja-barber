@@ -1,17 +1,37 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { formatCurrency } from '@navaja/shared';
 import { getOpenModelCalls } from '@/lib/modelos';
-import { buildShopHref } from '@/lib/shop-links';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
+import { buildTenantModelRegistrationHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
+import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 
 interface ShopModelosPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: ShopModelosPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const shop = await getMarketplaceShopBySlug(slug);
+
+  if (!shop) {
+    return {};
+  }
+
+  return buildTenantPageMetadata({
+    shop,
+    title: `Modelos y practicas en ${shop.name}`,
+    description: `Convocatorias abiertas de modelos y practicas publicadas por ${shop.name}.`,
+    section: 'modelos',
+  });
+}
+
 export default async function ShopModelosPage({ params }: ShopModelosPageProps) {
   const { slug } = await params;
   const shop = await getMarketplaceShopBySlug(slug);
+  const routeContext = await getPublicTenantRouteContext();
 
   if (!shop) {
     notFound();
@@ -33,7 +53,7 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
             </p>
             <div className="mt-5">
               <Link
-                href={buildShopHref(shop.slug, 'modelos') + '/registro'}
+                href={buildTenantModelRegistrationHref(shop.slug, routeContext.mode)}
                 className="action-primary inline-flex px-6 py-2 text-sm font-semibold"
               >
                 Anotarme como modelo
@@ -126,7 +146,11 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
             ) : null}
 
             <Link
-              href={`${buildShopHref(shop.slug, 'modelos')}/registro?session_id=${call.session_id}`}
+              href={buildTenantModelRegistrationHref(
+                shop.slug,
+                routeContext.mode,
+                call.session_id,
+              )}
               className="action-secondary mt-4 inline-flex px-5 py-2 text-sm font-semibold"
             >
               Anotarme en esta sesion

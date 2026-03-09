@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { bookingInputSchema } from '@navaja/shared';
 import {
   ActionButton,
@@ -271,12 +272,29 @@ export default function ReservasScreen() {
         service_id: parsed.data.service_id,
         staff_id: selectedSlot.staff_id,
         start_at: parsed.data.start_at,
+        source_channel: 'MOBILE',
         customer_name: parsed.data.customer_name,
         customer_phone: parsed.data.customer_phone,
         customer_email: parsed.data.customer_email || null,
         notes: parsed.data.notes || null,
       });
-      if (apiResult?.appointment_id) {
+
+      if (!apiResult) {
+        setError(
+          'No hay API externa configurada en la app. Define EXPO_PUBLIC_API_BASE_URL para reservar.',
+        );
+        return;
+      }
+
+      if (apiResult.requires_payment) {
+        await WebBrowser.openBrowserAsync(apiResult.checkout_url);
+        setError(
+          'Te abrimos el checkout de pago. Al finalizar, vuelve a la app para ver el estado de tu reserva.',
+        );
+        return;
+      }
+
+      if (apiResult.appointment_id) {
         router.push({
           pathname: '/book/success',
           params: {
@@ -288,91 +306,6 @@ export default function ReservasScreen() {
         });
         return;
       }
-
-      const { data: existingCustomer, error: existingCustomerError } = await supabase
-        .from('customers')
-        .select('id')
-        .eq('shop_id', parsed.data.shop_id)
-        .eq('phone', parsed.data.customer_phone)
-        .maybeSingle();
-
-      if (existingCustomerError) {
-        setError(existingCustomerError.message || 'No se pudo validar el cliente.');
-        return;
-      }
-
-      let customerId = existingCustomer?.id ? String(existingCustomer.id) : '';
-      if (customerId) {
-        const customerUpdatePayload: {
-          name: string;
-          email?: string | null;
-        } = {
-          name: parsed.data.customer_name,
-        };
-
-        if (parsed.data.customer_email) {
-          customerUpdatePayload.email = parsed.data.customer_email;
-        }
-
-        const { error: customerUpdateError } = await supabase
-          .from('customers')
-          .update(customerUpdatePayload)
-          .eq('id', customerId)
-          .eq('shop_id', parsed.data.shop_id);
-
-        if (customerUpdateError) {
-          setError(customerUpdateError.message || 'No se pudo actualizar el cliente.');
-          return;
-        }
-      } else {
-        const { data: customer, error: customerError } = await supabase
-          .from('customers')
-          .insert({
-            shop_id: parsed.data.shop_id,
-            name: parsed.data.customer_name,
-            phone: parsed.data.customer_phone,
-            email: parsed.data.customer_email || null,
-          })
-          .select('id')
-          .single();
-
-        if (customerError || !customer) {
-          setError(customerError?.message || 'No se pudo crear el cliente.');
-          return;
-        }
-
-        customerId = String(customer.id);
-      }
-
-      const { data: appointment, error: appointmentError } = await supabase
-        .from('appointments')
-        .insert({
-          shop_id: parsed.data.shop_id,
-          staff_id: parsed.data.staff_id,
-          customer_id: customerId,
-          service_id: parsed.data.service_id,
-          start_at: parsed.data.start_at,
-          status: 'pending',
-          source_channel: 'WEB',
-          notes: parsed.data.notes || null,
-        })
-        .select('id')
-        .single();
-
-      if (appointmentError || !appointment) {
-        setError(appointmentError?.message || 'No se pudo crear la cita.');
-        return;
-      }
-
-      router.push({
-        pathname: '/book/success',
-        params: {
-          appointment: String(appointment.id),
-          start: selectedSlot.start_at,
-          service: selectedService.name,
-          staff: selectedSlot.staff_name,
-        },
-      });
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : 'No se pudo confirmar la cita.',

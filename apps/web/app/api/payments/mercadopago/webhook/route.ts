@@ -6,6 +6,9 @@ import {
 } from '@/lib/course-payments.server';
 import { getMercadoPagoServerEnv } from '@/lib/env.server';
 import { getMercadoPagoPayment } from '@/lib/mercado-pago.server';
+import { isMercadoPagoWebhookSignatureValid } from '@/lib/mercadopago-webhook';
+import { trackProductEvent } from '@/lib/product-analytics';
+import { readSanitizedJsonBody, sanitizeText } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import type { SubscriptionBillingMode, SubscriptionTier } from '@/lib/subscription-plans';
 
@@ -25,6 +28,7 @@ interface PaymentIntentRow {
   status: PaymentIntentStatus;
   external_reference: string;
   processed_at: string | null;
+  created_by_user_id: string | null;
   payload: Record<string, unknown> | null;
 }
 
@@ -55,7 +59,7 @@ function mapMercadoPagoStatus(status: string | undefined): PaymentIntentStatus {
 }
 
 function extractPaymentId(request: NextRequest, body: unknown) {
-  const queryId = request.nextUrl.searchParams.get('id');
+  const queryId = sanitizeText(request.nextUrl.searchParams.get('id'));
   if (queryId) {
     return queryId;
   }
@@ -66,7 +70,7 @@ function extractPaymentId(request: NextRequest, body: unknown) {
     if (data && typeof data === 'object' && 'id' in data) {
       const dataId = (data as { id?: string | number }).id;
       if (typeof dataId === 'string' || typeof dataId === 'number') {
-        return String(dataId);
+        return sanitizeText(String(dataId));
       }
     }
   }
@@ -109,10 +113,22 @@ async function markIntentBaseState(
 }
 
 async function processBookingIntent(intent: PaymentIntentRow, providerPaymentId: string, payerEmail: string | null) {
-  const bookingPayload = intent.payload as BookingIntentPayload | null;
+  const bookingPayload = intent.payload as (BookingIntentPayload & {
+    source_channel?: string | null;
+    created_by_user_email?: string | null;
+  }) | null;
   if (!bookingPayload) {
     throw new Error('El payment intent de reserva no contiene payload de booking.');
   }
+
+  const requestedSourceChannel =
+    String(bookingPayload.source_channel || '').trim().toUpperCase() === 'MOBILE'
+      ? 'MOBILE'
+      : 'WEB';
+  const requestedUserEmail = sanitizeText(
+    bookingPayload.created_by_user_email,
+    { lowercase: true },
+  );
 
   const appointment = await createAppointmentFromBookingIntent(
     {
@@ -126,7 +142,12 @@ async function processBookingIntent(intent: PaymentIntentRow, providerPaymentId:
         typeof bookingPayload.customer_email === 'string' ? bookingPayload.customer_email : null,
       notes: typeof bookingPayload.notes === 'string' ? bookingPayload.notes : null,
     },
-    { paymentIntentId: intent.id },
+    {
+      paymentIntentId: intent.id,
+      sourceChannel: requestedSourceChannel,
+      customerAuthUserId: intent.created_by_user_id,
+      customerAuthUserEmail: requestedUserEmail || null,
+    },
   );
 
   const admin = createSupabaseAdminClient();
@@ -246,17 +267,39 @@ async function processCourseEnrollmentIntent(
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => ({}));
+  const body = (await readSanitizedJsonBody(request)) || {};
   const paymentId = extractPaymentId(request, body);
+  const mercadoPagoEnv = getMercadoPagoServerEnv();
 
-  const webhookToken = getMercadoPagoServerEnv().MERCADO_PAGO_WEBHOOK_TOKEN?.trim() || null;
-  const providedToken = request.nextUrl.searchParams.get('token');
-  if (webhookToken && webhookToken !== providedToken) {
+  const webhookToken = sanitizeText(mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_TOKEN, { trim: true }) || null;
+  if (!webhookToken) {
+    return new NextResponse('Webhook no configurado: falta MERCADO_PAGO_WEBHOOK_TOKEN.', {
+      status: 503,
+    });
+  }
+  const webhookSecret = sanitizeText(mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_SECRET, { trim: true }) || null;
+  if (!webhookSecret) {
+    return new NextResponse('Webhook no configurado: falta MERCADO_PAGO_WEBHOOK_SECRET.', {
+      status: 503,
+    });
+  }
+
+  const providedToken = sanitizeText(request.nextUrl.searchParams.get('token')) || null;
+  if (webhookToken !== providedToken) {
     return new NextResponse('Webhook token invalido.', { status: 401 });
   }
 
   if (!paymentId) {
     return NextResponse.json({ ok: true, ignored: true });
+  }
+  const isWebhookSignatureValid = isMercadoPagoWebhookSignatureValid({
+    secret: webhookSecret,
+    paymentId,
+    requestIdHeader: request.headers.get('x-request-id'),
+    signatureHeader: request.headers.get('x-signature'),
+  });
+  if (!isWebhookSignatureValid) {
+    return new NextResponse('Webhook signature invalida.', { status: 401 });
   }
 
   try {
@@ -270,7 +313,7 @@ export async function POST(request: NextRequest) {
     const admin = createSupabaseAdminClient();
     const { data: paymentIntent } = await admin
       .from('payment_intents')
-      .select('id, shop_id, intent_type, status, external_reference, processed_at, payload')
+      .select('id, shop_id, intent_type, status, external_reference, processed_at, created_by_user_id, payload')
       .eq('external_reference', externalReference)
       .maybeSingle();
 
@@ -292,6 +335,19 @@ export async function POST(request: NextRequest) {
       approvedAt: mappedStatus === 'approved' ? new Date().toISOString() : null,
     });
 
+    void trackProductEvent({
+      eventName: 'payment.intent_status_updated',
+      shopId: intent.shop_id,
+      userId: intent.created_by_user_id,
+      source: 'system',
+      metadata: {
+        payment_intent_id: intent.id,
+        intent_type: intent.intent_type,
+        status: mappedStatus,
+        provider_payment_id: providerPaymentId,
+      },
+    });
+
     if (mappedStatus !== 'approved') {
       return NextResponse.json({ ok: true, status: mappedStatus });
     }
@@ -308,6 +364,18 @@ export async function POST(request: NextRequest) {
       await processSubscriptionIntent(intent, providerPaymentId, payerEmail);
     }
 
+    void trackProductEvent({
+      eventName: 'payment.intent_processed',
+      shopId: intent.shop_id,
+      userId: intent.created_by_user_id,
+      source: 'system',
+      metadata: {
+        payment_intent_id: intent.id,
+        intent_type: intent.intent_type,
+        status: 'approved',
+      },
+    });
+
     return NextResponse.json({ ok: true, status: 'approved' });
   } catch (error) {
     return new NextResponse(error instanceof Error ? error.message : 'Error procesando webhook.', {
@@ -317,9 +385,22 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const webhookToken = getMercadoPagoServerEnv().MERCADO_PAGO_WEBHOOK_TOKEN?.trim() || null;
-  const providedToken = request.nextUrl.searchParams.get('token');
-  if (webhookToken && webhookToken !== providedToken) {
+  const mercadoPagoEnv = getMercadoPagoServerEnv();
+  const webhookToken = sanitizeText(mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_TOKEN, { trim: true }) || null;
+  if (!webhookToken) {
+    return new NextResponse('Webhook no configurado: falta MERCADO_PAGO_WEBHOOK_TOKEN.', {
+      status: 503,
+    });
+  }
+  const webhookSecret = sanitizeText(mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_SECRET, { trim: true }) || null;
+  if (!webhookSecret) {
+    return new NextResponse('Webhook no configurado: falta MERCADO_PAGO_WEBHOOK_SECRET.', {
+      status: 503,
+    });
+  }
+
+  const providedToken = sanitizeText(request.nextUrl.searchParams.get('token')) || null;
+  if (webhookToken !== providedToken) {
     return new NextResponse('Webhook token invalido.', { status: 401 });
   }
 

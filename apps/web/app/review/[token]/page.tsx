@@ -1,10 +1,19 @@
+import type { Metadata } from 'next';
 import { Card, CardBody } from '@heroui/card';
 import { AppointmentReviewForm } from '@/components/public/appointment-review-form';
 import { getReviewInvitePreview } from '@/lib/reviews';
+import { buildBasePageMetadata } from '@/lib/site-metadata';
 
 interface AppointmentReviewPageProps {
   params: Promise<{ token: string }>;
 }
+
+export const metadata: Metadata = buildBasePageMetadata({
+  title: 'Resena de cita',
+  description: 'Formulario privado para valorar una cita.',
+  noIndex: true,
+  follow: false,
+});
 
 export default async function AppointmentReviewPage({ params }: AppointmentReviewPageProps) {
   const { token } = await params;

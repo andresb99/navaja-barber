@@ -1,6 +1,8 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { LoginForm } from '@/components/public/login-form';
 import { resolveSafeNextPath } from '@/lib/navigation';
+import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { isMockRuntime } from '@/lib/test-runtime';
 
 interface LoginPageProps {
@@ -10,6 +12,14 @@ interface LoginPageProps {
     message?: string;
   }>;
 }
+
+export const metadata: Metadata = buildSitePageMetadata({
+  title: 'Acceso',
+  description: 'Inicia sesion o crea tu cuenta para gestionar tu barberia o tus reservas.',
+  path: '/login',
+  noIndex: true,
+  follow: false,
+});
 
 function resolveInitialMode(value: string | undefined): 'login' | 'register' | 'recover' | 'reset' {
   if (value === 'register' || value === 'recover' || value === 'reset') {

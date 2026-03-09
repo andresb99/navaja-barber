@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getAppointmentReviewAccessForUser } from '@/lib/account-reviews';
 import { resolveAuthenticatedUser } from '@/lib/api-auth';
+import { trackProductEvent } from '@/lib/product-analytics';
+import { readSanitizedJsonBody, sanitizeText } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const payloadSchema = z.object({
@@ -13,7 +15,7 @@ const payloadSchema = z.object({
 export async function POST(request: NextRequest) {
   const user = await resolveAuthenticatedUser(request);
 
-  if (!user?.id || !user.email) {
+  if (!user?.id) {
     return NextResponse.json(
       {
         message: 'Debes iniciar sesion para enviar una reseña.',
@@ -22,7 +24,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const payload = payloadSchema.safeParse(await request.json().catch(() => null));
+  const payload = payloadSchema.safeParse(await readSanitizedJsonBody(request));
   if (!payload.success) {
     return NextResponse.json(
       {
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const access = await getAppointmentReviewAccessForUser(user.email, payload.data.appointment_id);
+    const access = await getAppointmentReviewAccessForUser(user.id, payload.data.appointment_id);
     if (!access || !access.canReview) {
       return NextResponse.json(
         {
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest) {
         staff_id: access.appointment.staffId,
         customer_id: access.appointment.customerId,
         rating: payload.data.rating,
-        comment: payload.data.comment?.trim() || null,
+        comment: sanitizeText(payload.data.comment, { maxLength: 1000 }) || null,
         status: 'published',
         is_verified: true,
         submitted_at: submittedAt,
@@ -81,6 +83,20 @@ export async function POST(request: NextRequest) {
       .eq('appointment_id', payload.data.appointment_id)
       .eq('notification_type', 'review_requested')
       .eq('is_read', false);
+
+    void trackProductEvent({
+      eventName: 'account.review_submitted',
+      shopId: access.appointment.shopId,
+      userId: user.id,
+      customerId: access.appointment.customerId,
+      source: 'web',
+      metadata: {
+        review_id: String(review.id),
+        appointment_id: access.appointment.id,
+        staff_id: access.appointment.staffId,
+        rating: payload.data.rating,
+      },
+    });
 
     return NextResponse.json({
       success: true,

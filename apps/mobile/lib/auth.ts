@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { env } from './env';
 
 export type AppRole = 'guest' | 'user' | 'staff' | 'admin';
 
@@ -80,17 +79,21 @@ export async function getAuthContext(): Promise<AuthContext> {
       return guestAuthContext();
     }
 
-    const { data: staff, error: staffError } = await supabase
+    const { data: staffRows, error: staffError } = await supabase
       .from('staff')
       .select('id, name, role')
-      .eq('shop_id', env.EXPO_PUBLIC_SHOP_ID)
       .eq('auth_user_id', user.id)
       .eq('is_active', true)
-      .maybeSingle();
+      .order('created_at', { ascending: true });
 
     if (staffError) {
       throw staffError;
     }
+
+    const staff =
+      (staffRows || []).find((item) => String((item as { role?: string } | null)?.role) === 'admin') ||
+      (staffRows || [])[0] ||
+      null;
 
     if (!staff) {
       return {

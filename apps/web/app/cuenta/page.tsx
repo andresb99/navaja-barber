@@ -200,7 +200,7 @@ export default async function CuentaPage() {
   }
 
   const appointments =
-    ctx.role === 'user' && ctx.email ? await getAccountAppointments(ctx.email) : [];
+    ctx.role === 'user' && ctx.userId ? await getAccountAppointments(ctx.userId) : [];
   const reviewableAppointments = appointments.filter(
     (item) => item.status === 'done' && !item.hasReview,
   );
@@ -340,8 +340,8 @@ export default async function CuentaPage() {
               muestran para cuentas de cliente.
             </p>
             <p className="text-xs text-slate/70 dark:text-slate-400">
-              Para probar ese flujo, inicia sesion con un usuario normal cuyo email coincida con un
-              cliente de la base.
+              Para probar ese flujo, inicia sesion con un usuario normal vinculado a un cliente de
+              la base.
             </p>
           </CardBody>
         </Card>

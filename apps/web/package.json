@@ -7,6 +7,7 @@
 		"dev": "next dev --webpack --hostname 0.0.0.0 --port 3000",
 		"build": "next build",
 		"start": "next start",
+		"seed:real-metrics": "node scripts/seed-real-metrics-data.mjs",
 		"start:test": "pnpm exec next start --hostname 127.0.0.1 --port 3100",
 		"e2e:serve": "pnpm run build && pnpm run start:test",
 		"lint": "node ../../node_modules/eslint/bin/eslint.js . --ext .ts,.tsx",

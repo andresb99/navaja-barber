@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { submitAppointmentReviewInputSchema } from '@navaja/shared';
+import { readSanitizedJsonBody } from '@/lib/sanitize';
 import { submitAppointmentReview } from '@/lib/reviews';
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => null);
+  const body = await readSanitizedJsonBody(request);
   const parsed = submitAppointmentReviewInputSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(

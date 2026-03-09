@@ -15,6 +15,8 @@ export interface SiteHeaderInitialState {
   hasWorkspaceAccess: boolean;
   workspaceDirectory: AccessibleWorkspaceMeta[];
   isPlatformAdmin: boolean;
+  publicTenantSlug: string | null;
+  publicTenantMode: 'path' | 'custom_domain' | 'platform_subdomain';
 }
 
 export const DEFAULT_SITE_HEADER_STATE: SiteHeaderInitialState = {
@@ -26,4 +28,6 @@ export const DEFAULT_SITE_HEADER_STATE: SiteHeaderInitialState = {
   hasWorkspaceAccess: false,
   workspaceDirectory: [],
   isPlatformAdmin: false,
+  publicTenantSlug: null,
+  publicTenantMode: 'path',
 };

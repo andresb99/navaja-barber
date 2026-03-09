@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { jobApplicationCreateSchema } from '@navaja/shared';
+import { trackProductEvent } from '@/lib/product-analytics';
+import { sanitizeText, sanitizeUnknownDeep } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -11,10 +13,10 @@ function sanitizeFilename(name: string): string {
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
-  const payloadRaw = formData.get('payload');
+  const payloadRaw = sanitizeText(formData.get('payload'), { trim: true });
   const cv = formData.get('cv');
 
-  if (typeof payloadRaw !== 'string' || !(cv instanceof File)) {
+  if (!payloadRaw || !(cv instanceof File)) {
     return new NextResponse('Solicitud multipart invalida.', { status: 400 });
   }
 
@@ -29,7 +31,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse('Datos de postulacion invalidos.', { status: 400 });
   }
 
-  const parsedPayload = jobApplicationCreateSchema.safeParse(payload);
+  const parsedPayload = jobApplicationCreateSchema.safeParse(sanitizeUnknownDeep(payload));
   if (!parsedPayload.success) {
     return new NextResponse(parsedPayload.error.flatten().formErrors.join(', ') || 'Datos de postulacion invalidos.', {
       status: 400,
@@ -84,6 +86,16 @@ export async function POST(request: NextRequest) {
     await supabase.storage.from('cvs').remove([path]);
     return new NextResponse(applicationError?.message || 'No se pudo guardar la postulacion.', { status: 400 });
   }
+
+  void trackProductEvent({
+    eventName: 'jobs.application_submitted',
+    shopId: parsedPayload.data.shop_id,
+    source: 'api',
+    metadata: {
+      application_id: String(application.id),
+      experience_years: parsedPayload.data.experience_years,
+    },
+  });
 
   return NextResponse.json({ application_id: application.id });
 }

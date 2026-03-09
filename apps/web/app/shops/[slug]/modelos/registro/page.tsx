@@ -1,13 +1,37 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ModelRegistrationForm } from '@/components/public/model-registration-form';
 import { getOpenModelCalls } from '@/lib/modelos';
-import { buildShopHref } from '@/lib/shop-links';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
+import { buildTenantPublicHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
+import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 
 interface ShopModelRegistrationPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ session_id?: string }>;
+}
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: ShopModelRegistrationPageProps): Promise<Metadata> {
+  const [{ slug }, query] = await Promise.all([params, searchParams]);
+  const shop = await getMarketplaceShopBySlug(slug);
+
+  if (!shop) {
+    return {};
+  }
+
+  return buildTenantPageMetadata({
+    shop,
+    title: `Registro de modelos | ${shop.name}`,
+    description: `Formulario de registro para convocatorias y practicas de ${shop.name}.`,
+    section: 'modelos_registro',
+    sessionId: query.session_id || null,
+    noIndex: true,
+  });
 }
 
 export default async function ShopModelRegistrationPage({
@@ -16,6 +40,7 @@ export default async function ShopModelRegistrationPage({
 }: ShopModelRegistrationPageProps) {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
   const shop = await getMarketplaceShopBySlug(slug);
+  const routeContext = await getPublicTenantRouteContext();
 
   if (!shop) {
     notFound();
@@ -36,7 +61,7 @@ export default async function ShopModelRegistrationPage({
               Tu perfil y tus preferencias se guardan solo dentro de este workspace.
             </p>
             <Link
-              href={buildShopHref(shop.slug, 'modelos')}
+              href={buildTenantPublicHref(shop.slug, routeContext.mode, 'modelos')}
               className="mt-4 inline-flex text-sm font-semibold text-ink dark:text-slate-100"
             >
               Ver convocatorias abiertas

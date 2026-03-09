@@ -1,15 +1,16 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { availabilityInputSchema } from '@navaja/shared';
 import { getAvailabilityForDate } from '@/lib/availability';
+import { sanitizeText } from '@/lib/sanitize';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
   const parsed = availabilityInputSchema.safeParse({
-    shop_id: searchParams.get('shop_id'),
-    service_id: searchParams.get('service_id'),
-    staff_id: searchParams.get('staff_id') || undefined,
-    date: searchParams.get('date'),
+    shop_id: sanitizeText(searchParams.get('shop_id')),
+    service_id: sanitizeText(searchParams.get('service_id')),
+    staff_id: sanitizeText(searchParams.get('staff_id')) || undefined,
+    date: sanitizeText(searchParams.get('date')),
   });
 
   if (!parsed.success) {

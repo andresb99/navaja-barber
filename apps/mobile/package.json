@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "lint": "node ../../node_modules/eslint/bin/eslint.js app lib --ext .ts,.tsx",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "echo \"No mobile tests yet\""
+    "test": "pnpm exec vitest run"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",

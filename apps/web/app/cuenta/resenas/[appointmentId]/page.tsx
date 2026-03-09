@@ -13,7 +13,7 @@ export default async function CuentaAppointmentReviewPage({ params }: CuentaAppo
   const ctx = await requireAuthenticated('/cuenta');
   const { appointmentId } = await params;
 
-  if (ctx.role !== 'user' || !ctx.email) {
+  if (ctx.role !== 'user' || !ctx.userId) {
     return (
       <section className="space-y-6">
         <Card>
@@ -26,7 +26,7 @@ export default async function CuentaAppointmentReviewPage({ params }: CuentaAppo
     );
   }
 
-  const access = await getAppointmentReviewAccessForUser(ctx.email, appointmentId);
+  const access = await getAppointmentReviewAccessForUser(ctx.userId, appointmentId);
 
   if (!access) {
     return (

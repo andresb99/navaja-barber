@@ -5,18 +5,18 @@ import { createCourseEnrollmentFromIntent } from '@/lib/course-payments.server';
 import { env } from '@/lib/env';
 import { getMercadoPagoServerEnv } from '@/lib/env.server';
 import { createMercadoPagoCheckoutPreference } from '@/lib/mercado-pago.server';
+import { trackProductEvent } from '@/lib/product-analytics';
+import { getRequestOrigin } from '@/lib/request-origin';
+import { readSanitizedJsonBody, sanitizeText } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 function normalizeEmail(value: string | null | undefined) {
-  const normalized = String(value || '')
-    .trim()
-    .toLowerCase();
-  return normalized || null;
+  return sanitizeText(value, { lowercase: true }) || null;
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => null);
+  const body = await readSanitizedJsonBody(request);
   const parsed = courseEnrollmentCreateSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
 
   const normalizedEmail =
     normalizeEmail(parsed.data.email) ?? normalizeEmail(user?.email) ?? null;
-  const normalizedPhone = parsed.data.phone.trim();
-  const normalizedName = parsed.data.name.trim();
+  const normalizedPhone = sanitizeText(parsed.data.phone) || '';
+  const normalizedName = sanitizeText(parsed.data.name) || '';
 
   if (!normalizedEmail) {
     return new NextResponse('Ingresa un email valido para completar la inscripcion.', {
@@ -133,6 +133,18 @@ export async function POST(request: NextRequest) {
   const tierResolution = await resolveShopTierForUser(String(course.shop_id), user?.id ?? null);
   const requiresPayment = amountCents > 0 && tierResolution.requiresReservationPayment;
 
+  void trackProductEvent({
+    eventName: 'course.enrollment_submitted',
+    shopId: String(course.shop_id),
+    userId: user?.id || null,
+    source: 'api',
+    metadata: {
+      course_id: String(course.id),
+      session_id: String(session.id),
+      requires_payment: requiresPayment,
+    },
+  });
+
   if (requiresPayment) {
     const externalReference = [
       'course',
@@ -182,10 +194,17 @@ export async function POST(request: NextRequest) {
     });
 
     try {
-      const webhookToken = getMercadoPagoServerEnv().MERCADO_PAGO_WEBHOOK_TOKEN?.trim() || null;
-      const webhookUrl = webhookToken
-        ? `${env.NEXT_PUBLIC_APP_URL}/api/payments/mercadopago/webhook?token=${encodeURIComponent(webhookToken)}`
-        : `${env.NEXT_PUBLIC_APP_URL}/api/payments/mercadopago/webhook`;
+      const requestOrigin = getRequestOrigin(request);
+      const mercadoPagoEnv = getMercadoPagoServerEnv();
+      const webhookToken = mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_TOKEN?.trim() || null;
+      if (!webhookToken) {
+        throw new Error('Falta configurar MERCADO_PAGO_WEBHOOK_TOKEN para habilitar pagos.');
+      }
+      const webhookSecret = mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_SECRET?.trim() || null;
+      if (!webhookSecret) {
+        throw new Error('Falta configurar MERCADO_PAGO_WEBHOOK_SECRET para habilitar pagos.');
+      }
+      const webhookUrl = `${env.NEXT_PUBLIC_APP_URL}/api/payments/mercadopago/webhook?token=${encodeURIComponent(webhookToken)}`;
 
       const checkout = await createMercadoPagoCheckoutPreference({
         item: {
@@ -196,9 +215,9 @@ export async function POST(request: NextRequest) {
         },
         payerEmail: normalizedEmail,
         externalReference,
-        successUrl: `${env.NEXT_PUBLIC_APP_URL}/courses/enrollment/success?${paymentStateParams.toString()}&payment_status=approved`,
-        pendingUrl: `${env.NEXT_PUBLIC_APP_URL}/courses/enrollment/success?${paymentStateParams.toString()}&payment_status=pending`,
-        failureUrl: `${env.NEXT_PUBLIC_APP_URL}/courses/enrollment/success?${paymentStateParams.toString()}&payment_status=failure`,
+        successUrl: `${requestOrigin}/courses/enrollment/success?${paymentStateParams.toString()}&payment_status=approved`,
+        pendingUrl: `${requestOrigin}/courses/enrollment/success?${paymentStateParams.toString()}&payment_status=pending`,
+        failureUrl: `${requestOrigin}/courses/enrollment/success?${paymentStateParams.toString()}&payment_status=failure`,
         notificationUrl: webhookUrl,
         metadata: {
           intent_id: String(paymentIntent.id),
@@ -216,6 +235,18 @@ export async function POST(request: NextRequest) {
           checkout_url: checkout.checkoutUrl,
         })
         .eq('id', paymentIntent.id);
+
+      void trackProductEvent({
+        eventName: 'course.enrollment_checkout_created',
+        shopId: String(course.shop_id),
+        userId: user?.id || null,
+        source: 'api',
+        metadata: {
+          payment_intent_id: String(paymentIntent.id),
+          course_id: String(course.id),
+          session_id: String(session.id),
+        },
+      });
 
       return NextResponse.json({
         requires_payment: true,
@@ -252,6 +283,18 @@ export async function POST(request: NextRequest) {
       },
       { paymentIntentId: null },
     );
+
+    void trackProductEvent({
+      eventName: 'course.enrollment_created',
+      shopId: String(course.shop_id),
+      userId: user?.id || null,
+      source: 'api',
+      metadata: {
+        enrollment_id: enrollment.enrollmentId,
+        course_id: String(course.id),
+        session_id: String(session.id),
+      },
+    });
 
     return NextResponse.json({
       enrollment_id: enrollment.enrollmentId,

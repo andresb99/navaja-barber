@@ -1,11 +1,30 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { BookingFlow } from '@/components/public/booking-flow';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 
 interface ShopBookPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: ShopBookPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const shop = await getMarketplaceShopBySlug(slug);
+
+  if (!shop) {
+    return {};
+  }
+
+  return buildTenantPageMetadata({
+    shop,
+    title: `Reservar en ${shop.name}`,
+    description: `Reserva online servicios y horarios disponibles en ${shop.name}.`,
+    section: 'book',
+    noIndex: true,
+  });
 }
 
 export default async function ShopBookPage({ params }: ShopBookPageProps) {

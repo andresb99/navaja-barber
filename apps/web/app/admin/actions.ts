@@ -32,6 +32,7 @@ import {
   stripPendingTimeOffReason,
 } from '@/lib/time-off-requests';
 import { buildAdminHref } from '@/lib/workspace-routes';
+import { sanitizeText } from '@/lib/sanitize';
 
 const PUBLIC_ASSETS_BUCKET = 'public-assets';
 const MAX_COURSE_IMAGE_SIZE = 8 * 1024 * 1024;
@@ -39,11 +40,7 @@ const ALLOWED_COURSE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/we
 
 function formValue(formData: FormData, key: string): string | undefined {
   const raw = formData.get(key);
-  if (typeof raw !== 'string') {
-    return undefined;
-  }
-  const trimmed = raw.trim();
-  return trimmed.length ? trimmed : undefined;
+  return sanitizeText(raw);
 }
 
 function formDateTimeIso(formData: FormData, key: string): string | undefined {
@@ -93,22 +90,18 @@ function normalizeStringArray(values: unknown[]): string[] {
   const normalized: string[] = [];
 
   for (const value of values) {
-    if (typeof value !== 'string') {
+    const sanitized = sanitizeText(value);
+    if (!sanitized) {
       continue;
     }
 
-    const trimmed = value.trim();
-    if (!trimmed) {
-      continue;
-    }
-
-    const dedupeKey = trimmed.toLowerCase();
+    const dedupeKey = sanitized.toLowerCase();
     if (seen.has(dedupeKey)) {
       continue;
     }
 
     seen.add(dedupeKey);
-    normalized.push(trimmed);
+    normalized.push(sanitized);
   }
 
   return normalized;

@@ -9,6 +9,7 @@ import {
   WORKSPACE_COOKIE_NAME,
 } from '@/lib/workspace-cookie';
 import { buildAdminHref, buildStaffHref } from '@/lib/workspace-routes';
+import { sanitizeText } from '@/lib/sanitize';
 
 function resolveDestination(workspace: WorkspaceSummary, requestedTarget: string | null) {
   if (requestedTarget === 'staff') {
@@ -50,12 +51,10 @@ function buildRedirectUrl(request: NextRequest, destination: string) {
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
-  const shopId = url.searchParams.get('shop')?.trim() || '';
-  const target = url.searchParams.get('target');
+  const shopId = sanitizeText(url.searchParams.get('shop')) || '';
+  const target = sanitizeText(url.searchParams.get('target'));
   const markAsFavorite = ['1', 'true', 'yes'].includes(
-    String(url.searchParams.get('favorite') || '')
-      .trim()
-      .toLowerCase(),
+    sanitizeText(url.searchParams.get('favorite'), { lowercase: true }) || '',
   );
   const catalog = await getAccessibleWorkspacesForCurrentUser();
 
@@ -68,7 +67,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/mis-barberias?error=No%20pudimos%20seleccionar%20esa%20barberia.', request.url));
   }
 
-  const destination = resolveDestination(workspace, target);
+  const destination = resolveDestination(workspace, target ?? null);
   const response = NextResponse.redirect(buildRedirectUrl(request, destination));
   response.cookies.set(WORKSPACE_COOKIE_NAME, workspace.shopId, {
     path: '/',

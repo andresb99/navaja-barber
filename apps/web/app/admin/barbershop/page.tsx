@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Card, CardBody } from '@heroui/card';
 import { AdminBarbershopSettingsForm } from '@/components/admin/barbershop-settings-form';
+import { CustomDomainSettingsForm } from '@/components/admin/custom-domain-settings-form';
 import { SubscriptionBillingPanel } from '@/components/admin/subscription-billing-panel';
 import { requireAdmin } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
@@ -22,6 +23,9 @@ interface ShopRow {
   phone: string | null;
   description: string | null;
   cover_image_url: string | null;
+  custom_domain: string | null;
+  domain_status: string | null;
+  domain_verified_at: string | null;
 }
 
 interface LocationRow {
@@ -92,7 +96,9 @@ export default async function AdminBarbershopSettingsPage({
     await Promise.all([
       supabase
         .from('shops')
-        .select('id, name, slug, timezone, phone, description, cover_image_url')
+        .select(
+          'id, name, slug, timezone, phone, description, cover_image_url, custom_domain, domain_status, domain_verified_at',
+        )
         .eq('id', ctx.shopId)
         .maybeSingle(),
       supabase
@@ -166,6 +172,29 @@ export default async function AdminBarbershopSettingsPage({
               id: item.id,
               publicUrl: String(item.public_url),
             }))}
+          />
+        </CardBody>
+      </Card>
+
+      <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
+        <CardBody className="space-y-5 p-5 md:p-6">
+          <div>
+            <p className="hero-eyebrow">Custom Domain</p>
+            <h2 className="mt-2 font-[family-name:var(--font-heading)] text-2xl font-semibold text-ink dark:text-slate-100">
+              Dominio personalizado
+            </h2>
+            <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
+              Conecta un dominio propio para que el storefront publico de {ctx.shopName} viva en
+              tu marca.
+            </p>
+          </div>
+
+          <CustomDomainSettingsForm
+            shopId={ctx.shopId}
+            currentPlan={currentPlan}
+            initialCustomDomain={shopData?.custom_domain || null}
+            initialDomainStatus={shopData?.domain_status || null}
+            initialDomainVerifiedAt={shopData?.domain_verified_at || null}
           />
         </CardBody>
       </Card>

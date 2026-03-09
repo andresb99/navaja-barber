@@ -13,3 +13,54 @@ export function buildShopHref(slug: string, section?: 'book' | 'jobs' | 'courses
   }
   return `${basePath}/${section}`;
 }
+
+export function buildTenantPublicHref(
+  shopSlug: string,
+  mode: 'path' | 'custom_domain' | 'platform_subdomain',
+  section?: 'book' | 'jobs' | 'courses' | 'modelos',
+) {
+  if (mode === 'custom_domain' || mode === 'platform_subdomain') {
+    if (!section) {
+      return '/';
+    }
+
+    return `/${section}`;
+  }
+
+  return buildShopHref(shopSlug, section);
+}
+
+export function buildTenantCourseHref(
+  shopSlug: string,
+  courseId: string,
+  mode: 'path' | 'custom_domain' | 'platform_subdomain',
+) {
+  const normalizedCourseId = String(courseId || '').trim();
+  if (!normalizedCourseId) {
+    return buildTenantPublicHref(shopSlug, mode, 'courses');
+  }
+
+  if (mode === 'custom_domain' || mode === 'platform_subdomain') {
+    return `/courses/${encodeURIComponent(normalizedCourseId)}`;
+  }
+
+  return `/shops/${normalizeShopSlug(shopSlug)}/courses/${encodeURIComponent(normalizedCourseId)}`;
+}
+
+export function buildTenantModelRegistrationHref(
+  shopSlug: string,
+  mode: 'path' | 'custom_domain' | 'platform_subdomain',
+  sessionId?: string | null,
+) {
+  const basePath =
+    mode === 'custom_domain' || mode === 'platform_subdomain'
+      ? '/modelos/registro'
+      : `${buildShopHref(shopSlug, 'modelos')}/registro`;
+  const normalizedSessionId = String(sessionId || '').trim();
+
+  if (!normalizedSessionId) {
+    return basePath;
+  }
+
+  return `${basePath}?session_id=${encodeURIComponent(normalizedSessionId)}`;
+}

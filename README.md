@@ -200,6 +200,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 REVIEW_LINK_SIGNING_SECRET=
 NEXT_PUBLIC_SHOP_ID=
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN=
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
 ```
 
@@ -215,6 +216,7 @@ EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=
 
 Nota:
 - `EXPO_PUBLIC_API_BASE_URL` debe apuntar a la web (local o deploy) para endpoints de cuenta/reservas/reviews.
+- `NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN` define el dominio base para resolver subdominios del marketplace y reservar hosts internos frente a custom domains.
 
 ### 13.3 Base de datos
 
@@ -270,6 +272,12 @@ Comandos raiz:
 2. Root directory: `apps/web`.
 3. Cargar envs de web.
 4. Deploy.
+
+Para custom domains de tenants Business:
+- Revisa `docs/custom-domains.md`.
+- Agrega cada dominio manualmente en Vercel y configura el DNS con el target que Vercel indique.
+- Luego activa el dominio desde `admin/barbershop`.
+- Verifica en Search Console el dominio principal y, si usas custom domains reales, cada host importante con su propio `/sitemap.xml`.
 
 ### Mobile (Expo EAS)
 1. `npx expo login`

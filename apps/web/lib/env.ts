@@ -5,6 +5,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(20),
   NEXT_PUBLIC_SHOP_ID: z.string().uuid(),
   NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
+  NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN: z.string().trim().min(1).optional(),
 });
 
 const parsed = envSchema.safeParse({
@@ -12,6 +13,7 @@ const parsed = envSchema.safeParse({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SHOP_ID: process.env.NEXT_PUBLIC_SHOP_ID,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN: process.env.NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN,
 });
 
 if (!parsed.success) {

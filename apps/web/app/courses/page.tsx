@@ -1,5 +1,7 @@
+import type { Metadata } from 'next';
 import { CoursesMarketplaceCatalog } from '@/components/public/courses-marketplace-catalog';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
+import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
@@ -13,6 +15,13 @@ interface CourseRow {
   level: string;
   image_url: string | null;
 }
+
+export const metadata: Metadata = buildSitePageMetadata({
+  title: 'Cursos de barberia',
+  description:
+    'Explora cursos, workshops y formacion publicados por barberias activas dentro del marketplace.',
+  path: '/courses',
+});
 
 export default async function CoursesPage() {
   const shops = await listMarketplaceShops();

@@ -1,6 +1,15 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ModelosMarketplaceList } from '@/components/public/modelos-marketplace-list';
 import { listMarketplaceOpenModelCalls } from '@/lib/modelos';
+import { buildSitePageMetadata } from '@/lib/site-metadata';
+
+export const metadata: Metadata = buildSitePageMetadata({
+  title: 'Convocatorias para modelos',
+  description:
+    'Revisa convocatorias abiertas para modelos y sesiones academicas publicadas por barberias del marketplace.',
+  path: '/modelos',
+});
 
 export default async function ModelosLandingPage() {
   const openCalls = await listMarketplaceOpenModelCalls();

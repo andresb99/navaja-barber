@@ -19,6 +19,16 @@ export interface MarketplaceOpenModelCall extends OpenModelCall {
   shop_id: string;
   shop_name: string;
   shop_slug: string;
+  custom_domain: string | null;
+  domain_status: string | null;
+  plan: string | null;
+  subscription_status: string | null;
+}
+
+interface ShopSubscriptionRow {
+  shop_id: string;
+  plan: string | null;
+  status: string | null;
 }
 
 export function getModelsNeededFromRequirements(input: unknown): number {
@@ -108,13 +118,21 @@ export async function listMarketplaceOpenModelCalls(): Promise<MarketplaceOpenMo
   const shopIds = [...new Set(courseRows.map((row) => String(row.shop_id)))];
   const { data: shopRows } = await supabase
     .from('shops')
-    .select('id, name, slug, status')
+    .select('id, name, slug, status, custom_domain, domain_status')
     .in('id', shopIds)
     .eq('status', 'active');
+
+  const { data: subscriptionRows } = await supabase
+    .from('subscriptions')
+    .select('shop_id, plan, status')
+    .in('shop_id', shopIds);
 
   const sessionsById = new Map(sessionRows.map((row) => [String(row.id), row]));
   const coursesById = new Map(courseRows?.map((row) => [String(row.id), row]) || []);
   const shopsById = new Map((shopRows || []).map((row) => [String(row.id), row]));
+  const subscriptionsByShopId = new Map<string, ShopSubscriptionRow>(
+    ((subscriptionRows || []) as ShopSubscriptionRow[]).map((row) => [String(row.shop_id), row]),
+  );
 
   return requirementsRows
     .map((req) => {
@@ -132,15 +150,20 @@ export async function listMarketplaceOpenModelCalls(): Promise<MarketplaceOpenMo
       if (!shop) {
         return null;
       }
+      const subscription = subscriptionsByShopId.get(String(shop.id));
 
       const categoriesFromRequirements = getModelCategoriesFromRequirements(req.requirements);
       const categoriesFromCourse = normalizeModelCategories(course.model_categories);
 
-      return {
+      const item: MarketplaceOpenModelCall = {
         session_id: String(req.session_id),
         shop_id: String(shop.id),
         shop_name: String(shop.name),
         shop_slug: String(shop.slug),
+        custom_domain: shop.custom_domain ? String(shop.custom_domain) : null,
+        domain_status: shop.domain_status ? String(shop.domain_status) : null,
+        plan: subscription?.plan || 'free',
+        subscription_status: subscription?.status || 'active',
         course_title: String(course.title),
         start_at: String(session.start_at),
         location: String(session.location),
@@ -151,7 +174,9 @@ export async function listMarketplaceOpenModelCalls(): Promise<MarketplaceOpenMo
           req.compensation_value_cents === null ? null : Number(req.compensation_value_cents || 0),
         notes_public: req.notes_public ? String(req.notes_public) : null,
         models_needed: getModelsNeededFromRequirements(req.requirements),
-      } satisfies MarketplaceOpenModelCall;
+      };
+
+      return item;
     })
     .filter((item): item is MarketplaceOpenModelCall => item !== null)
     .sort((a, b) => (a.start_at < b.start_at ? -1 : 1));

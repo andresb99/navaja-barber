@@ -1,17 +1,38 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { formatCurrency } from '@navaja/shared';
-import { buildShopHref } from '@/lib/shop-links';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
+import { buildTenantPublicHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 
 interface ShopProfilePageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateMetadata({ params }: ShopProfilePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const shop = await getMarketplaceShopBySlug(slug);
+
+  if (!shop) {
+    return {};
+  }
+
+  return buildTenantPageMetadata({
+    shop,
+    title: `${shop.name} | Perfil`,
+    description:
+      shop.description || `Servicios, staff, reservas y branding de ${shop.name} en un solo lugar.`,
+    section: 'profile',
+  });
+}
+
 export default async function ShopProfilePage({ params }: ShopProfilePageProps) {
   const { slug } = await params;
   const shop = await getMarketplaceShopBySlug(slug);
+  const routeContext = await getPublicTenantRouteContext();
 
   if (!shop) {
     notFound();
@@ -95,20 +116,26 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Link href={buildShopHref(shop.slug, 'book')} className="action-primary px-5 py-2 text-sm font-semibold">
+        <Link
+          href={buildTenantPublicHref(shop.slug, routeContext.mode, 'book')}
+          className="action-primary px-5 py-2 text-sm font-semibold"
+        >
           Reservar cita
         </Link>
-        <Link href={buildShopHref(shop.slug, 'jobs')} className="action-secondary px-5 py-2 text-sm font-semibold">
+        <Link
+          href={buildTenantPublicHref(shop.slug, routeContext.mode, 'jobs')}
+          className="action-secondary px-5 py-2 text-sm font-semibold"
+        >
           Enviar CV
         </Link>
         <Link
-          href={buildShopHref(shop.slug, 'modelos')}
+          href={buildTenantPublicHref(shop.slug, routeContext.mode, 'modelos')}
           className="action-secondary px-5 py-2 text-sm font-semibold"
         >
           Aplicar como modelo
         </Link>
         <Link
-          href={buildShopHref(shop.slug, 'courses')}
+          href={buildTenantPublicHref(shop.slug, routeContext.mode, 'courses')}
           className="action-secondary px-5 py-2 text-sm font-semibold"
         >
           Ver cursos

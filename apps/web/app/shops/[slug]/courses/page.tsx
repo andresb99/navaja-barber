@@ -1,8 +1,12 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { formatCurrency } from '@navaja/shared';
 import { CourseMediaCard } from '@/components/public/course-media-card';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
+import { buildTenantCourseHref, buildTenantPublicHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 
 interface ShopCoursesPageProps {
   params: Promise<{ slug: string }>;
@@ -18,9 +22,26 @@ interface ShopCourseRow {
   image_url: string | null;
 }
 
+export async function generateMetadata({ params }: ShopCoursesPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const shop = await getMarketplaceShopBySlug(slug);
+
+  if (!shop) {
+    return {};
+  }
+
+  return buildTenantPageMetadata({
+    shop,
+    title: `Cursos de ${shop.name}`,
+    description: `Catalogo de cursos, workshops y sesiones publicadas por ${shop.name}.`,
+    section: 'courses',
+  });
+}
+
 export default async function ShopCoursesPage({ params }: ShopCoursesPageProps) {
   const { slug } = await params;
   const shop = await getMarketplaceShopBySlug(slug);
+  const routeContext = await getPublicTenantRouteContext();
 
   if (!shop) {
     notFound();
@@ -107,8 +128,10 @@ export default async function ShopCoursesPage({ params }: ShopCoursesPageProps) 
             subPriceLabel={`Hasta 12 cuotas sin interes de ${formatCurrency(
               Math.max(1, Math.round(Number(course.price_cents || 0) / 12)),
             )}`}
-            primaryHref={`/shops/${shop.slug}/courses/${course.id}`}
+            primaryHref={buildTenantCourseHref(shop.slug, String(course.id), routeContext.mode)}
+            secondaryHref={buildTenantPublicHref(shop.slug, routeContext.mode, 'courses')}
             primaryLabel="Ver detalle"
+            secondaryLabel="Ver catalogo"
           />
         ))}
       </div>

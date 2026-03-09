@@ -1,6 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
+import { trackProductEvent } from '@/lib/product-analytics';
+import { sanitizeText, sanitizeUnknownDeep } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -20,10 +22,10 @@ function sanitizeFilename(name: string): string {
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
-  const payloadRaw = formData.get('payload');
+  const payloadRaw = sanitizeText(formData.get('payload'), { trim: true });
   const cv = formData.get('cv');
 
-  if (typeof payloadRaw !== 'string' || !(cv instanceof File)) {
+  if (!payloadRaw || !(cv instanceof File)) {
     return new NextResponse('Solicitud multipart invalida.', { status: 400 });
   }
 
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
     return new NextResponse('Datos de postulacion invalidos.', { status: 400 });
   }
 
-  const parsedPayload = networkJobProfileSchema.safeParse(payload);
+  const parsedPayload = networkJobProfileSchema.safeParse(sanitizeUnknownDeep(payload));
   if (!parsedPayload.success) {
     return new NextResponse(
       parsedPayload.error.flatten().formErrors.join(', ') || 'Datos de postulacion invalidos.',
@@ -82,6 +84,15 @@ export async function POST(request: NextRequest) {
     await supabase.storage.from('cvs').remove([path]);
     return new NextResponse(profileError?.message || 'No se pudo guardar el perfil.', { status: 400 });
   }
+
+  void trackProductEvent({
+    eventName: 'jobs.network_profile_submitted',
+    source: 'api',
+    metadata: {
+      profile_id: String(profile.id),
+      experience_years: parsedPayload.data.experience_years,
+    },
+  });
 
   return NextResponse.json({ profile_id: profile.id });
 }

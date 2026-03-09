@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { requireAuthenticated } from '@/lib/auth';
 import { getAppointmentReviewAccessForUser } from '@/lib/account-reviews';
+import { sanitizeUnknownDeep, sanitizeText } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const submitOwnAppointmentReviewSchema = z.object({
@@ -29,14 +30,14 @@ export async function submitOwnAppointmentReviewAction(
   },
 ): Promise<SubmitOwnAppointmentReviewActionResult> {
   const ctx = await requireAuthenticated('/cuenta');
-  if (ctx.role !== 'user' || !ctx.email) {
+  if (ctx.role !== 'user' || !ctx.userId) {
     return {
       success: false,
       error: 'Solo los clientes pueden calificar citas desde su cuenta.',
     };
   }
 
-  const parsed = submitOwnAppointmentReviewSchema.safeParse(input);
+  const parsed = submitOwnAppointmentReviewSchema.safeParse(sanitizeUnknownDeep(input));
   if (!parsed.success) {
     return {
       success: false,
@@ -44,7 +45,7 @@ export async function submitOwnAppointmentReviewAction(
     };
   }
 
-  const access = await getAppointmentReviewAccessForUser(ctx.email, parsed.data.appointmentId);
+  const access = await getAppointmentReviewAccessForUser(ctx.userId, parsed.data.appointmentId);
   if (!access || !access.canReview) {
     return {
       success: false,
@@ -104,7 +105,11 @@ export async function markAccountNotificationReadAction(input: { notificationId:
     throw new Error('Debes iniciar sesion para actualizar notificaciones.');
   }
 
-  const parsed = markNotificationReadSchema.safeParse(input);
+  const parsed = markNotificationReadSchema.safeParse(
+    sanitizeUnknownDeep({
+      notificationId: sanitizeText(input.notificationId),
+    }),
+  );
   if (!parsed.success) {
     throw new Error('Notificacion invalida.');
   }

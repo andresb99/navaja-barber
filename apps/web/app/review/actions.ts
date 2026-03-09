@@ -1,6 +1,7 @@
 'use server';
 
 import type { SubmitAppointmentReviewInput } from '@navaja/shared';
+import { sanitizeUnknownDeep } from '@/lib/sanitize';
 import { submitAppointmentReview } from '@/lib/reviews';
 
 export interface SubmitAppointmentReviewActionResult {
@@ -12,7 +13,7 @@ export async function submitAppointmentReviewAction(
   input: SubmitAppointmentReviewInput,
 ): Promise<SubmitAppointmentReviewActionResult> {
   try {
-    await submitAppointmentReview(input);
+    await submitAppointmentReview(sanitizeUnknownDeep(input));
 
     return {
       success: true,

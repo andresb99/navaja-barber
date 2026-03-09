@@ -6,6 +6,7 @@ export const isoDateTimeSchema = z.string().datetime({ offset: true });
 export const staffRoleSchema = z.enum(['admin', 'staff']);
 export const shopMembershipRoleSchema = z.enum(['owner', 'admin', 'staff']);
 export const shopStatusSchema = z.enum(['draft', 'setup_in_progress', 'active', 'suspended']);
+export const shopDomainStatusSchema = z.enum(['pending', 'verified', 'active', 'failed']);
 export const subscriptionPlanSchema = z.enum(['free', 'pro', 'business', 'app_admin']);
 export const subscriptionStatusSchema = z.enum(['trialing', 'active', 'past_due', 'cancelled']);
 export const appointmentStatusSchema = z.enum([
@@ -17,6 +18,7 @@ export const appointmentStatusSchema = z.enum([
 ]);
 export const appointmentSourceChannelSchema = z.enum([
   'WEB',
+  'MOBILE',
   'WALK_IN',
   'ADMIN_CREATED',
   'WHATSAPP',
@@ -56,6 +58,9 @@ export const shopSchema = z.object({
   published_at: isoDateTimeSchema.nullable().optional(),
   logo_url: z.string().url().nullable().optional(),
   cover_image_url: z.string().url().nullable().optional(),
+  custom_domain: z.string().max(255).nullable().optional(),
+  domain_status: shopDomainStatusSchema.nullable().optional(),
+  domain_verified_at: isoDateTimeSchema.nullable().optional(),
   created_at: isoDateTimeSchema,
 });
 
@@ -365,11 +370,25 @@ export const bookingInputSchema = z.object({
   service_id: uuidSchema,
   staff_id: uuidSchema.nullable(),
   start_at: isoDateTimeSchema,
+  source_channel: z.enum(['WEB', 'MOBILE']).optional(),
   customer_name: z.string().min(2).max(120),
   customer_phone: z.string().min(7).max(20),
   customer_email: z.string().email().optional().nullable(),
   notes: z.string().max(2000).optional().nullable(),
 });
+
+export const bookingApiResponseSchema = z.union([
+  z.object({
+    requires_payment: z.literal(true),
+    payment_intent_id: uuidSchema,
+    checkout_url: z.string().url(),
+  }),
+  z.object({
+    requires_payment: z.literal(false),
+    appointment_id: uuidSchema,
+    start_at: isoDateTimeSchema,
+  }),
+]);
 
 export const availabilityInputSchema = z.object({
   shop_id: uuidSchema,
@@ -576,6 +595,7 @@ export type ModelRequirements = z.infer<typeof modelRequirementsSchema>;
 export type ModelApplication = z.infer<typeof modelApplicationSchema>;
 export type Waiver = z.infer<typeof waiverSchema>;
 export type BookingInput = z.infer<typeof bookingInputSchema>;
+export type BookingApiResponse = z.infer<typeof bookingApiResponseSchema>;
 export type AvailabilityInput = z.infer<typeof availabilityInputSchema>;
 export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>;
 export type AppointmentSourceChannel = z.infer<typeof appointmentSourceChannelSchema>;
@@ -583,6 +603,7 @@ export type AppointmentCancelledBy = z.infer<typeof appointmentCancelledBySchema
 export type StaffRole = z.infer<typeof staffRoleSchema>;
 export type ShopMembershipRole = z.infer<typeof shopMembershipRoleSchema>;
 export type ShopStatus = z.infer<typeof shopStatusSchema>;
+export type ShopDomainStatus = z.infer<typeof shopDomainStatusSchema>;
 export type SubscriptionPlan = z.infer<typeof subscriptionPlanSchema>;
 export type SubscriptionStatus = z.infer<typeof subscriptionStatusSchema>;
 export type EnrollmentStatus = z.infer<typeof enrollmentStatusSchema>;

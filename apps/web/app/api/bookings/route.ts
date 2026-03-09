@@ -5,18 +5,22 @@ import { resolveShopTierForUser } from '@/lib/billing.server';
 import { env } from '@/lib/env';
 import { getMercadoPagoServerEnv } from '@/lib/env.server';
 import { createMercadoPagoCheckoutPreference } from '@/lib/mercado-pago.server';
+import { trackProductEvent } from '@/lib/product-analytics';
+import { getRequestOrigin } from '@/lib/request-origin';
+import { readSanitizedJsonBody, sanitizeText } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 function normalizeEmail(value: string | null | undefined) {
-  const normalized = String(value || '')
-    .trim()
-    .toLowerCase();
-  return normalized || null;
+  return sanitizeText(value, { lowercase: true }) || null;
+}
+
+function resolveRequestedSourceChannel(value: unknown) {
+  return value === 'MOBILE' ? 'MOBILE' : 'WEB';
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => null);
+  const body = await readSanitizedJsonBody(request);
   const parsed = bookingInputSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -36,6 +40,7 @@ export async function POST(request: NextRequest) {
 
   const resolvedCustomerEmail =
     normalizeEmail(parsed.data.customer_email) ?? normalizeEmail(user?.email) ?? null;
+  const requestedSourceChannel = resolveRequestedSourceChannel(parsed.data.source_channel);
 
   const supabase = createSupabaseAdminClient();
 
@@ -75,6 +80,19 @@ export async function POST(request: NextRequest) {
   }
 
   const tierResolution = await resolveShopTierForUser(parsed.data.shop_id, user?.id ?? null);
+  const eventSource = requestedSourceChannel === 'MOBILE' ? 'mobile' : 'web';
+
+  void trackProductEvent({
+    eventName: 'booking.submitted',
+    shopId: parsed.data.shop_id,
+    userId: user?.id || null,
+    source: eventSource,
+    metadata: {
+      service_id: parsed.data.service_id,
+      staff_id: parsed.data.staff_id,
+      requires_payment: tierResolution.requiresReservationPayment,
+    },
+  });
 
   if (tierResolution.requiresReservationPayment) {
     if (!resolvedCustomerEmail) {
@@ -98,12 +116,14 @@ export async function POST(request: NextRequest) {
       service_id: parsed.data.service_id,
       staff_id: parsed.data.staff_id,
       start_at: parsed.data.start_at,
+      source_channel: requestedSourceChannel,
       customer_name: parsed.data.customer_name,
       customer_phone: parsed.data.customer_phone,
       customer_email: resolvedCustomerEmail,
       notes: parsed.data.notes || null,
       service_name: serviceName,
       staff_name: staffName,
+      created_by_user_email: normalizeEmail(user?.email),
     };
 
     const { data: paymentIntent, error: paymentIntentError } = await supabase
@@ -139,9 +159,15 @@ export async function POST(request: NextRequest) {
     try {
       const mercadoPagoEnv = getMercadoPagoServerEnv();
       const webhookToken = mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_TOKEN?.trim() || null;
-      const webhookUrl = webhookToken
-        ? `${env.NEXT_PUBLIC_APP_URL}/api/payments/mercadopago/webhook?token=${encodeURIComponent(webhookToken)}`
-        : `${env.NEXT_PUBLIC_APP_URL}/api/payments/mercadopago/webhook`;
+      if (!webhookToken) {
+        throw new Error('Falta configurar MERCADO_PAGO_WEBHOOK_TOKEN para habilitar pagos.');
+      }
+      const webhookSecret = mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_SECRET?.trim() || null;
+      if (!webhookSecret) {
+        throw new Error('Falta configurar MERCADO_PAGO_WEBHOOK_SECRET para habilitar pagos.');
+      }
+      const requestOrigin = getRequestOrigin(request);
+      const webhookUrl = `${env.NEXT_PUBLIC_APP_URL}/api/payments/mercadopago/webhook?token=${encodeURIComponent(webhookToken)}`;
 
       const checkout = await createMercadoPagoCheckoutPreference({
         item: {
@@ -152,9 +178,9 @@ export async function POST(request: NextRequest) {
         },
         payerEmail: resolvedCustomerEmail,
         externalReference,
-        successUrl: `${env.NEXT_PUBLIC_APP_URL}/book/success?${bookingStateParams.toString()}&payment_status=approved`,
-        pendingUrl: `${env.NEXT_PUBLIC_APP_URL}/book/success?${bookingStateParams.toString()}&payment_status=pending`,
-        failureUrl: `${env.NEXT_PUBLIC_APP_URL}/book/success?${bookingStateParams.toString()}&payment_status=failure`,
+        successUrl: `${requestOrigin}/book/success?${bookingStateParams.toString()}&payment_status=approved`,
+        pendingUrl: `${requestOrigin}/book/success?${bookingStateParams.toString()}&payment_status=pending`,
+        failureUrl: `${requestOrigin}/book/success?${bookingStateParams.toString()}&payment_status=failure`,
         notificationUrl: webhookUrl,
         metadata: {
           intent_id: String(paymentIntent.id),
@@ -169,6 +195,17 @@ export async function POST(request: NextRequest) {
           checkout_url: checkout.checkoutUrl,
         })
         .eq('id', paymentIntent.id);
+
+      void trackProductEvent({
+        eventName: 'booking.payment_checkout_created',
+        shopId: parsed.data.shop_id,
+        userId: user?.id || null,
+        source: eventSource,
+        metadata: {
+          payment_intent_id: String(paymentIntent.id),
+          service_id: parsed.data.service_id,
+        },
+      });
 
       return NextResponse.json({
         requires_payment: true,
@@ -202,6 +239,22 @@ export async function POST(request: NextRequest) {
       customer_phone: parsed.data.customer_phone,
       customer_email: resolvedCustomerEmail,
       notes: parsed.data.notes || null,
+    }, {
+      sourceChannel: requestedSourceChannel,
+      customerAuthUserId: user?.id || null,
+      customerAuthUserEmail: user?.email || null,
+    });
+
+    void trackProductEvent({
+      eventName: 'booking.created',
+      shopId: parsed.data.shop_id,
+      userId: user?.id || null,
+      customerId: appointment.customerId,
+      source: eventSource,
+      metadata: {
+        appointment_id: appointment.appointmentId,
+        service_id: parsed.data.service_id,
+      },
     });
 
     return NextResponse.json({

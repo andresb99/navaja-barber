@@ -9,6 +9,8 @@ import {
   type SubscriptionBillingMode,
   type SubscriptionTier,
 } from '@/lib/subscription-plans';
+import { trackProductEvent } from '@/lib/product-analytics';
+import { readSanitizedJsonBody } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -19,7 +21,7 @@ const subscriptionCheckoutSchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const body = await request.json().catch(() => null);
+  const body = await readSanitizedJsonBody(request);
   const parsed = subscriptionCheckoutSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -102,11 +104,30 @@ export async function POST(request: NextRequest) {
 
   const descriptor = getSubscriptionPlanDescriptor(targetPlan);
 
+  void trackProductEvent({
+    eventName: 'subscription.checkout_submitted',
+    shopId: parsed.data.shop_id,
+    userId: user.id,
+    source: 'web',
+    metadata: {
+      target_plan: targetPlan,
+      billing_mode: billingMode,
+      amount_cents: amountCents,
+      payment_intent_id: String(paymentIntent.id),
+    },
+  });
+
   try {
-    const webhookToken = getMercadoPagoServerEnv().MERCADO_PAGO_WEBHOOK_TOKEN?.trim() || null;
-    const webhookUrl = webhookToken
-      ? `${env.NEXT_PUBLIC_APP_URL}/api/payments/mercadopago/webhook?token=${encodeURIComponent(webhookToken)}`
-      : `${env.NEXT_PUBLIC_APP_URL}/api/payments/mercadopago/webhook`;
+    const mercadoPagoEnv = getMercadoPagoServerEnv();
+    const webhookToken = mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_TOKEN?.trim() || null;
+    if (!webhookToken) {
+      throw new Error('Falta configurar MERCADO_PAGO_WEBHOOK_TOKEN para habilitar pagos.');
+    }
+    const webhookSecret = mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_SECRET?.trim() || null;
+    if (!webhookSecret) {
+      throw new Error('Falta configurar MERCADO_PAGO_WEBHOOK_SECRET para habilitar pagos.');
+    }
+    const webhookUrl = `${env.NEXT_PUBLIC_APP_URL}/api/payments/mercadopago/webhook?token=${encodeURIComponent(webhookToken)}`;
 
     const checkout = await createMercadoPagoCheckoutPreference({
       item: {
@@ -137,6 +158,18 @@ export async function POST(request: NextRequest) {
         checkout_url: checkout.checkoutUrl,
       })
       .eq('id', paymentIntent.id);
+
+    void trackProductEvent({
+      eventName: 'subscription.checkout_created',
+      shopId: parsed.data.shop_id,
+      userId: user.id,
+      source: 'web',
+      metadata: {
+        target_plan: targetPlan,
+        billing_mode: billingMode,
+        payment_intent_id: String(paymentIntent.id),
+      },
+    });
 
     return NextResponse.json({
       payment_intent_id: paymentIntent.id,

@@ -1,5 +1,9 @@
+import type { Metadata } from 'next';
 import { BadgeCheck, CircleX, Clock3 } from 'lucide-react';
 import { Button } from '@heroui/button';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
+import { buildTenantCourseHref, buildTenantPublicHref } from '@/lib/shop-links';
+import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 interface CourseEnrollmentSuccessPageProps {
@@ -11,6 +15,13 @@ interface CourseEnrollmentSuccessPageProps {
     shop?: string;
   }>;
 }
+
+export const metadata: Metadata = buildSitePageMetadata({
+  title: 'Estado de la inscripcion',
+  description: 'Estado del pago y confirmacion de una inscripcion a curso.',
+  path: '/courses/enrollment/success',
+  noIndex: true,
+});
 
 type PaymentState = 'approved' | 'pending' | 'failure';
 
@@ -73,6 +84,7 @@ export default async function CourseEnrollmentSuccessPage({
   searchParams,
 }: CourseEnrollmentSuccessPageProps) {
   const params = await searchParams;
+  const routeContext = await getPublicTenantRouteContext();
   const result = await resolveEnrollmentResult(params);
 
   const eyebrow =
@@ -114,7 +126,11 @@ export default async function CourseEnrollmentSuccessPage({
   const courseId = String(params.course || '').trim();
   const titleLabel = String(params.title || '').trim() || 'Curso';
   const fallbackHref =
-    shopSlug && courseId ? `/shops/${encodeURIComponent(shopSlug)}/courses/${encodeURIComponent(courseId)}` : '/courses';
+    shopSlug && courseId
+      ? buildTenantCourseHref(shopSlug, courseId, routeContext.mode)
+      : shopSlug
+        ? buildTenantPublicHref(shopSlug, routeContext.mode, 'courses')
+        : '/courses';
 
   return (
     <section className="mx-auto max-w-2xl">
@@ -148,7 +164,7 @@ export default async function CourseEnrollmentSuccessPage({
             </Button>
             <Button
               as="a"
-              href="/courses"
+              href={shopSlug ? buildTenantPublicHref(shopSlug, routeContext.mode, 'courses') : '/courses'}
               variant="ghost"
               className="action-secondary px-5 text-sm font-semibold"
             >

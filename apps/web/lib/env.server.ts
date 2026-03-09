@@ -13,6 +13,7 @@ const reviewServerEnvSchema = z.object({
 const mercadoPagoServerEnvSchema = z.object({
   MERCADO_PAGO_ACCESS_TOKEN: z.string().min(20),
   MERCADO_PAGO_WEBHOOK_TOKEN: z.string().min(16).optional(),
+  MERCADO_PAGO_WEBHOOK_SECRET: z.string().min(16).optional(),
   MERCADO_PAGO_API_BASE_URL: z.string().url().optional(),
 });
 
@@ -63,6 +64,7 @@ export function getMercadoPagoServerEnv() {
   return parseServerSection(mercadoPagoServerEnvSchema, {
     MERCADO_PAGO_ACCESS_TOKEN: process.env.MERCADO_PAGO_ACCESS_TOKEN,
     MERCADO_PAGO_WEBHOOK_TOKEN: process.env.MERCADO_PAGO_WEBHOOK_TOKEN,
+    MERCADO_PAGO_WEBHOOK_SECRET: process.env.MERCADO_PAGO_WEBHOOK_SECRET,
     MERCADO_PAGO_API_BASE_URL: process.env.MERCADO_PAGO_API_BASE_URL,
   });
 }

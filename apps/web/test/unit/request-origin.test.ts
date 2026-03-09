@@ -1,4 +1,4 @@
-import { getRequestOrigin } from '@/lib/request-origin';
+import { getRequestOrigin, getRequestOriginFromHeaders } from '@/lib/request-origin';
 
 describe('getRequestOrigin', () => {
   it('prefers forwarded headers and normalizes 0.0.0.0', () => {
@@ -43,5 +43,14 @@ describe('getRequestOrigin', () => {
     };
 
     expect(getRequestOrigin(request as never)).toBe('https://navaja.test:3000');
+  });
+
+  it('builds an origin from a header store for server components', () => {
+    const headerStore = new Headers({
+      host: 'navaja.localhost:3000',
+      'x-forwarded-proto': 'http',
+    });
+
+    expect(getRequestOriginFromHeaders(headerStore)).toBe('http://navaja.localhost:3000');
   });
 });

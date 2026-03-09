@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sanitizeText } from '@/lib/sanitize';
 import { searchMarketplaceShops } from '@/lib/shops';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const query = searchParams.get('q');
-  const intentParam = searchParams.get('intent');
-  const latitudeParam = searchParams.get('lat');
-  const longitudeParam = searchParams.get('lng');
-  const radiusKmParam = searchParams.get('radiusKm');
-  const limitParam = searchParams.get('limit');
+  const query = sanitizeText(searchParams.get('q'));
+  const intentParam = sanitizeText(searchParams.get('intent'), { lowercase: true });
+  const latitudeParam = sanitizeText(searchParams.get('lat'));
+  const longitudeParam = sanitizeText(searchParams.get('lng'));
+  const radiusKmParam = sanitizeText(searchParams.get('radiusKm'));
+  const limitParam = sanitizeText(searchParams.get('limit'));
 
   const intent: Parameters<typeof searchMarketplaceShops>[0]['intent'] =
     intentParam === 'name' || intentParam === 'area' || intentParam === 'smart' ? intentParam : 'smart';
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     typeof limitParam === 'string' && limitParam.trim() !== '' ? Number(limitParam) : undefined;
 
   const searchOptions: Parameters<typeof searchMarketplaceShops>[0] = {
-    query,
+    query: query ?? null,
     intent,
     latitude: Number.isFinite(latitude) ? latitude : null,
     longitude: Number.isFinite(longitude) ? longitude : null,

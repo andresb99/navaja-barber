@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sanitizeText } from '@/lib/sanitize';
 import { getReviewInvitePreview } from '@/lib/reviews';
 
 export async function GET(request: NextRequest) {
-  const token = String(request.nextUrl.searchParams.get('token') || '').trim();
+  const token = sanitizeText(request.nextUrl.searchParams.get('token')) || '';
   if (!token) {
     return NextResponse.json(
       {

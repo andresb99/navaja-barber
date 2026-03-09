@@ -1,0 +1,11 @@
+-- Deprecated duplicate migration.
+--
+-- 202602220001_init.sql contains the canonical bootstrap schema.
+-- This file is intentionally a no-op to avoid duplicate DDL execution in clean setups.
+
+do $$
+begin
+  -- no-op
+  null;
+end;
+$$;

@@ -1,8 +1,17 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MarketplaceJobsForm } from '@/components/public/marketplace-jobs-form';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
 import { buildShopHref } from '@/lib/shop-links';
+import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
+
+export const metadata: Metadata = buildSitePageMetadata({
+  title: 'Trabajo en barberias',
+  description:
+    'Encuentra barberias activas para enviar tu CV directo o dejar tu perfil en la bolsa general del marketplace.',
+  path: '/jobs',
+});
 
 export default async function JobsPage() {
   const shops = await listMarketplaceShops();

@@ -1,6 +1,8 @@
+import type { Metadata } from 'next';
 import { BadgeCheck, CircleX, Clock3 } from 'lucide-react';
 import { Button } from '@heroui/button';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { buildSitePageMetadata } from '@/lib/site-metadata';
 
 interface SuccessPageProps {
   searchParams: Promise<{
@@ -12,6 +14,13 @@ interface SuccessPageProps {
     payment_status?: string;
   }>;
 }
+
+export const metadata: Metadata = buildSitePageMetadata({
+  title: 'Estado de la reserva',
+  description: 'Estado del pago y confirmacion de una reserva.',
+  path: '/book/success',
+  noIndex: true,
+});
 
 type PaymentState = 'approved' | 'pending' | 'failure';
 

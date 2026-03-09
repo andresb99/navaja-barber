@@ -919,12 +919,15 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
   useEffect(() => {
     const trimmedQuery = deferredSearchQuery.trim();
+    const abortController = new AbortController();
 
     if (!trimmedQuery) {
       suggestionsRequestIdRef.current += 1;
       setSuggestions([]);
       setIsSearching(false);
-      return;
+      return () => {
+        abortController.abort();
+      };
     }
 
     const requestId = suggestionsRequestIdRef.current + 1;
@@ -933,7 +936,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
     void (async () => {
       const [shopSuggestions, areaSuggestions] = await Promise.all([
-        fetchShopSuggestions(trimmedQuery),
+        fetchShopSuggestions(trimmedQuery, abortController.signal),
         fetchAreaSuggestions(trimmedQuery),
       ]);
 
@@ -943,7 +946,11 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
       setSuggestions([...shopSuggestions, ...areaSuggestions].slice(0, 8));
       setIsSearching(false);
-    })().catch(() => {
+    })().catch((error) => {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
+
       if (suggestionsRequestIdRef.current !== requestId) {
         return;
       }
@@ -951,6 +958,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       setSuggestions([]);
       setIsSearching(false);
     });
+
+    return () => {
+      abortController.abort();
+    };
   }, [deferredSearchQuery]);
 
   useEffect(() => {
@@ -1391,10 +1402,18 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     centerMapOnCoordinates(Number(shop.latitude), Number(shop.longitude), 15);
   }, [centerMapOnCoordinates, isMobileViewport, setMobileSheetSnap]);
 
-  async function fetchSearchResults(params: Record<string, string>) {
-    const response = await fetch(`/api/shops/search?${new URLSearchParams(params).toString()}`, {
+  async function fetchSearchResults(params: Record<string, string>, signal?: AbortSignal) {
+    const requestInit: RequestInit = {
       method: 'GET',
       cache: 'no-store',
+      ...(signal
+        ? {
+            signal,
+          }
+        : {}),
+    };
+    const response = await fetch(`/api/shops/search?${new URLSearchParams(params).toString()}`, {
+      ...requestInit,
     });
 
     if (!response.ok) {
@@ -1430,12 +1449,12 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     ].join(':');
   }
 
-  async function fetchShopSuggestions(query: string) {
+  async function fetchShopSuggestions(query: string, signal?: AbortSignal) {
     const response = await fetchSearchResults({
       q: query,
       intent: 'name',
       limit: '4',
-    });
+    }, signal);
 
     return response.items.map<SearchSuggestion>((shop) => ({
       key: `shop:${shop.id}`,

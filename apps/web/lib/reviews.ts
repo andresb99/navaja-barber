@@ -1,6 +1,7 @@
 import 'server-only';
 import { headers } from 'next/headers';
 import { submitAppointmentReviewInputSchema, type SubmitAppointmentReviewInput } from '@navaja/shared';
+import { sanitizeText, sanitizeUnknownDeep } from '@/lib/sanitize';
 import { createSupabasePublicClient } from '@/lib/supabase/public';
 import { hashOpaqueValue, verifySignedReviewToken } from '@/lib/review-links';
 
@@ -58,7 +59,7 @@ function toPreviewRow(row: ReviewInviteStatusRow | null | undefined): ReviewInvi
 }
 
 export async function getReviewInvitePreview(signedToken: string): Promise<ReviewInvitePreview | null> {
-  const rawToken = verifySignedReviewToken(signedToken);
+  const rawToken = verifySignedReviewToken(sanitizeText(signedToken) || '');
   if (!rawToken) {
     return null;
   }
@@ -79,7 +80,7 @@ export async function getReviewInvitePreview(signedToken: string): Promise<Revie
 export async function submitAppointmentReview(
   input: SubmitAppointmentReviewInput,
 ): Promise<SubmittedAppointmentReview> {
-  const parsed = submitAppointmentReviewInputSchema.safeParse(input);
+  const parsed = submitAppointmentReviewInputSchema.safeParse(sanitizeUnknownDeep(input));
 
   if (!parsed.success) {
     throw new Error(parsed.error.flatten().formErrors.join(', ') || 'Datos de resena invalidos.');

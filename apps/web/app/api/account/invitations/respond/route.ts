@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { User } from '@supabase/supabase-js';
 import { resolveAuthenticatedUser } from '@/lib/api-auth';
+import { readSanitizedJsonBody, sanitizeText } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const payloadSchema = z.object({
@@ -10,7 +11,7 @@ const payloadSchema = z.object({
 });
 
 function getUserDisplayName(user: User, profile: { full_name?: string | null } | null) {
-  const profileName = String(profile?.full_name || '').trim();
+  const profileName = sanitizeText(profile?.full_name) || '';
   if (profileName) {
     return profileName;
   }
@@ -18,14 +19,14 @@ function getUserDisplayName(user: User, profile: { full_name?: string | null } |
   const metadata = (user.user_metadata as Record<string, unknown> | null | undefined) || null;
   const candidateKeys = ['full_name', 'name', 'display_name', 'nickname'] as const;
   for (const key of candidateKeys) {
-    const value = String(metadata?.[key] || '').trim();
+    const value = sanitizeText(metadata?.[key]) || '';
     if (value) {
       return value;
     }
   }
 
   if (user.email) {
-    const localPart = user.email.split('@')[0]?.trim() || '';
+    const localPart = sanitizeText(user.email.split('@')[0]) || '';
     if (localPart) {
       return localPart;
     }
@@ -35,7 +36,7 @@ function getUserDisplayName(user: User, profile: { full_name?: string | null } |
 }
 
 export async function POST(request: NextRequest) {
-  const parsedPayload = payloadSchema.safeParse(await request.json().catch(() => null));
+  const parsedPayload = payloadSchema.safeParse(await readSanitizedJsonBody(request));
   if (!parsedPayload.success) {
     return NextResponse.json(
       {
@@ -109,8 +110,13 @@ export async function POST(request: NextRequest) {
     .eq('auth_user_id', user.id)
     .maybeSingle();
 
-  const resolvedName = getUserDisplayName(user, profile as { full_name?: string | null } | null);
-  const resolvedPhone = String((profile as { phone?: string | null } | null)?.phone || '').trim() || 'Pendiente';
+  const resolvedName = sanitizeText(
+    getUserDisplayName(user, profile as { full_name?: string | null } | null),
+    { maxLength: 120 },
+  ) || 'Staff';
+  const resolvedPhone =
+    sanitizeText((profile as { phone?: string | null } | null)?.phone, { maxLength: 40 }) ||
+    'Pendiente';
   const staffRole = String(membership.role) === 'admin' ? 'admin' : 'staff';
 
   const { error: membershipUpdateError } = await admin

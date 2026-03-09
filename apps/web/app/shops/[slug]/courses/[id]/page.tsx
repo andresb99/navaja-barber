@@ -1,12 +1,43 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { formatCurrency } from '@navaja/shared';
 import { CourseEnrollmentForm } from '@/components/public/course-enrollment-form';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 
 interface ShopCourseDetailsPageProps {
   params: Promise<{ slug: string; id: string }>;
+}
+
+export async function generateMetadata({ params }: ShopCourseDetailsPageProps): Promise<Metadata> {
+  const { slug, id } = await params;
+  const shop = await getMarketplaceShopBySlug(slug);
+
+  if (!shop) {
+    return {};
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const { data: course } = await supabase
+    .from('courses')
+    .select('title, description, is_active')
+    .eq('id', id)
+    .eq('shop_id', shop.id)
+    .maybeSingle();
+
+  if (!course || !course.is_active) {
+    return {};
+  }
+
+  return buildTenantPageMetadata({
+    shop,
+    title: `${String(course.title)} | ${shop.name}`,
+    description: String(course.description || `Detalle del curso publicado por ${shop.name}.`),
+    section: 'courses',
+    courseId: id,
+  });
 }
 
 export default async function ShopCourseDetailsPage({ params }: ShopCourseDetailsPageProps) {

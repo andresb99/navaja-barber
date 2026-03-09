@@ -44,10 +44,6 @@ export interface AccountAppointmentReviewAccess {
   canReview: boolean;
 }
 
-function normalizeEmail(value: string) {
-  return value.trim().toLowerCase();
-}
-
 function mapAppointmentRow(
   row: RawAccountAppointmentRow,
   reviewsByAppointmentId: Map<string, RawAppointmentReviewRow>,
@@ -75,17 +71,41 @@ function mapAppointmentRow(
   };
 }
 
-async function fetchAccountAppointmentsRaw(userEmail: string) {
-  const normalizedEmail = normalizeEmail(userEmail);
-  if (!normalizedEmail) {
+async function listLinkedCustomerIds(userId: string) {
+  const normalizedUserId = String(userId || '').trim();
+  if (!normalizedUserId) {
+    return [];
+  }
+
+  const admin = createSupabaseAdminClient();
+  const { data, error } = await admin
+    .from('customer_auth_links')
+    .select('customer_id')
+    .eq('user_id', normalizedUserId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return Array.from(
+    new Set(
+      (data || [])
+        .map((item) => String((item as { customer_id?: string | null }).customer_id || '').trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+async function fetchAccountAppointmentsRaw(customerIds: string[]) {
+  if (!customerIds.length) {
     return [];
   }
 
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from('appointments')
-    .select('id, shop_id, customer_id, staff_id, start_at, status, services(name), staff(name), customers!inner(email)')
-    .eq('customers.email', normalizedEmail)
+    .select('id, shop_id, customer_id, staff_id, start_at, status, services(name), staff(name)')
+    .in('customer_id', customerIds)
     .order('start_at', { ascending: false })
     .limit(50);
 
@@ -120,8 +140,9 @@ async function fetchReviewsForAppointments(appointmentIds: string[]) {
   }, new Map<string, RawAppointmentReviewRow>());
 }
 
-export async function getAccountAppointments(userEmail: string): Promise<AccountAppointmentItem[]> {
-  const appointments = await fetchAccountAppointmentsRaw(userEmail);
+export async function getAccountAppointments(userId: string): Promise<AccountAppointmentItem[]> {
+  const customerIds = await listLinkedCustomerIds(userId);
+  const appointments = await fetchAccountAppointmentsRaw(customerIds);
   const reviewsByAppointmentId = await fetchReviewsForAppointments(
     appointments.map((item) => String(item.id || '')).filter(Boolean),
   );
@@ -132,20 +153,20 @@ export async function getAccountAppointments(userEmail: string): Promise<Account
 }
 
 export async function getAppointmentReviewAccessForUser(
-  userEmail: string,
+  userId: string,
   appointmentId: string,
 ): Promise<AccountAppointmentReviewAccess | null> {
-  const normalizedEmail = normalizeEmail(userEmail);
-  if (!normalizedEmail) {
+  const customerIds = await listLinkedCustomerIds(userId);
+  if (!customerIds.length) {
     return null;
   }
 
   const admin = createSupabaseAdminClient();
   const { data, error } = await admin
     .from('appointments')
-    .select('id, shop_id, customer_id, staff_id, start_at, status, services(name), staff(name), customers!inner(email)')
+    .select('id, shop_id, customer_id, staff_id, start_at, status, services(name), staff(name)')
     .eq('id', appointmentId)
-    .eq('customers.email', normalizedEmail)
+    .in('customer_id', customerIds)
     .maybeSingle();
 
   if (error) {

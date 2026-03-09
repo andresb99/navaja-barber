@@ -22,6 +22,10 @@ export const mockMarketplaceShops: MarketplaceShop[] = [
     averageRating: 4.8,
     activeServiceCount: 4,
     minServicePriceCents: 900,
+    customDomain: null,
+    domainStatus: null,
+    plan: 'free',
+    subscriptionStatus: 'active',
   },
   {
     id: '22222222-2222-2222-2222-222222222222',
@@ -44,5 +48,9 @@ export const mockMarketplaceShops: MarketplaceShop[] = [
     averageRating: 4.4,
     activeServiceCount: 2,
     minServicePriceCents: 1100,
+    customDomain: null,
+    domainStatus: null,
+    plan: 'free',
+    subscriptionStatus: 'active',
   },
 ];

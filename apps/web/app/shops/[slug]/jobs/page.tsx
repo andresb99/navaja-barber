@@ -1,9 +1,27 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { JobsForm } from '@/components/public/jobs-form';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
+import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 
 interface ShopJobsPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: ShopJobsPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const shop = await getMarketplaceShopBySlug(slug);
+
+  if (!shop) {
+    return {};
+  }
+
+  return buildTenantPageMetadata({
+    shop,
+    title: `Trabaja en ${shop.name}`,
+    description: `Postulaciones y vacantes abiertas dentro del workspace de ${shop.name}.`,
+    section: 'jobs',
+  });
 }
 
 export default async function ShopJobsPage({ params }: ShopJobsPageProps) {

@@ -1,4 +1,5 @@
 import type { DocumentPickerAsset } from 'expo-document-picker';
+import type { BookingApiResponse } from '@navaja/shared';
 import type { MarketplaceShop } from './marketplace';
 import { env } from './env';
 
@@ -7,6 +8,7 @@ type BookingPayload = {
   service_id: string;
   staff_id: string;
   start_at: string;
+  source_channel?: 'WEB' | 'MOBILE' | undefined;
   customer_name: string;
   customer_phone: string;
   customer_email?: string | null | undefined;
@@ -327,7 +329,7 @@ export async function submitBookingViaApi(payload: BookingPayload) {
     body: JSON.stringify(payload),
   });
 
-  return parseResponse<{ appointment_id: string; start_at: string }>(response);
+  return parseResponse<BookingApiResponse>(response);
 }
 
 export async function submitModelRegistrationViaApi(payload: ModelRegistrationPayload) {

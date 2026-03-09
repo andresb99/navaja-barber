@@ -5,7 +5,7 @@ import { resolveAuthenticatedUser } from '@/lib/api-auth';
 export async function GET(request: NextRequest) {
   const user = await resolveAuthenticatedUser(request);
 
-  if (!user?.id || !user.email) {
+  if (!user?.id) {
     return NextResponse.json(
       {
         message: 'Debes iniciar sesion para ver tus reservas.',
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const appointments = await getAccountAppointments(user.email);
+    const appointments = await getAccountAppointments(user.id);
 
     return NextResponse.json({
       items: appointments,

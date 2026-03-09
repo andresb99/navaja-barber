@@ -4,9 +4,9 @@ import { Plus_Jakarta_Sans, Sora } from 'next/font/google';
 import { navajaTheme } from '@navaja/shared';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './globals.css';
-import { APP_NAME } from '@/lib/constants';
 import { SiteHeaderServer } from '@/components/public/site-header-server';
 import { HeroUiProvider } from '@/components/providers/heroui-provider';
+import { buildGlobalStructuredData, buildRootMetadata } from '@/lib/site-metadata';
 
 const headingFont = Sora({
   subsets: ['latin'],
@@ -31,15 +31,7 @@ const themeScript = `
   })();
 `;
 
-export const metadata: Metadata = {
-  title: APP_NAME,
-  description: 'Reservas, operacion del equipo, cursos y postulaciones en una sola plataforma.',
-  icons: {
-    icon: '/favicon-beardly.png',
-    shortcut: '/favicon-beardly.png',
-    apple: '/favicon-beardly.png',
-  },
-};
+export const metadata: Metadata = buildRootMetadata();
 
 const rootThemeVars = {
   '--ink': navajaTheme.rgb.ink,
@@ -61,6 +53,8 @@ function SiteHeaderFallback() {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const structuredData = buildGlobalStructuredData();
+
   return (
     <html
       lang="es-UY"
@@ -70,6 +64,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        {structuredData.length > 0 ? (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          />
+        ) : null}
       </head>
       <body className="min-h-screen bg-[#f6f8ff] text-slate-900 antialiased font-[family-name:var(--font-body)] dark:bg-[#060012] dark:text-slate-100">
         <HeroUiProvider>
