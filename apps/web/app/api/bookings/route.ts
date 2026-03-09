@@ -18,6 +18,14 @@ function resolveRequestedSourceChannel(value: unknown) {
   return value === 'MOBILE' ? 'MOBILE' : 'WEB';
 }
 
+function isMercadoPagoTestMode(accessToken: string | null | undefined) {
+  return String(accessToken || '').trim().toUpperCase().startsWith('TEST-');
+}
+
+function isMercadoPagoTestEmail(email: string | null | undefined) {
+  return String(email || '').trim().toLowerCase().endsWith('@testuser.com');
+}
+
 export async function POST(request: NextRequest) {
   const body = await readSanitizedJsonBody(request);
   const parsed = bookingInputSchema.safeParse(body);
@@ -160,6 +168,13 @@ export async function POST(request: NextRequest) {
 
     try {
       const mercadoPagoEnv = getMercadoPagoServerEnv();
+      const isTestMode = isMercadoPagoTestMode(mercadoPagoEnv.MERCADO_PAGO_ACCESS_TOKEN);
+      if (isTestMode && !isMercadoPagoTestEmail(resolvedCustomerEmail)) {
+        return new NextResponse(
+          'En modo prueba de Mercado Pago debes usar un email de comprador test (@testuser.com).',
+          { status: 400 },
+        );
+      }
       const webhookToken = mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_TOKEN?.trim() || null;
       if (!webhookToken) {
         throw new Error('Falta configurar MERCADO_PAGO_WEBHOOK_TOKEN para habilitar pagos.');
