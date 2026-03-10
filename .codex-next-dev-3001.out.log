@@ -1,0 +1,13 @@
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://127.0.0.1:3001
+- Network:       http://127.0.0.1:3001
+- Environments: .env.local
+- Experiments (use with caution):
+  · serverActions
+
+✓ Starting...
+  Suggestion: If you intended to restart next dev, terminate the other process, and then try again.
+[?25h
+undefined
+C:\Users\andre\Desktop\navaja-barber\apps\web:
+ ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command "next" not found

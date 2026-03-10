@@ -5,7 +5,6 @@ import {
   Avatar,
   Button,
   Chip,
-  Divider,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -84,9 +83,7 @@ export const AdminAppointmentsCards = memo(function AdminAppointmentsCards({
 }: AdminAppointmentsCardsProps) {
   if (!appointments.length) {
     return (
-      <div
-        className={`rounded-[1.6rem] border border-slate-900/10 bg-white/80 p-5 text-sm text-slate-700 shadow-[0_20px_40px_-34px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-white/[0.03] dark:text-zinc-300 ${className || ''}`.trim()}
-      >
+      <div className={`surface-card rounded-[1.6rem] p-5 text-sm text-slate-700 dark:text-zinc-300 ${className || ''}`.trim()}>
         No hay citas para los filtros seleccionados.
       </div>
     );
@@ -105,22 +102,26 @@ export const AdminAppointmentsCards = memo(function AdminAppointmentsCards({
           : 'default';
 
         return (
-          <article
-            key={item.id}
-            className="rounded-[1.6rem] border border-slate-900/10 bg-white/80 p-4 shadow-[0_20px_40px_-34px_rgba(15,23,42,0.45)] dark:border-white/10 dark:bg-white/[0.03]"
-          >
+          <article key={item.id} className="surface-card rounded-[1.6rem] p-4">
             <div className="flex items-start justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <Avatar
-                  name={item.customerName}
-                  size="sm"
-                  className="h-10 w-10 shrink-0 bg-slate-900/85 text-white dark:bg-zinc-800 dark:text-zinc-100"
-                />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-slate-900 dark:text-zinc-100">
-                    {item.customerName}
-                  </p>
-                  <p className="text-xs text-slate-600 dark:text-zinc-400">{item.customerPhone || 'Sin telefono'}</p>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-zinc-500">
+                  {item.startAtLabel}
+                </p>
+                <div className="mt-3 flex min-w-0 items-center gap-3">
+                  <Avatar
+                    name={item.customerName}
+                    size="sm"
+                    className="h-10 w-10 shrink-0 bg-slate-900/85 text-white dark:bg-zinc-800 dark:text-zinc-100"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-zinc-100">
+                      {item.customerName}
+                    </p>
+                    <p className="truncate text-xs text-slate-600 dark:text-zinc-400">
+                      {item.customerPhone || 'Sin telefono'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -135,90 +136,85 @@ export const AdminAppointmentsCards = memo(function AdminAppointmentsCards({
               </Chip>
             </div>
 
-            <Divider className="my-3 bg-slate-900/10 dark:bg-white/10" />
-
-            <dl className="grid gap-2 text-sm">
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500">
-                  Turno
-                </dt>
-                <dd className="text-slate-800 dark:text-zinc-200">{item.startAtLabel}</dd>
-              </div>
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500">
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="rounded-[1.15rem] border border-slate-900/8 bg-white/58 px-3 py-3 dark:border-white/8 dark:bg-white/[0.03]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500">
                   Servicio
-                </dt>
-                <dd className="text-slate-800 dark:text-zinc-200">{item.serviceName}</dd>
+                </p>
+                <p className="mt-1 text-sm text-slate-900 dark:text-zinc-100">{item.serviceName}</p>
               </div>
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500">
+              <div className="rounded-[1.15rem] border border-slate-900/8 bg-white/58 px-3 py-3 dark:border-white/8 dark:bg-white/[0.03]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500">
                   Barbero
-                </dt>
-                <dd className="text-slate-700 dark:text-zinc-300">{item.staffName}</dd>
+                </p>
+                <p className="mt-1 text-sm text-slate-900 dark:text-zinc-100">{item.staffName}</p>
               </div>
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500">
+              <div className="rounded-[1.15rem] border border-slate-900/8 bg-white/58 px-3 py-3 dark:border-white/8 dark:bg-white/[0.03]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500">
                   Canal
-                </dt>
-                <dd className="text-slate-700 dark:text-zinc-300">{item.sourceChannelLabel}</dd>
+                </p>
+                <p className="mt-1 text-sm text-slate-700 dark:text-zinc-300">{item.sourceChannelLabel}</p>
               </div>
-              <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500">
+              <div className="rounded-[1.15rem] border border-slate-900/8 bg-white/58 px-3 py-3 dark:border-white/8 dark:bg-white/[0.03]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500">
                   Precio
-                </dt>
-                <dd className="text-slate-900 dark:text-zinc-100">{item.priceLabel}</dd>
+                </p>
+                <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-zinc-100">{item.priceLabel}</p>
               </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[1.2rem] border border-slate-900/8 bg-white/58 px-3 py-3 dark:border-white/8 dark:bg-white/[0.03]">
               <div>
-                <dt className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-zinc-500">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500">
                   Pago
-                </dt>
-                <dd>
+                </p>
+                <div className="mt-2">
                   <Chip size="sm" radius="full" variant="flat" color={paymentTone}>
                     {paymentLabel}
                   </Chip>
-                </dd>
+                </div>
               </div>
-            </dl>
 
-            <div className="mt-4 flex items-center gap-2">
-              {phoneHref ? (
-                <Button
-                  as="a"
-                  href={phoneHref}
-                  size="sm"
-                  variant="flat"
-                  startContent={<Phone className="h-4 w-4" />}
-                  className="text-slate-700 dark:text-zinc-200"
-                >
-                  Llamar
-                </Button>
-              ) : (
-                <Button size="sm" variant="flat" isDisabled>
-                  Sin telefono
-                </Button>
-              )}
-
-              <Popover placement="bottom-end" showArrow offset={12}>
-                <PopoverTrigger>
+              <div className="flex items-center gap-2">
+                {phoneHref ? (
                   <Button
+                    as="a"
+                    href={phoneHref}
                     size="sm"
                     variant="flat"
-                    startContent={<Pencil className="h-4 w-4" />}
+                    startContent={<Phone className="h-4 w-4" />}
                     className="text-slate-700 dark:text-zinc-200"
                   >
-                    Editar
+                    Llamar
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className={ADMIN_DARK_TABLE_POPOVER_CONTENT}>
-                  <p className={ADMIN_DARK_TABLE_POPOVER_TITLE}>Actualizar estado</p>
-                  <AdminAppointmentStatusForm
-                    appointmentId={item.id}
-                    status={item.status}
-                    shopId={shopId}
-                    compact
-                  />
-                </PopoverContent>
-              </Popover>
+                ) : (
+                  <Button size="sm" variant="flat" isDisabled>
+                    Sin telefono
+                  </Button>
+                )}
+
+                <Popover placement="bottom-end" showArrow offset={12}>
+                  <PopoverTrigger>
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      startContent={<Pencil className="h-4 w-4" />}
+                      className="text-slate-700 dark:text-zinc-200"
+                    >
+                      Editar
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className={ADMIN_DARK_TABLE_POPOVER_CONTENT}>
+                    <p className={ADMIN_DARK_TABLE_POPOVER_TITLE}>Actualizar estado</p>
+                    <AdminAppointmentStatusForm
+                      appointmentId={item.id}
+                      status={item.status}
+                      shopId={shopId}
+                      compact
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </article>
         );
@@ -230,4 +226,3 @@ export const AdminAppointmentsCards = memo(function AdminAppointmentsCards({
   prevProps.className === nextProps.className &&
   prevProps.appointments === nextProps.appointments,
 );
-

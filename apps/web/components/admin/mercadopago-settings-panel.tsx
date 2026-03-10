@@ -1,15 +1,32 @@
 import Link from 'next/link';
+import { Clock3, CreditCard, ShieldCheck } from 'lucide-react';
 import type { ShopPaymentAccountSummary } from '@/lib/shop-payment-accounts.server';
 
 interface MercadoPagoSettingsPanelProps {
   shopSlug: string;
   account: ShopPaymentAccountSummary | null;
-  message: string | null;
+  timeZone: string;
+  message: { text: string; tone: 'success' | 'warning' | 'error' } | null;
+}
+
+function formatDate(value: string | null | undefined, timeZone: string) {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    return 'Sin fecha';
+  }
+
+  const parsed = new Date(normalized);
+  if (Number.isNaN(parsed.getTime())) {
+    return 'Sin fecha';
+  }
+
+  return parsed.toLocaleString('es-UY', { timeZone });
 }
 
 export function MercadoPagoSettingsPanel({
   shopSlug,
   account,
+  timeZone,
   message,
 }: MercadoPagoSettingsPanelProps) {
   const isConnected = Boolean(account?.isActive && account?.status === 'connected');
@@ -17,46 +34,72 @@ export function MercadoPagoSettingsPanel({
   return (
     <div className="space-y-5">
       {message ? (
-        <div className="rounded-2xl border border-sky-400/20 bg-sky-500/10 px-4 py-3 text-sm text-slate-100">
-          {message}
+        <div className={`status-banner ${message.tone}`}>
+          {message.text}
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-            Estado
-          </p>
-          <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">
-            {isConnected ? 'Mercado Pago conectado' : 'Sin cuenta conectada'}
-          </p>
-          <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-            {isConnected
-              ? 'Las reservas online de esta barberia se cobran en la cuenta conectada.'
-              : 'Conecta la cuenta del dueño para que las reservas se cobren directo en su Mercado Pago.'}
-          </p>
+      <div className="grid gap-3 md:grid-cols-3">
+        <div className="surface-card rounded-[1.35rem] p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-white/65 bg-white/70 text-ink dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
+              <CreditCard className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Estado
+              </p>
+              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                {isConnected ? 'Conectado' : 'Pendiente de conexion'}
+              </p>
+              <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
+                {isConnected
+                  ? 'Las reservas online cobraran directo en la cuenta conectada.'
+                  : 'Todavia no hay una cuenta lista para cobrar.'}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-            Cuenta
-          </p>
-          <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">
-            {account?.nickname || account?.email || 'No conectada'}
-          </p>
-          <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-            {account?.email || 'El dueño iniciara sesion en Mercado Pago y autorizara la conexion.'}
-          </p>
-          {account?.connectedAt ? (
-            <p className="mt-3 text-xs text-slate/60 dark:text-slate-400">
-              Conectada el {new Date(account.connectedAt).toLocaleString('es-UY')}
-            </p>
-          ) : null}
-          {account?.lastError ? (
-            <p className="mt-2 text-xs text-amber-200">
-              Ultimo error: {account.lastError}
-            </p>
-          ) : null}
+        <div className="surface-card rounded-[1.35rem] p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-white/65 bg-white/70 text-ink dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
+              <ShieldCheck className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Cuenta receptora
+              </p>
+              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                {account?.nickname || account?.email || 'Sin cuenta conectada'}
+              </p>
+              <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
+                {account?.email || 'El dueno iniciara sesion y autorizara la app.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="surface-card rounded-[1.35rem] p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-white/65 bg-white/70 text-ink dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
+              <Clock3 className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                Ultima actividad
+              </p>
+              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                {formatDate(
+                  account?.lastRefreshedAt || account?.lastCheckedAt || account?.connectedAt,
+                  timeZone,
+                )}
+              </p>
+              <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
+                {account?.lastError ? `Ultimo error: ${account.lastError}` : 'Sin alertas recientes.'}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -69,7 +112,10 @@ export function MercadoPagoSettingsPanel({
         </Link>
 
         {account?.isActive ? (
-          <form method="post" action={`/api/admin/payments/mercadopago/disconnect?shop=${encodeURIComponent(shopSlug)}`}>
+          <form
+            method="post"
+            action={`/api/admin/payments/mercadopago/disconnect?shop=${encodeURIComponent(shopSlug)}`}
+          >
             <button
               type="submit"
               className="action-secondary inline-flex rounded-full px-5 py-2.5 text-sm font-semibold"
@@ -80,14 +126,25 @@ export function MercadoPagoSettingsPanel({
         ) : null}
       </div>
 
-      <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4 text-sm text-slate/80 dark:text-slate-300">
-        <p className="font-semibold text-ink dark:text-slate-100">Como funciona</p>
-        <ol className="mt-3 list-decimal space-y-1 pl-5">
-          <li>Haz click en Conectar Mercado Pago.</li>
-          <li>El dueño inicia sesion y autoriza la app.</li>
-          <li>Las reservas online nuevas se cobran en esa cuenta.</li>
-          <li>Los reembolsos tambien salen de esa misma cuenta.</li>
-        </ol>
+      <div className="grid gap-3 md:grid-cols-3">
+        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+          <p className="text-sm font-semibold text-ink dark:text-slate-100">1. Iniciar conexion</p>
+          <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
+            Abre Mercado Pago y autoriza la cuenta del negocio.
+          </p>
+        </div>
+        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+          <p className="text-sm font-semibold text-ink dark:text-slate-100">2. Validar la cuenta</p>
+          <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
+            La plataforma guarda la cuenta y la usa para reservas nuevas.
+          </p>
+        </div>
+        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+          <p className="text-sm font-semibold text-ink dark:text-slate-100">3. Cobrar y devolver</p>
+          <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
+            Cobros y reembolsos salen desde la misma cuenta conectada.
+          </p>
+        </div>
       </div>
     </div>
   );

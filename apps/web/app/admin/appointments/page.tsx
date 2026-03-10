@@ -1,5 +1,11 @@
+import Link from 'next/link';
 import { formatCurrency } from '@navaja/shared';
-import { Card, CardBody } from '@heroui/card';
+import {
+  CalendarClock,
+  CircleAlert,
+  NotebookPen,
+  type LucideIcon,
+} from 'lucide-react';
 import { AdminAppointmentsFilters } from '@/components/admin/appointments-filters';
 import { AdminAppointmentsPagination } from '@/components/admin/appointments-pagination';
 import { AdminAppointmentsViewSwitcher } from '@/components/admin/appointments-view-switcher';
@@ -9,6 +15,8 @@ import {
   ADMIN_APPOINTMENTS_DEFAULT_SORT_BY,
   ADMIN_APPOINTMENTS_DEFAULT_SORT_DIR,
   ADMIN_APPOINTMENTS_PAGE_SIZE_OPTIONS,
+  ADMIN_APPOINTMENTS_SORT_OPTIONS,
+  buildAdminAppointmentsQueryString,
   isAdminAppointmentsSortDir,
   isAdminAppointmentsSortField,
   type AdminAppointmentsQueryState,
@@ -69,6 +77,27 @@ interface AppointmentRow {
   priceCents: number;
 }
 
+interface OverviewCardProps {
+  icon: LucideIcon;
+  label: string;
+  value: string;
+  detail: string;
+}
+
+const MANUAL_FIELD_CLASS =
+  'w-full rounded-[1.15rem] border border-white/65 bg-white/70 px-4 py-3 text-sm text-ink outline-none transition placeholder:text-slate/45 focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 dark:placeholder:text-slate-500';
+
+const MANUAL_FIELD_LABEL_CLASS =
+  'text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400';
+
+const appointmentStatusLabel: Record<string, string> = {
+  pending: 'Pendiente',
+  confirmed: 'Confirmada',
+  cancelled: 'Cancelada',
+  no_show: 'No asistio',
+  done: 'Realizada',
+};
+
 function formatDateInput(date: Date, timeZone: string) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone,
@@ -82,6 +111,59 @@ function formatDateInput(date: Date, timeZone: string) {
   const day = parts.find((part) => part.type === 'day')?.value || '01';
 
   return `${year}-${month}-${day}`;
+}
+
+function formatDateLabel(value: string, timeZone: string) {
+  const parsed = new Date(`${value}T12:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat('es-UY', {
+    timeZone,
+    day: 'numeric',
+    month: 'short',
+  }).format(parsed);
+}
+
+function formatDateRangeLabel(from: string, to: string, timeZone: string) {
+  return `${formatDateLabel(from, timeZone)} - ${formatDateLabel(to, timeZone)}`;
+}
+
+function resolveStatusLabel(value: string | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  return appointmentStatusLabel[value] || value;
+}
+
+function resolveSortLabel(value: AdminAppointmentsSortField) {
+  return (
+    ADMIN_APPOINTMENTS_SORT_OPTIONS.find((option) => option.id === value)?.label || 'Fecha de la cita'
+  );
+}
+
+function OverviewCard({ icon: Icon, label, value, detail }: OverviewCardProps) {
+  return (
+    <article className="data-card rounded-[1.65rem] p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+            {label}
+          </p>
+          <p className="mt-3 text-2xl font-semibold tracking-tight text-ink dark:text-slate-100">
+            {value}
+          </p>
+          <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">{detail}</p>
+        </div>
+
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.1rem] border border-white/70 bg-white/75 text-ink shadow-[0_18px_30px_-24px_rgba(15,23,42,0.18)] dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </article>
+  );
 }
 
 function isMissingSourceChannelColumnError(error: unknown) {
@@ -375,9 +457,18 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
   }
 
   const pendingCount = appointments.filter((item) => item.status === 'pending').length;
+  const confirmedCount = appointments.filter((item) => item.status === 'confirmed').length;
   const doneCount = appointments.filter((item) => item.status === 'done').length;
+  const attentionCount = appointments.filter(
+    (item) => item.status === 'cancelled' || item.status === 'no_show',
+  ).length;
   const hasManualBookingOptions = Boolean((staff || []).length && (services || []).length);
   const defaultManualStartAt = `${from}T09:00`;
+  const staffOptions = (staff || []).map((item) => ({
+    id: String(item.id),
+    name: String(item.name),
+  }));
+  const serviceCount = (services || []).length;
   const allAppointmentRows: AppointmentRow[] = appointments.map((item) => ({
     paymentStatus: canReadPaymentIntentColumn
       ? paymentStatusByIntentId.get(String(item.payment_intent_id || '').trim()) || null
@@ -435,195 +526,394 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
   );
   const pageStart = totalAppointments === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const pageEnd = totalAppointments === 0 ? 0 : Math.min(currentPage * pageSize, totalAppointments);
+  const activeRangeLabel = formatDateRangeLabel(from, to, shopTimeZone);
+  const selectedStaffLabel = selectedStaffId
+    ? staffOptions.find((item) => item.id === selectedStaffId)?.name || 'Equipo filtrado'
+    : null;
+  const selectedStatusLabel = resolveStatusLabel(selectedStatus);
+  const selectedSortLabel = resolveSortLabel(requestedSortBy);
+  const activeFilterCount =
+    Number(Boolean(selectedStaffId)) +
+    Number(Boolean(selectedStatus)) +
+    Number(from !== defaultFrom || to !== defaultTo);
+  const clearFiltersHref = `/admin/appointments?${buildAdminAppointmentsQueryString({
+    shopSlug: ctx.shopSlug,
+    from: defaultFrom,
+    to: defaultTo,
+    selectedView: viewMode,
+    page: 1,
+    pageSize: ADMIN_APPOINTMENTS_DEFAULT_PAGE_SIZE,
+    sortBy: ADMIN_APPOINTMENTS_DEFAULT_SORT_BY,
+    sortDir: ADMIN_APPOINTMENTS_DEFAULT_SORT_DIR,
+  })}`;
+  const manualCount = allAppointmentRows.filter(
+    (item) => item.sourceChannelLabel === 'Presencial' || item.sourceChannelLabel === 'Carga manual',
+  ).length;
+  const visibleStaffCount = new Set(allAppointmentRows.map((item) => item.staffName).filter(Boolean)).size;
+  const nextUpcomingRow = [...allAppointmentRows]
+    .filter((item) => {
+      const timestamp = new Date(item.startAtValue).getTime();
+      return Number.isFinite(timestamp) && timestamp >= now.getTime();
+    })
+    .sort((left, right) => compareText(left.startAtValue, right.startAtValue))[0];
 
   return (
-    <section className="space-y-5">
+    <section className="space-y-6">
       <div className="section-hero px-6 py-7 md:px-8 md:py-9">
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-          <div>
-            <p className="hero-eyebrow">Citas</p>
-            <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.3rem] dark:text-slate-100">
-              Control de reservas y estados
-            </h1>
-            <p className="mt-3 text-sm text-slate/80 dark:text-slate-300">
-              Filtra reservas y actualiza estados. Por defecto se muestran las proximas 4 semanas.
-            </p>
-          </div>
+        <div className="relative z-10 space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr] xl:items-end">
+            <div>
+              <p className="hero-eyebrow">Citas</p>
+              <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.35rem] dark:text-slate-100">
+                Agenda operativa clara, sin ruido visual
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate/80 dark:text-slate-300">
+                Revisa el rango activo, actualiza estados y carga reservas manuales sin que el panel
+                compita con la tabla. La vista mantiene foco en lo operativo y deja el resto en un
+                segundo plano.
+              </p>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Total
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                {appointments.length}
-              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <span className="meta-chip">{activeRangeLabel}</span>
+                <span className="meta-chip">{shopTimeZone}</span>
+                {selectedStaffLabel ? <span className="meta-chip">Equipo: {selectedStaffLabel}</span> : null}
+                {selectedStatusLabel ? <span className="meta-chip">Estado: {selectedStatusLabel}</span> : null}
+                <span className="meta-chip">
+                  Orden: {selectedSortLabel} {requestedSortDir === 'asc' ? 'asc' : 'desc'}
+                </span>
+              </div>
             </div>
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Pendientes
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                {pendingCount}
-              </p>
-            </div>
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Realizadas
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                {doneCount}
-              </p>
+
+            <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+              <OverviewCard
+                icon={CalendarClock}
+                label="Agenda filtrada"
+                value={String(totalAppointments)}
+                detail={`${pageStart || 0}-${pageEnd || 0} visibles en esta pagina`}
+              />
+              <OverviewCard
+                icon={NotebookPen}
+                label="Activas"
+                value={String(pendingCount + confirmedCount)}
+                detail={`${pendingCount} pendientes / ${confirmedCount} confirmadas`}
+              />
+              <OverviewCard
+                icon={CircleAlert}
+                label="Cierre"
+                value={String(doneCount)}
+                detail={`${attentionCount} canceladas o no show`}
+              />
             </div>
           </div>
         </div>
       </div>
 
-      <AdminAppointmentsFilters
-        shopSlug={ctx.shopSlug}
-        from={from}
-        to={to}
-        selectedView={viewMode}
-        selectedStaffId={selectedStaffId}
-        selectedStatus={selectedStatus}
-        selectedPageSize={pageSize}
-        selectedSortBy={requestedSortBy}
-        selectedSortDir={requestedSortDir}
-        staff={(staff || []).map((item) => ({
-          id: String(item.id),
-          name: String(item.name),
-        }))}
-      />
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.95fr)]">
+        <div className="space-y-5">
+          <section className="surface-card rounded-[1.8rem] p-5 md:p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                  Filtros y orden
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-ink dark:text-slate-100">
+                  Refina la agenda visible
+                </h2>
+                <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
+                  Ajusta rango, equipo, estado y orden sin tocar la tabla principal. Si quieres
+                  volver al flujo base, limpia los filtros y conservas la vista actual.
+                </p>
+              </div>
 
-      <Card className="spotlight-card soft-panel rounded-[1.8rem] border-0 shadow-none">
-        <CardBody className="p-5">
-          <h3 className="text-xl font-semibold text-ink dark:text-slate-100">
-            Registrar reserva manual
-          </h3>
-          <p className="text-sm text-slate/80 dark:text-slate-300">
-            Crea turnos de clientes presenciales o cargados desde el panel.
-          </p>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href={clearFiltersHref}
+                  className="action-secondary inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold"
+                >
+                  Limpiar filtros
+                </Link>
+                <a
+                  href="#manual-booking"
+                  className="action-primary inline-flex h-11 items-center rounded-full px-4 text-sm font-semibold"
+                >
+                  Reserva manual
+                </a>
+              </div>
+            </div>
 
-          {!hasManualBookingOptions ? (
-            <p className="mt-3 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-              Necesitas al menos un barbero activo y un servicio activo para registrar reservas.
-            </p>
-          ) : null}
+            <div className="mt-5">
+              <AdminAppointmentsFilters
+                shopSlug={ctx.shopSlug}
+                from={from}
+                to={to}
+                selectedView={viewMode}
+                selectedStaffId={selectedStaffId}
+                selectedStatus={selectedStatus}
+                selectedPageSize={pageSize}
+                selectedSortBy={requestedSortBy}
+                selectedSortDir={requestedSortDir}
+                staff={staffOptions}
+              />
+            </div>
+          </section>
 
-          <form action={createManualAppointmentAction} className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <input type="hidden" name="shop_id" value={ctx.shopId} />
-            <select
-              name="source_channel"
-              required
-              defaultValue="WALK_IN"
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              <option value="WALK_IN">Presencial</option>
-              <option value="ADMIN_CREATED">Carga manual</option>
-            </select>
-
-            <select
-              name="service_id"
-              required
-              disabled={!hasManualBookingOptions}
-              defaultValue=""
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              <option value="" disabled>
-                Servicio
-              </option>
-              {(services || []).map((item) => (
-                <option key={String(item.id)} value={String(item.id)}>
-                  {String(item.name)}
-                </option>
-              ))}
-            </select>
-
-            <select
-              name="staff_id"
-              required
-              disabled={!hasManualBookingOptions}
-              defaultValue=""
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              <option value="" disabled>
-                Barbero
-              </option>
-              {(staff || []).map((item) => (
-                <option key={String(item.id)} value={String(item.id)}>
-                  {String(item.name)}
-                </option>
-              ))}
-            </select>
-
-            <input
-              name="start_at"
-              type="datetime-local"
-              required
-              defaultValue={defaultManualStartAt}
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+          <div id="appointments-results">
+            <AdminAppointmentsViewSwitcher
+              shopId={ctx.shopId}
+              appointments={paginatedAppointmentRows}
+              initialView={viewMode}
+              queryState={currentQueryState}
+              totalAppointments={totalAppointments}
+              currentPageCount={paginatedAppointmentRows.length}
+              pageLabel={`Pagina ${currentPage} de ${totalPages}`}
+              activeFilterCount={activeFilterCount}
             />
-            <input
-              name="customer_name"
-              type="text"
-              required
-              placeholder="Nombre del cliente"
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            />
-            <input
-              name="customer_phone"
-              type="tel"
-              required
-              placeholder="Telefono"
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            />
-            <input
-              name="customer_email"
-              type="email"
-              placeholder="Email (opcional)"
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            />
-            <input
-              name="notes"
-              type="text"
-              placeholder="Notas (opcional)"
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 md:col-span-2 xl:col-span-1"
-            />
-            <div className="md:col-span-2 xl:col-span-3">
+          </div>
+
+          <AdminAppointmentsPagination
+            totalItems={totalAppointments}
+            page={currentPage}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            pageStart={pageStart}
+            pageEnd={pageEnd}
+            queryState={currentQueryState}
+          />
+        </div>
+
+        <aside className="space-y-5">
+          <section id="manual-booking" className="surface-card rounded-[1.8rem] p-5 md:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                  Reserva manual
+                </p>
+                <h2 className="mt-2 text-xl font-semibold text-ink dark:text-slate-100">
+                  Carga walk-ins y pedidos fuera de la web
+                </h2>
+                <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
+                  Este panel queda aparte para que la tabla siga siendo el centro de la pagina.
+                </p>
+              </div>
+
+              <span className="meta-chip">
+                {hasManualBookingOptions ? 'Disponible' : 'Requiere setup'}
+              </span>
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              <div className="rounded-[1.35rem] border border-white/65 bg-white/52 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                  Equipo listo
+                </p>
+                <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">
+                  {staffOptions.length} barberos
+                </p>
+                <p className="mt-1 text-sm text-slate/75 dark:text-slate-400">
+                  {serviceCount} servicios activos para asignar.
+                </p>
+              </div>
+
+              <div className="rounded-[1.35rem] border border-white/65 bg-white/52 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                  Hora sugerida
+                </p>
+                <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">
+                  {defaultManualStartAt.slice(11, 16)}
+                </p>
+                <p className="mt-1 text-sm text-slate/75 dark:text-slate-400">
+                  Base inicial para el rango filtrado actual.
+                </p>
+              </div>
+            </div>
+
+            {!hasManualBookingOptions ? (
+              <p className="mt-4 rounded-[1.25rem] border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+                Necesitas al menos un barbero activo y un servicio activo para registrar reservas.
+              </p>
+            ) : null}
+
+            <form action={createManualAppointmentAction} className="mt-5 grid gap-3">
+              <input type="hidden" name="shop_id" value={ctx.shopId} />
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
+                <label className="grid gap-2">
+                  <span className={MANUAL_FIELD_LABEL_CLASS}>Canal</span>
+                  <select
+                    name="source_channel"
+                    required
+                    defaultValue="WALK_IN"
+                    disabled={!hasManualBookingOptions}
+                    className={MANUAL_FIELD_CLASS}
+                  >
+                    <option value="WALK_IN">Presencial</option>
+                    <option value="ADMIN_CREATED">Carga manual</option>
+                  </select>
+                </label>
+
+                <label className="grid gap-2">
+                  <span className={MANUAL_FIELD_LABEL_CLASS}>Inicio</span>
+                  <input
+                    name="start_at"
+                    type="datetime-local"
+                    required
+                    defaultValue={defaultManualStartAt}
+                    disabled={!hasManualBookingOptions}
+                    className={MANUAL_FIELD_CLASS}
+                  />
+                </label>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
+                <label className="grid gap-2">
+                  <span className={MANUAL_FIELD_LABEL_CLASS}>Servicio</span>
+                  <select
+                    name="service_id"
+                    required
+                    disabled={!hasManualBookingOptions}
+                    defaultValue=""
+                    className={MANUAL_FIELD_CLASS}
+                  >
+                    <option value="" disabled>
+                      Selecciona un servicio
+                    </option>
+                    {(services || []).map((item) => (
+                      <option key={String(item.id)} value={String(item.id)}>
+                        {String(item.name)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="grid gap-2">
+                  <span className={MANUAL_FIELD_LABEL_CLASS}>Barbero</span>
+                  <select
+                    name="staff_id"
+                    required
+                    disabled={!hasManualBookingOptions}
+                    defaultValue=""
+                    className={MANUAL_FIELD_CLASS}
+                  >
+                    <option value="" disabled>
+                      Selecciona un barbero
+                    </option>
+                    {(staff || []).map((item) => (
+                      <option key={String(item.id)} value={String(item.id)}>
+                        {String(item.name)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
+                <label className="grid gap-2">
+                  <span className={MANUAL_FIELD_LABEL_CLASS}>Cliente</span>
+                  <input
+                    name="customer_name"
+                    type="text"
+                    required
+                    placeholder="Nombre del cliente"
+                    disabled={!hasManualBookingOptions}
+                    className={MANUAL_FIELD_CLASS}
+                  />
+                </label>
+
+                <label className="grid gap-2">
+                  <span className={MANUAL_FIELD_LABEL_CLASS}>Telefono</span>
+                  <input
+                    name="customer_phone"
+                    type="tel"
+                    required
+                    placeholder="Telefono"
+                    disabled={!hasManualBookingOptions}
+                    className={MANUAL_FIELD_CLASS}
+                  />
+                </label>
+              </div>
+
+              <label className="grid gap-2">
+                <span className={MANUAL_FIELD_LABEL_CLASS}>Email</span>
+                <input
+                  name="customer_email"
+                  type="email"
+                  placeholder="Email opcional"
+                  disabled={!hasManualBookingOptions}
+                  className={MANUAL_FIELD_CLASS}
+                />
+              </label>
+
+              <label className="grid gap-2">
+                <span className={MANUAL_FIELD_LABEL_CLASS}>Notas</span>
+                <textarea
+                  name="notes"
+                  rows={3}
+                  placeholder="Notas internas u observaciones para el equipo"
+                  disabled={!hasManualBookingOptions}
+                  className={`${MANUAL_FIELD_CLASS} min-h-[108px] resize-y`}
+                />
+              </label>
+
               <button
                 type="submit"
                 disabled={!hasManualBookingOptions}
-                className="action-primary inline-flex rounded-full px-5 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                className="action-primary inline-flex h-12 items-center justify-center rounded-full px-5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Guardar reserva manual
               </button>
+            </form>
+          </section>
+
+          <section className="surface-card rounded-[1.8rem] p-5 md:p-6">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+              Lectura rapida
+            </p>
+            <h2 className="mt-2 text-xl font-semibold text-ink dark:text-slate-100">
+              Lo importante del rango actual
+            </h2>
+
+            <div className="mt-5 space-y-3">
+              <div className="rounded-[1.25rem] border border-white/65 bg-white/52 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                  Proxima cita
+                </p>
+                <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                  {nextUpcomingRow ? nextUpcomingRow.startAtLabel : 'Sin citas futuras en este rango'}
+                </p>
+                <p className="mt-1 text-sm text-slate/75 dark:text-slate-400">
+                  {nextUpcomingRow
+                    ? `${nextUpcomingRow.customerName} con ${nextUpcomingRow.staffName}`
+                    : 'Amplia el rango o limpia filtros para revisar mas agenda.'}
+                </p>
+              </div>
+
+              <div className="rounded-[1.25rem] border border-white/65 bg-white/52 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                  Canales de ingreso
+                </p>
+                <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                  {Math.max(totalAppointments - manualCount, 0)} web o redes
+                </p>
+                <p className="mt-1 text-sm text-slate/75 dark:text-slate-400">
+                  {manualCount} presenciales o cargadas manualmente desde el panel.
+                </p>
+              </div>
+
+              <div className="rounded-[1.25rem] border border-white/65 bg-white/52 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                  Cobertura y orden
+                </p>
+                <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                  {visibleStaffCount} barberos con citas visibles
+                </p>
+                <p className="mt-1 text-sm text-slate/75 dark:text-slate-400">
+                  Orden actual: {selectedSortLabel} {requestedSortDir === 'asc' ? 'ascendente' : 'descendente'}.
+                </p>
+              </div>
             </div>
-          </form>
-        </CardBody>
-      </Card>
-
-      <AdminAppointmentsViewSwitcher
-        shopId={ctx.shopId}
-        appointments={paginatedAppointmentRows}
-        initialView={viewMode}
-        queryState={currentQueryState}
-      />
-
-      <AdminAppointmentsPagination
-        totalItems={totalAppointments}
-        page={currentPage}
-        pageSize={pageSize}
-        totalPages={totalPages}
-        pageStart={pageStart}
-        pageEnd={pageEnd}
-        queryState={currentQueryState}
-      />
+          </section>
+        </aside>
+      </div>
     </section>
   );
 }

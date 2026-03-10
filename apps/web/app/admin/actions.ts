@@ -651,6 +651,7 @@ export async function createStaffInvitationsAction(input: {
 
   if (successes.length > 0) {
     revalidatePath('/admin/staff');
+    revalidatePath('/admin/notifications');
     revalidatePath('/cuenta');
   }
 
@@ -704,6 +705,7 @@ export async function respondToStaffInvitationAction(formData: FormData) {
   if (String(membership.membership_status) !== 'invited') {
     revalidatePath('/cuenta');
     revalidatePath('/mis-barberias');
+    revalidatePath('/admin/notifications');
     return;
   }
 
@@ -723,6 +725,7 @@ export async function respondToStaffInvitationAction(formData: FormData) {
     revalidatePath('/cuenta');
     revalidatePath('/mis-barberias');
     revalidatePath('/admin/staff');
+    revalidatePath('/admin/notifications');
     return;
   }
 
@@ -793,6 +796,7 @@ export async function respondToStaffInvitationAction(formData: FormData) {
   revalidatePath('/cuenta');
   revalidatePath('/mis-barberias');
   revalidatePath('/admin/staff');
+  revalidatePath('/admin/notifications');
   revalidatePath('/staff');
 }
 
@@ -1173,6 +1177,7 @@ export async function createStaffTimeOffRequestAction(formData: FormData) {
   revalidatePath('/staff');
   revalidatePath('/admin');
   revalidatePath('/admin/staff');
+  revalidatePath('/admin/notifications');
 }
 
 export async function reviewStaffTimeOffRequestAction(formData: FormData) {
@@ -1210,6 +1215,7 @@ export async function reviewStaffTimeOffRequestAction(formData: FormData) {
   const currentReason = typeof timeOff.reason === 'string' ? timeOff.reason : null;
   if (!isPendingTimeOffReason(currentReason)) {
     revalidatePath('/admin');
+    revalidatePath('/admin/notifications');
     revalidatePath('/admin/staff');
     return;
   }
@@ -1239,6 +1245,7 @@ export async function reviewStaffTimeOffRequestAction(formData: FormData) {
   }
 
   revalidatePath('/admin');
+  revalidatePath('/admin/notifications');
   revalidatePath('/admin/staff');
   revalidatePath('/staff');
 }

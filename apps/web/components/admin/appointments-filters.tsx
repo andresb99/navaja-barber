@@ -68,6 +68,19 @@ export function AdminAppointmentsFilters({
     selectedSortBy,
     selectedSortDir,
   ].join('|');
+  const inputClassNames = {
+    label: 'text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500',
+    inputWrapper:
+      'min-h-[56px] rounded-[1.2rem] border border-slate-900/10 bg-white/82 shadow-none transition data-[hover=true]:border-sky-300 group-data-[focus=true]:border-sky-400 dark:border-white/10 dark:bg-white/[0.04]',
+    input: 'text-sm text-slate-900 dark:text-zinc-100',
+  } as const;
+  const selectClassNames = {
+    label: 'text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500',
+    trigger:
+      'min-h-[56px] rounded-[1.2rem] border border-slate-900/10 bg-white/82 shadow-none transition data-[hover=true]:border-sky-300 group-data-[focus=true]:border-sky-400 dark:border-white/10 dark:bg-white/[0.04]',
+    value: 'text-sm text-slate-900 dark:text-zinc-100',
+    selectorIcon: 'text-slate-500 dark:text-zinc-400',
+  } as const;
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -114,7 +127,7 @@ export function AdminAppointmentsFilters({
   return (
     <form
       key={formKey}
-      className="spotlight-card soft-panel grid gap-3 rounded-[1.8rem] border-0 p-4 md:grid-cols-2 xl:grid-cols-4"
+      className="grid gap-3 md:grid-cols-2 xl:grid-cols-4"
       method="get"
       onSubmit={handleSubmit}
     >
@@ -129,7 +142,8 @@ export function AdminAppointmentsFilters({
         labelPlacement="inside"
         defaultValue={from}
         classNames={{
-          input: 'temporal-placeholder-hidden',
+          ...inputClassNames,
+          input: 'temporal-placeholder-hidden text-sm text-slate-900 dark:text-zinc-100',
         }}
       />
 
@@ -141,7 +155,8 @@ export function AdminAppointmentsFilters({
         labelPlacement="inside"
         defaultValue={to}
         classNames={{
-          input: 'temporal-placeholder-hidden',
+          ...inputClassNames,
+          input: 'temporal-placeholder-hidden text-sm text-slate-900 dark:text-zinc-100',
         }}
       />
 
@@ -152,6 +167,7 @@ export function AdminAppointmentsFilters({
         label="Equipo"
         labelPlacement="inside"
         defaultSelectedKeys={[selectedStaffId || 'all']}
+        classNames={selectClassNames}
       >
         {staffOptions.map((item) => (
           <SelectItem key={item.id}>{item.name}</SelectItem>
@@ -165,6 +181,7 @@ export function AdminAppointmentsFilters({
         label="Estado"
         labelPlacement="inside"
         defaultSelectedKeys={[selectedStatus || 'all']}
+        classNames={selectClassNames}
       >
         {statusOptions.map((item) => (
           <SelectItem key={item.id}>{item.label}</SelectItem>
@@ -178,6 +195,7 @@ export function AdminAppointmentsFilters({
         label="Ordenar por"
         labelPlacement="inside"
         defaultSelectedKeys={[selectedSortBy]}
+        classNames={selectClassNames}
       >
         {ADMIN_APPOINTMENTS_SORT_OPTIONS.map((item) => (
           <SelectItem key={item.id}>{item.label}</SelectItem>
@@ -191,6 +209,7 @@ export function AdminAppointmentsFilters({
         label="Direccion"
         labelPlacement="inside"
         defaultSelectedKeys={[selectedSortDir]}
+        classNames={selectClassNames}
       >
         <SelectItem key="asc">Menor a mayor</SelectItem>
         <SelectItem key="desc">Mayor a menor</SelectItem>
@@ -203,17 +222,18 @@ export function AdminAppointmentsFilters({
         label="Por pagina"
         labelPlacement="inside"
         defaultSelectedKeys={[String(selectedPageSize)]}
+        classNames={selectClassNames}
       >
         {ADMIN_APPOINTMENTS_PAGE_SIZE_OPTIONS.map((value) => (
           <SelectItem key={String(value)}>{`${value} por pagina`}</SelectItem>
         ))}
       </Select>
 
-      <div className="flex items-end">
+      <div className="flex items-end md:col-span-2 xl:col-span-4 xl:justify-end">
         <Button
           type="submit"
           isLoading={isPending}
-          className="action-primary h-14 min-h-[56px] w-full px-4 text-sm font-semibold leading-none"
+          className="action-primary h-12 min-h-[48px] w-full px-4 text-sm font-semibold leading-none sm:w-auto sm:min-w-[12rem]"
         >
           Aplicar filtros
         </Button>

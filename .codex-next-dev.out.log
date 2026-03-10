@@ -1,0 +1,8 @@
+
+> @navaja/web@0.1.0 dev C:\Users\andre\Desktop\navaja-barber\apps\web
+> next dev --webpack --hostname 0.0.0.0 --port 3000
+
+[?25h
+C:\Users\andre\Desktop\navaja-barber\apps\web:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @navaja/web@0.1.0 dev: `next dev --webpack --hostname 0.0.0.0 --port 3000`
+Exit status 1

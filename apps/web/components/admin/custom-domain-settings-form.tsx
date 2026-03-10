@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input } from '@heroui/react';
+import { Globe, Link2, Sparkles } from 'lucide-react';
 import type { SubscriptionTier } from '@/lib/subscription-plans';
 
 interface CustomDomainSettingsFormProps {
@@ -11,6 +12,7 @@ interface CustomDomainSettingsFormProps {
   initialCustomDomain: string | null;
   initialDomainStatus: string | null;
   initialDomainVerifiedAt: string | null;
+  timeZone: string;
 }
 
 interface CustomDomainResponse {
@@ -54,7 +56,7 @@ function getStatusTone(status: string | null | undefined) {
   return 'default';
 }
 
-function formatVerifiedAt(value: string | null | undefined) {
+function formatVerifiedAt(value: string | null | undefined, timeZone: string) {
   const normalized = String(value || '').trim();
   if (!normalized) {
     return null;
@@ -65,7 +67,7 @@ function formatVerifiedAt(value: string | null | undefined) {
     return null;
   }
 
-  return parsed.toLocaleString('es-UY');
+  return parsed.toLocaleString('es-UY', { timeZone });
 }
 
 export function CustomDomainSettingsForm({
@@ -74,6 +76,7 @@ export function CustomDomainSettingsForm({
   initialCustomDomain,
   initialDomainStatus,
   initialDomainVerifiedAt,
+  timeZone,
 }: CustomDomainSettingsFormProps) {
   const router = useRouter();
   const [domainInput, setDomainInput] = useState(initialCustomDomain || '');
@@ -156,10 +159,10 @@ export function CustomDomainSettingsForm({
           onChange={(event) => setDomainInput(event.target.value.toLowerCase())}
           placeholder="www.tubarberia.com"
           isDisabled={!isBusinessPlan || pendingAction !== null}
-          description="Se guarda normalizado sin protocolo y acepta la variante con www."
+          description="Se guarda sin protocolo y acepta la variante con www."
         />
 
-        <div className="surface-card flex min-h-[88px] flex-col justify-center">
+        <div className="surface-card flex min-h-[96px] flex-col justify-center rounded-[1.35rem] p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
             Estado actual
           </p>
@@ -168,39 +171,60 @@ export function CustomDomainSettingsForm({
               {getStatusLabel(currentStatus)}
             </span>
           </div>
-          {formatVerifiedAt(verifiedAt) ? (
+          {formatVerifiedAt(verifiedAt, timeZone) ? (
             <p className="mt-2 text-xs text-slate/75 dark:text-slate-400">
-              Verificado: {formatVerifiedAt(verifiedAt)}
+              Verificado: {formatVerifiedAt(verifiedAt, timeZone)}
             </p>
           ) : null}
         </div>
       </div>
 
-      <div className="surface-card rounded-[1.75rem] p-4">
-        {isBusinessPlan ? (
-          <div className="space-y-2 text-sm text-slate/80 dark:text-slate-300">
-            <p>
-              1. Guarda el dominio.
-            </p>
-            <p>
-              2. Agregalo manualmente en Vercel y sigue el target DNS exacto que Vercel te muestre
-              para ese dominio.
-            </p>
-            <p>
-              3. Cuando el dominio ya apunte a este proyecto, activa el dominio desde aqui.
-            </p>
+      <div className="grid gap-3 md:grid-cols-3">
+        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+          <div className="flex items-start gap-3">
+            <Globe className="mt-0.5 h-4 w-4 text-slate/75 dark:text-slate-300" />
+            <div>
+              <p className="text-sm font-semibold text-ink dark:text-slate-100">1. Guardar</p>
+              <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
+                Registra el dominio que quieres usar para tu storefront.
+              </p>
+            </div>
           </div>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-sm font-semibold text-ink dark:text-slate-100">
-              Disponible solo en Business
-            </p>
-            <p className="text-sm text-slate/80 dark:text-slate-300">
-              Actualiza tu suscripcion al plan Business para conectar y activar un dominio propio.
-            </p>
+        </div>
+        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+          <div className="flex items-start gap-3">
+            <Link2 className="mt-0.5 h-4 w-4 text-slate/75 dark:text-slate-300" />
+            <div>
+              <p className="text-sm font-semibold text-ink dark:text-slate-100">2. Configurar DNS</p>
+              <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
+                Agregalo en Vercel y sigue exactamente el target que Vercel te muestre.
+              </p>
+            </div>
           </div>
-        )}
+        </div>
+        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+          <div className="flex items-start gap-3">
+            <Sparkles className="mt-0.5 h-4 w-4 text-slate/75 dark:text-slate-300" />
+            <div>
+              <p className="text-sm font-semibold text-ink dark:text-slate-100">3. Activar</p>
+              <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
+                Cuando el dominio ya apunte a este proyecto, activalo desde aqui.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {!isBusinessPlan ? (
+        <div className="rounded-[1.35rem] border border-amber-400/20 bg-amber-500/10 px-4 py-4">
+          <p className="text-sm font-semibold text-ink dark:text-slate-100">
+            Disponible solo en Business
+          </p>
+          <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">
+            Actualiza tu suscripcion al plan Business para conectar y activar un dominio propio.
+          </p>
+        </div>
+      ) : null}
 
       <div className="flex flex-wrap gap-3">
         <Button
@@ -236,9 +260,12 @@ export function CustomDomainSettingsForm({
       </div>
 
       {currentDomain ? (
-        <p className="text-xs text-slate/75 dark:text-slate-400">
-          Dominio guardado: <span className="font-semibold text-ink dark:text-slate-100">{currentDomain}</span>
-        </p>
+        <div className="rounded-[1.2rem] border border-white/60 bg-white/45 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/[0.03]">
+          <p className="font-semibold text-ink dark:text-slate-100">{currentDomain}</p>
+          <p className="mt-1 text-xs text-slate/75 dark:text-slate-400">
+            Guardado para este workspace.
+          </p>
+        </div>
       ) : null}
     </div>
   );

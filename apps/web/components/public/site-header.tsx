@@ -3,7 +3,7 @@
 import NextLink from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type Key } from 'react';
-import { ChevronRight, Moon, Store, Sun } from 'lucide-react';
+import { Bell, ChevronRight, Moon, Store, Sun } from 'lucide-react';
 import {
   Avatar,
   Button,
@@ -207,6 +207,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
   const [pendingNotificationCount, setPendingNotificationCount] = useState(
     initialState.pendingNotificationCount,
   );
+  const [adminNotificationCount, setAdminNotificationCount] = useState<number | null>(null);
   const [hasWorkspaceAccess, setHasWorkspaceAccess] = useState(
     initialState.hasWorkspaceAccess,
   );
@@ -330,17 +331,19 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
 
     return bestMatch;
   }, [activeHeaderLinks, pathname]);
-  const activeWorkspaceName = useMemo(() => {
+  const activeWorkspaceMeta = useMemo(() => {
     const normalizedSlug = activeWorkspaceSlug?.trim().toLowerCase();
 
     if (!normalizedSlug) {
       return null;
     }
 
-    return (
-      workspaceDirectory.find((workspace) => workspace.slug.toLowerCase() === normalizedSlug)?.name || null
-    );
+    return workspaceDirectory.find((workspace) => workspace.slug.toLowerCase() === normalizedSlug) || null;
   }, [activeWorkspaceSlug, workspaceDirectory]);
+  const activeWorkspaceId = activeWorkspaceMeta?.id || null;
+  const activeWorkspaceName = useMemo(() => {
+    return activeWorkspaceMeta?.name || null;
+  }, [activeWorkspaceMeta]);
   const activeWorkspaceLabel = activeWorkspaceName || activeWorkspaceSlug;
   const hasMultipleWorkspaces = workspaceDirectory.length > 1;
   const workspaceHubHref = useMemo(() => {
@@ -361,6 +364,13 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
 
     return `/suscripcion?shop=${encodeURIComponent(activeWorkspaceSlug)}`;
   }, [activeWorkspaceSlug]);
+  const adminNotificationsHref = useMemo(
+    () => buildAdminHref('/admin/notifications', activeWorkspaceSlug),
+    [activeWorkspaceSlug],
+  );
+  const effectiveNotificationCount = navigationContext === 'admin'
+    ? Math.max(0, adminNotificationCount || 0)
+    : pendingNotificationCount;
 
   const applyTheme = useCallback((nextTheme: ThemeMode) => {
     document.documentElement.classList.toggle('dark', nextTheme === 'dark');
@@ -382,6 +392,48 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
       window.removeEventListener('profile-updated', handleProfileUpdated);
     };
   }, [router]);
+
+  useEffect(() => {
+    if (navigationContext !== 'admin' || role === 'guest' || !activeWorkspaceId) {
+      setAdminNotificationCount(null);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const loadAdminNotificationCount = async () => {
+      try {
+        const response = await fetch(
+          `/api/workspace/admin/notifications/summary?shop_id=${encodeURIComponent(activeWorkspaceId)}`,
+          {
+            cache: 'no-store',
+            signal: controller.signal,
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error('No se pudo cargar el conteo de notificaciones.');
+        }
+
+        const payload = (await response.json()) as { pending_count?: number };
+        const nextCount = Number(payload.pending_count || 0);
+        setAdminNotificationCount(Number.isFinite(nextCount) ? Math.max(0, nextCount) : 0);
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        console.error(error);
+        setAdminNotificationCount(null);
+      }
+    };
+
+    void loadAdminNotificationCount();
+
+    return () => {
+      controller.abort();
+    };
+  }, [activeWorkspaceId, initialState, navigationContext, role]);
 
   useEffect(() => {
     try {
@@ -428,8 +480,10 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
       if (action === 'notifications') {
         setIsMenuOpen(false);
         router.push(
-          role === 'admin'
-            ? `${buildAdminHref('/admin', activeWorkspaceSlug)}#notificaciones`
+          navigationContext === 'admin'
+            ? adminNotificationsHref
+            : role === 'admin'
+              ? `${buildAdminHref('/admin', activeWorkspaceSlug)}#notificaciones`
             : '/cuenta#notificaciones',
         );
         return;
@@ -470,8 +524,10 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
     },
     [
       activeWorkspaceSlug,
+      adminNotificationsHref,
       applyTheme,
       handleSignOut,
+      navigationContext,
       role,
       router,
       subscriptionHref,
@@ -600,6 +656,28 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
           </NavbarItem>
         ) : null}
 
+        {!loading && role !== 'guest' && navigationContext === 'admin' ? (
+          <NavbarItem>
+            <Button
+              as={NextLink}
+              href={adminNotificationsHref}
+              isIconOnly
+              variant="light"
+              radius="full"
+              aria-label="Abrir notificaciones"
+              title="Notificaciones"
+              className="relative h-10 w-10 min-w-10 rounded-2xl border border-white/75 bg-white/58 p-0 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition data-[hover=true]:border-white/90 data-[hover=true]:bg-white/84 data-[pressed=true]:scale-100 data-[pressed=true]:bg-white/88 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:data-[hover=true]:bg-white/[0.08]"
+            >
+              <Bell className="h-4 w-4" />
+              {effectiveNotificationCount > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-black">
+                  {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
+                </span>
+              ) : null}
+            </Button>
+          </NavbarItem>
+        ) : null}
+
         {!loading && role !== 'guest' ? (
           <NavbarItem>
             <Dropdown placement="bottom-end">
@@ -616,9 +694,9 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
                     size="sm"
                     className="h-10 w-10 border border-white/75 bg-white/68 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.28)] dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
                   />
-                  {pendingNotificationCount > 0 ? (
+                  {effectiveNotificationCount > 0 ? (
                     <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-black">
-                      {pendingNotificationCount > 9 ? '9+' : pendingNotificationCount}
+                      {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
                     </span>
                   ) : null}
                 </button>
@@ -635,7 +713,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
                 </DropdownItem>
                 <DropdownItem key="notifications">
                   Notificaciones
-                  {pendingNotificationCount > 0 ? ` (${pendingNotificationCount})` : ''}
+                  {effectiveNotificationCount > 0 ? ` (${effectiveNotificationCount})` : ''}
                 </DropdownItem>
                 <DropdownItem key="account">Mi cuenta</DropdownItem>
                 <DropdownItem key="subscription">Suscripcion</DropdownItem>
@@ -724,6 +802,19 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
               className="nav-link-pill flex w-full justify-start no-underline"
             >
               Cambiar barberia
+            </NextLink>
+          </NavbarMenuItem>
+        ) : null}
+
+        {!loading && role !== 'guest' && navigationContext === 'admin' ? (
+          <NavbarMenuItem>
+            <NextLink
+              href={adminNotificationsHref}
+              onClick={() => setIsMenuOpen(false)}
+              className="nav-link-pill flex w-full justify-start no-underline"
+            >
+              Notificaciones
+              {effectiveNotificationCount > 0 ? ` (${effectiveNotificationCount})` : ''}
             </NextLink>
           </NavbarMenuItem>
         ) : null}
