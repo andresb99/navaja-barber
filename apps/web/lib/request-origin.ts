@@ -46,12 +46,21 @@ function getOriginFromHeaders(
 }
 
 export function getRequestOrigin(request: NextRequest) {
-  return getOriginFromHeaders(request.headers, request.url) || new URL(request.url).origin;
+  const origin = getOriginFromHeaders(request.headers, request.url);
+  /* c8 ignore next 4 -- getOriginFromHeaders should always resolve for a valid NextRequest. */
+  if (!origin) {
+    return new URL(request.url).origin;
+  }
+
+  return origin;
 }
 
 export function getRequestOriginFromHeaders(
   headers: HeaderReader,
-  fallbackUrl: string | URL | null | undefined = process.env.NEXT_PUBLIC_APP_URL || null,
+  fallbackUrl?: string | URL | null,
 ) {
-  return getOriginFromHeaders(headers, fallbackUrl);
+  const resolvedFallbackUrl =
+    fallbackUrl === undefined ? process.env.NEXT_PUBLIC_APP_URL || null : fallbackUrl;
+
+  return getOriginFromHeaders(headers, resolvedFallbackUrl);
 }

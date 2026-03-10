@@ -53,4 +53,47 @@ describe('getRequestOrigin', () => {
 
     expect(getRequestOriginFromHeaders(headerStore)).toBe('http://navaja.localhost:3000');
   });
+
+  it('returns null from header-only origin resolution when fallback url is empty', () => {
+    const headerStore = new Headers();
+
+    expect(getRequestOriginFromHeaders(headerStore, null)).toBeNull();
+  });
+
+  it('ignores invalid fallback urls when building an origin from headers', () => {
+    const headerStore = new Headers();
+
+    expect(getRequestOriginFromHeaders(headerStore, 'not-a-valid-url')).toBeNull();
+  });
+
+  it('accepts URL objects as fallback origins', () => {
+    const headerStore = new Headers({
+      host: '0.0.0.0:3010',
+    });
+
+    expect(getRequestOriginFromHeaders(headerStore, new URL('https://beardly.test/admin'))).toBe(
+      'https://localhost:3010',
+    );
+  });
+
+  it('builds an origin without a fallback when the host header is present', () => {
+    const headerStore = new Headers({
+      host: '0.0.0.0:3020',
+    });
+
+    expect(getRequestOriginFromHeaders(headerStore, null)).toBe('http://localhost:3020');
+  });
+
+  it('falls back to null when NEXT_PUBLIC_APP_URL is not set and no host is present', () => {
+    const previousValue = process.env.NEXT_PUBLIC_APP_URL;
+    delete process.env.NEXT_PUBLIC_APP_URL;
+
+    expect(getRequestOriginFromHeaders(new Headers())).toBeNull();
+
+    if (previousValue === undefined) {
+      delete process.env.NEXT_PUBLIC_APP_URL;
+    } else {
+      process.env.NEXT_PUBLIC_APP_URL = previousValue;
+    }
+  });
 });
