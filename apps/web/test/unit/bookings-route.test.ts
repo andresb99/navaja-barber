@@ -204,7 +204,7 @@ describe('bookings route', () => {
       payerEmail: 'test_user_6274659370633756481@testuser.com',
     });
     expect(createMercadoPagoCheckoutPreferenceMock.mock.calls[0]?.[1]).toMatchObject({
-      testMode: true,
+      accessToken: 'TEST-merchant-token',
     });
   });
 });

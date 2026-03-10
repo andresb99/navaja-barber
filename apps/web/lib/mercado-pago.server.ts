@@ -54,7 +54,6 @@ interface MercadoPagoRefundResponse {
 export interface MercadoPagoApiCredentials {
   accessToken: string;
   apiBaseUrl?: string;
-  testMode?: boolean;
 }
 
 function getDefaultCredentials(): MercadoPagoApiCredentials {
@@ -71,14 +70,6 @@ function getApiBaseUrl(credentials?: MercadoPagoApiCredentials | null) {
 
 function getAccessToken(credentials?: MercadoPagoApiCredentials | null) {
   return credentials?.accessToken || getDefaultCredentials().accessToken;
-}
-
-function getCheckoutTestMode(credentials?: MercadoPagoApiCredentials | null) {
-  if (typeof credentials?.testMode === 'boolean') {
-    return credentials.testMode;
-  }
-
-  return isMercadoPagoTestMode(getAccessToken(credentials));
 }
 
 export function isMercadoPagoTestMode(value: string | null | undefined) {
@@ -120,7 +111,6 @@ export async function createMercadoPagoCheckoutPreference(
 ) {
   const quantity = input.item.quantity || 1;
   const unitPrice = Number((input.item.amountCents / 100).toFixed(2));
-  const isTestMode = getCheckoutTestMode(credentials);
 
   const payload = await mercadoPagoRequest<MercadoPagoPreferenceResponse>('/checkout/preferences', {
     method: 'POST',
@@ -148,9 +138,7 @@ export async function createMercadoPagoCheckoutPreference(
     }),
   }, credentials);
 
-  const checkoutUrl = isTestMode
-    ? payload.sandbox_init_point || payload.init_point || null
-    : payload.init_point || payload.sandbox_init_point || null;
+  const checkoutUrl = payload.init_point || payload.sandbox_init_point || null;
   if (!checkoutUrl) {
     throw new Error('Mercado Pago no devolvio una URL de checkout.');
   }

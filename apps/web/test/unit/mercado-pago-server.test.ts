@@ -21,7 +21,7 @@ describe('mercado-pago.server', () => {
     vi.stubGlobal('fetch', fetchMock);
   });
 
-  it('uses sandbox init point when OAuth-connected seller is flagged as test mode', async () => {
+  it('prefers init_point for Checkout Pro preferences', async () => {
     fetchMock.mockResolvedValue({
       ok: true,
       async json() {
@@ -49,12 +49,11 @@ describe('mercado-pago.server', () => {
       },
       {
         accessToken: 'APP_USR-oauth-token',
-        testMode: true,
       },
     );
 
     expect(result.checkoutUrl).toBe(
-      'https://sandbox.mercadopago.com.uy/checkout/v1/redirect?pref_id=pref-1',
+      'https://mercadopago.com.uy/checkout/v1/redirect?pref_id=pref-1',
     );
   });
 });

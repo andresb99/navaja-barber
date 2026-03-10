@@ -236,7 +236,6 @@ export async function POST(request: NextRequest) {
         },
       }, {
         accessToken: shopPaymentAccount.accessToken,
-        testMode: isTestMode,
       });
 
       await supabase
