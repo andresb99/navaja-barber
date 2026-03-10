@@ -412,8 +412,8 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
 
   const handleSignOut = useCallback(() => {
     setIsMenuOpen(false);
-    router.push('/auth/logout?next=/shops');
-  }, [router]);
+    window.location.assign(`/auth/logout?next=${encodeURIComponent(homeHref)}`);
+  }, [homeHref]);
 
   const handleAvatarAction = useCallback(
     (key: Key) => {

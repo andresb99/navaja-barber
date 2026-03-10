@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { BadgeCheck, CircleX, Clock3 } from 'lucide-react';
 import { Button } from '@heroui/button';
+import { resolveBookingSuccessState, type BookingSuccessState } from '@/lib/booking-success-state';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 
@@ -22,54 +23,45 @@ export const metadata: Metadata = buildSitePageMetadata({
   noIndex: true,
 });
 
-type PaymentState = 'approved' | 'pending' | 'failure';
-
 interface ResolvedBookingResult {
   appointmentId: string | null;
-  paymentState: PaymentState;
+  paymentState: BookingSuccessState;
 }
 
 interface PaymentIntentRow {
   status: string;
+  provider_payment_id: string | null;
   payload: Record<string, unknown> | null;
-}
-
-function resolvePaymentState(input: string | null | undefined): PaymentState {
-  const normalized = String(input || '').trim().toLowerCase();
-  if (normalized === 'pending' || normalized === 'processing') {
-    return 'pending';
-  }
-
-  if (normalized === 'failure' || normalized === 'rejected' || normalized === 'cancelled') {
-    return 'failure';
-  }
-
-  return 'approved';
 }
 
 async function resolveBookingResult(params: Awaited<SuccessPageProps['searchParams']>) {
   const directAppointmentId = String(params.appointment || '').trim() || null;
   const paymentIntentId = String(params.payment_intent || '').trim() || null;
-  const paymentState = resolvePaymentState(params.payment_status);
+  const requestedPaymentState = String(params.payment_status || '').trim() || null;
 
   if (directAppointmentId || !paymentIntentId) {
     return {
       appointmentId: directAppointmentId,
-      paymentState,
+      paymentState: resolveBookingSuccessState({
+        appointmentId: directAppointmentId,
+        queryPaymentStatus: requestedPaymentState,
+      }),
     } satisfies ResolvedBookingResult;
   }
 
   const admin = createSupabaseAdminClient();
   const { data: paymentIntent } = await admin
     .from('payment_intents')
-    .select('status, payload')
+    .select('status, provider_payment_id, payload')
     .eq('id', paymentIntentId)
     .maybeSingle();
 
   if (!paymentIntent) {
     return {
       appointmentId: null,
-      paymentState,
+      paymentState: resolveBookingSuccessState({
+        queryPaymentStatus: requestedPaymentState,
+      }),
     } satisfies ResolvedBookingResult;
   }
 
@@ -79,7 +71,12 @@ async function resolveBookingResult(params: Awaited<SuccessPageProps['searchPara
 
   return {
     appointmentId: payloadAppointmentId || null,
-    paymentState: resolvePaymentState(row.status),
+    paymentState: resolveBookingSuccessState({
+      appointmentId: payloadAppointmentId || null,
+      queryPaymentStatus: requestedPaymentState,
+      intentPaymentStatus: row.status,
+      providerPaymentId: row.provider_payment_id,
+    }),
   } satisfies ResolvedBookingResult;
 }
 
@@ -91,7 +88,7 @@ export default async function BookingSuccessPage({ searchParams }: SuccessPagePr
     result.paymentState === 'approved'
       ? 'Pago aprobado'
       : result.paymentState === 'pending'
-        ? 'Pago pendiente'
+        ? 'Pago en revision'
         : 'Pago no completado';
   const title =
     result.paymentState === 'approved'
@@ -99,16 +96,16 @@ export default async function BookingSuccessPage({ searchParams }: SuccessPagePr
         ? 'Reserva confirmada'
         : 'Pago aprobado'
       : result.paymentState === 'pending'
-        ? 'Estamos esperando confirmacion'
-        : 'No pudimos confirmar tu reserva';
+        ? 'Reserva aun no confirmada'
+        : 'No reservamos tu turno';
   const description =
     result.paymentState === 'approved'
       ? result.appointmentId
         ? 'Tu turno ya fue generado. Te confirmamos en breve por WhatsApp o email.'
         : 'El pago se aprobo. Estamos creando tu cita y la veras reflejada en breve.'
       : result.paymentState === 'pending'
-        ? 'Mercado Pago aun no confirmo el cobro. Te avisamos cuando termine el proceso.'
-        : 'Puedes volver a intentar el pago para completar la reserva.';
+        ? 'Mercado Pago registro el intento, pero tu turno solo queda reservado cuando el cobro figure como aprobado.'
+        : 'No detectamos un pago completado. Mientras no finalices el pago, el turno no queda reservado.';
   const eyebrowClassName =
     result.paymentState === 'approved'
       ? 'hero-eyebrow border-emerald-300/70 bg-emerald-100/80 text-emerald-900 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-200'
@@ -139,7 +136,7 @@ export default async function BookingSuccessPage({ searchParams }: SuccessPagePr
             <div className="surface-card">
               <dt className="text-xs uppercase tracking-[0.12em] text-slate/65">ID de cita</dt>
               <dd className="mt-1 font-medium text-ink dark:text-slate-100">
-                {result.appointmentId || 'Pendiente'}
+                {result.appointmentId || 'Sin confirmar'}
               </dd>
             </div>
             <div className="surface-card">
@@ -165,13 +162,13 @@ export default async function BookingSuccessPage({ searchParams }: SuccessPagePr
           </dl>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            {result.paymentState === 'failure' ? (
+            {result.paymentState === 'approved' ? (
               <Button as="a" href="/book" className="action-primary px-5 text-sm font-semibold">
-                Reintentar pago
+                Agendar otra
               </Button>
             ) : (
               <Button as="a" href="/book" className="action-primary px-5 text-sm font-semibold">
-                Agendar otra
+                Volver a intentar
               </Button>
             )}
             <Button
