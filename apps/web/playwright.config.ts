@@ -48,7 +48,7 @@ export default defineConfig({
         process.env.MERCADO_PAGO_OAUTH_REDIRECT_URI ||
         'http://127.0.0.1:3100/api/admin/payments/mercadopago/callback',
       MERCADO_PAGO_OAUTH_AUTH_BASE_URL:
-        process.env.MERCADO_PAGO_OAUTH_AUTH_BASE_URL || 'https://auth.mercadolibre.com.uy',
+        process.env.MERCADO_PAGO_OAUTH_AUTH_BASE_URL || 'https://auth.mercadopago.com.uy',
       SHOP_PAYMENT_ACCOUNT_CRYPTO_SECRET:
         process.env.SHOP_PAYMENT_ACCOUNT_CRYPTO_SECRET ||
         'test-shop-payment-account-crypto-secret-1234567890',

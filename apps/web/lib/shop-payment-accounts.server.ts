@@ -17,13 +17,13 @@ const OAUTH_PROFILE_ENDPOINT = 'https://api.mercadopago.com/users/me';
 const CONNECT_STATE_TTL_MS = 15 * 60 * 1000;
 
 const AUTH_BASE_URL_BY_COUNTRY: Record<string, string> = {
-  AR: 'https://auth.mercadolibre.com.ar',
-  BR: 'https://auth.mercadolivre.com.br',
-  CL: 'https://auth.mercadolibre.cl',
-  CO: 'https://auth.mercadolibre.com.co',
-  MX: 'https://auth.mercadolibre.com.mx',
-  PE: 'https://auth.mercadolibre.com.pe',
-  UY: 'https://auth.mercadolibre.com.uy',
+  AR: 'https://auth.mercadopago.com.ar',
+  BR: 'https://auth.mercadopago.com.br',
+  CL: 'https://auth.mercadopago.cl',
+  CO: 'https://auth.mercadopago.com.co',
+  MX: 'https://auth.mercadopago.com.mx',
+  PE: 'https://auth.mercadopago.com.pe',
+  UY: 'https://auth.mercadopago.com.uy',
 };
 
 interface MercadoPagoOAuthTokenResponse {
@@ -174,7 +174,10 @@ export function verifyMercadoPagoConnectState(state: string): ConnectStatePayloa
 function resolveAuthorizationBaseUrl(countryCode?: string | null) {
   const env = getMercadoPagoOAuthEnv();
   if (env.MERCADO_PAGO_OAUTH_AUTH_BASE_URL) {
-    return env.MERCADO_PAGO_OAUTH_AUTH_BASE_URL;
+    return env.MERCADO_PAGO_OAUTH_AUTH_BASE_URL.replace('auth.mercadolibre.', 'auth.mercadopago.').replace(
+      'auth.mercadolivre.',
+      'auth.mercadopago.',
+    );
   }
 
   const normalizedCountryCode = String(countryCode || '').trim().toUpperCase();
@@ -190,6 +193,7 @@ export function buildMercadoPagoOAuthAuthorizationUrl(input: {
     response_type: 'code',
     client_id: env.MERCADO_PAGO_APP_ID,
     redirect_uri: env.MERCADO_PAGO_OAUTH_REDIRECT_URI,
+    platform_id: 'mp',
     state: input.state,
   });
 
