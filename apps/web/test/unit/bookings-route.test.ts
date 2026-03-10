@@ -138,6 +138,8 @@ describe('bookings route', () => {
     });
     getShopMercadoPagoCredentialsMock.mockResolvedValue({
       paymentAccountId: 'payment-account-1',
+      providerEmail: 'test_user_2320140438075208725@testuser.com',
+      providerNickname: 'TESTUSER2320140438075208725',
       accessToken: 'TEST-merchant-token',
     });
     createSupabaseServerClientMock.mockResolvedValue({
@@ -200,6 +202,9 @@ describe('bookings route', () => {
     expect(createMercadoPagoCheckoutPreferenceMock).toHaveBeenCalledTimes(1);
     expect(createMercadoPagoCheckoutPreferenceMock.mock.calls[0]?.[0]).toMatchObject({
       payerEmail: 'test_user_6274659370633756481@testuser.com',
+    });
+    expect(createMercadoPagoCheckoutPreferenceMock.mock.calls[0]?.[1]).toMatchObject({
+      testMode: true,
     });
   });
 });

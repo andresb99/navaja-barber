@@ -23,6 +23,18 @@ function isMercadoPagoTestEmail(email: string | null | undefined) {
   return String(email || '').trim().toLowerCase().endsWith('@testuser.com');
 }
 
+function isTestShopPaymentAccount(account: {
+  accessToken?: string | null;
+  providerEmail?: string | null;
+  providerNickname?: string | null;
+}) {
+  return (
+    isMercadoPagoTestMode(account.accessToken) ||
+    isMercadoPagoTestEmail(account.providerEmail) ||
+    String(account.providerNickname || '').trim().toUpperCase().startsWith('TESTUSER')
+  );
+}
+
 export async function POST(request: NextRequest) {
   const body = await readSanitizedJsonBody(request);
   const parsed = bookingInputSchema.safeParse(body);
@@ -185,7 +197,7 @@ export async function POST(request: NextRequest) {
 
     try {
       const mercadoPagoEnv = getMercadoPagoServerEnv();
-      const isTestMode = isMercadoPagoTestMode(shopPaymentAccount.accessToken);
+      const isTestMode = isTestShopPaymentAccount(shopPaymentAccount);
       if (isTestMode && !isMercadoPagoTestEmail(resolvedCustomerEmail)) {
         return new NextResponse(
           'En modo prueba de Mercado Pago debes usar un email de comprador test (@testuser.com).',
@@ -224,6 +236,7 @@ export async function POST(request: NextRequest) {
         },
       }, {
         accessToken: shopPaymentAccount.accessToken,
+        testMode: isTestMode,
       });
 
       await supabase
