@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { JobsForm } from '@/components/public/jobs-form';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
+import { Container } from '@/components/heroui/container';
 
 interface ShopJobsPageProps {
   params: Promise<{ slug: string }>;
@@ -34,7 +35,7 @@ export default async function ShopJobsPage({ params }: ShopJobsPageProps) {
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Talento</p>
@@ -63,13 +64,11 @@ export default async function ShopJobsPage({ params }: ShopJobsPageProps) {
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Marca
               </p>
-              <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">
-                {shop.slug}
-              </p>
+              <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">{shop.slug}</p>
             </div>
           </div>
         </div>
-      </div>
+      </Container>
       <JobsForm shopId={shop.id} />
     </section>
   );

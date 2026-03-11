@@ -3,7 +3,16 @@
 import NextLink from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type Key } from 'react';
-import { Bell, ChevronRight, Moon, Store, Sun } from 'lucide-react';
+import {
+  Bell,
+  CalendarClock,
+  ChevronRight,
+  CreditCard,
+  Moon,
+  Store,
+  Sun,
+  Users,
+} from 'lucide-react';
 import {
   Avatar,
   Button,
@@ -18,6 +27,9 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   NavbarMenuToggle,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from '@heroui/react';
 import { HeaderBrand } from '@/components/public/header-brand';
 import { cn } from '@/lib/cn';
@@ -36,6 +48,16 @@ type HeaderLink = {
   href: string;
   label: string;
   key: string;
+};
+
+type AdminNotificationPreviewItem = {
+  id: string;
+  kind: 'time_off' | 'membership' | 'payment';
+  targetId: string;
+  title: string;
+  detail: string;
+  createdAt: string | null;
+  isNew: boolean;
 };
 
 const roleLabel: Record<Exclude<NavRole, 'guest'>, string> = {
@@ -73,8 +95,48 @@ const staffHeaderLinks = [
 const actionButtonClassName =
   'h-10 rounded-2xl border border-white/75 bg-white/58 px-4 text-xs font-semibold text-ink no-underline shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition-[background-color,transform,box-shadow,color,border-color] duration-150 data-[hover=true]:border-white/90 data-[hover=true]:bg-white/84 data-[pressed=true]:scale-[0.98] data-[pressed=true]:bg-white/92 data-[focus-visible=true]:ring-2 data-[focus-visible=true]:ring-sky-400/55 data-[focus-visible=true]:ring-offset-1 data-[focus-visible=true]:ring-offset-transparent dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100 dark:data-[hover=true]:bg-white/[0.08] dark:data-[pressed=true]:bg-white/[0.09]';
 
+const subscriptionButtonClassName =
+  'h-10 rounded-2xl border border-sky-200/85 bg-[linear-gradient(135deg,rgba(255,255,255,0.9),rgba(241,245,255,0.72))] px-4 text-xs font-semibold text-ink no-underline shadow-[0_18px_28px_-22px_rgba(56,189,248,0.22)] transition-[background-color,transform,box-shadow,color,border-color] duration-150 data-[hover=true]:border-sky-200 data-[hover=true]:bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(237,246,255,0.84))] data-[pressed=true]:scale-[0.98] data-[pressed=true]:bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(232,244,255,0.86))] data-[focus-visible=true]:ring-2 data-[focus-visible=true]:ring-sky-400/55 data-[focus-visible=true]:ring-offset-1 data-[focus-visible=true]:ring-offset-transparent dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] dark:text-slate-100 dark:data-[hover=true]:bg-[linear-gradient(135deg,rgba(255,255,255,0.11),rgba(255,255,255,0.06))] dark:data-[pressed=true]:bg-[linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.07))]';
+
 const workspaceSwitcherClassName =
   'group hidden lg:flex items-center gap-3 rounded-2xl border border-white/70 bg-white/56 px-3 py-2 text-ink no-underline shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition-[background-color,border-color,transform,box-shadow] duration-150 hover:border-white/90 hover:bg-white/82 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/55 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.08]';
+
+const notificationTriggerClassName =
+  'relative flex h-11 w-11 items-center justify-center rounded-[1.15rem] border border-white/75 bg-white/58 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition-[background-color,border-color,color,box-shadow] duration-150 hover:border-white/90 hover:bg-white/84 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.42)] focus-visible:ring-offset-1 focus-visible:ring-offset-transparent dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:hover:bg-white/[0.08]';
+
+const notificationDropdownContentClassName =
+  'admin-premium-card w-[min(92vw,24rem)] overflow-hidden rounded-[1.9rem] p-0';
+
+const notificationPreviewLinkClassName =
+  'admin-premium-subcard group flex items-start gap-3 rounded-[1.35rem] p-3 no-underline transition-[border-color,background-color,transform] duration-150 hover:-translate-y-[1px] hover:border-[hsl(var(--primary)/0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--primary)/0.26)] focus-visible:ring-offset-0 dark:hover:border-[hsl(var(--primary)/0.24)]';
+
+function formatNotificationPreviewTime(value: string | null) {
+  if (!value) {
+    return 'Seguimiento operativo';
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return 'Seguimiento operativo';
+  }
+
+  return new Intl.DateTimeFormat('es-UY', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(parsed);
+}
+
+function NotificationPreviewIcon({ kind }: { kind: AdminNotificationPreviewItem['kind'] }) {
+  const Icon = kind === 'time_off' ? CalendarClock : kind === 'membership' ? Users : CreditCard;
+
+  return (
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-white/75 bg-white/72 text-ink shadow-[0_16px_22px_-22px_rgba(15,23,42,0.22)] dark:border-white/10 dark:bg-white/[0.06] dark:text-white">
+      <Icon className="h-[18px] w-[18px]" />
+    </span>
+  );
+}
 
 function getAvatarInitials(name: string | null, email: string | null) {
   const source = (name || email || '').trim();
@@ -208,9 +270,12 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
     initialState.pendingNotificationCount,
   );
   const [adminNotificationCount, setAdminNotificationCount] = useState<number | null>(null);
-  const [hasWorkspaceAccess, setHasWorkspaceAccess] = useState(
-    initialState.hasWorkspaceAccess,
-  );
+  const [adminNotificationItems, setAdminNotificationItems] = useState<
+    AdminNotificationPreviewItem[]
+  >([]);
+  const [adminNotificationsLoading, setAdminNotificationsLoading] = useState(false);
+  const [adminNotificationsError, setAdminNotificationsError] = useState<string | null>(null);
+  const [hasWorkspaceAccess, setHasWorkspaceAccess] = useState(initialState.hasWorkspaceAccess);
   const [workspaceDirectory, setWorkspaceDirectory] = useState<AccessibleWorkspaceMeta[]>(
     initialState.workspaceDirectory,
   );
@@ -236,9 +301,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
         : initialState.pendingNotificationCount,
     );
     setHasWorkspaceAccess((current) =>
-      current === initialState.hasWorkspaceAccess
-        ? current
-        : initialState.hasWorkspaceAccess,
+      current === initialState.hasWorkspaceAccess ? current : initialState.hasWorkspaceAccess,
     );
     setWorkspaceDirectory((current) =>
       areWorkspaceDirectoriesEqual(current, initialState.workspaceDirectory)
@@ -295,11 +358,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
   const homeHref = useMemo(
     () =>
       getHomeHref(
-        navigationContext === 'admin'
-          ? 'admin'
-          : navigationContext === 'staff'
-            ? 'staff'
-            : 'guest',
+        navigationContext === 'admin' ? 'admin' : navigationContext === 'staff' ? 'staff' : 'guest',
         currentShopSlug,
         publicTenantMode,
       ),
@@ -338,7 +397,10 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
       return null;
     }
 
-    return workspaceDirectory.find((workspace) => workspace.slug.toLowerCase() === normalizedSlug) || null;
+    return (
+      workspaceDirectory.find((workspace) => workspace.slug.toLowerCase() === normalizedSlug) ||
+      null
+    );
   }, [activeWorkspaceSlug, workspaceDirectory]);
   const activeWorkspaceId = activeWorkspaceMeta?.id || null;
   const activeWorkspaceName = useMemo(() => {
@@ -368,9 +430,11 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
     () => buildAdminHref('/admin/notifications', activeWorkspaceSlug),
     [activeWorkspaceSlug],
   );
-  const effectiveNotificationCount = navigationContext === 'admin'
-    ? Math.max(0, adminNotificationCount || 0)
-    : pendingNotificationCount;
+  const effectiveNotificationCount =
+    navigationContext === 'admin'
+      ? Math.max(0, adminNotificationCount || 0)
+      : pendingNotificationCount;
+  const hasNewAdminNotifications = adminNotificationItems.some((item) => item.isNew);
 
   const applyTheme = useCallback((nextTheme: ThemeMode) => {
     document.documentElement.classList.toggle('dark', nextTheme === 'dark');
@@ -396,12 +460,18 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
   useEffect(() => {
     if (navigationContext !== 'admin' || role === 'guest' || !activeWorkspaceId) {
       setAdminNotificationCount(null);
+      setAdminNotificationItems([]);
+      setAdminNotificationsError(null);
+      setAdminNotificationsLoading(false);
       return;
     }
 
     const controller = new AbortController();
 
     const loadAdminNotificationCount = async () => {
+      setAdminNotificationsLoading(true);
+      setAdminNotificationsError(null);
+
       try {
         const response = await fetch(
           `/api/workspace/admin/notifications/summary?shop_id=${encodeURIComponent(activeWorkspaceId)}`,
@@ -415,9 +485,13 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
           throw new Error('No se pudo cargar el conteo de notificaciones.');
         }
 
-        const payload = (await response.json()) as { pending_count?: number };
+        const payload = (await response.json()) as {
+          pending_count?: number;
+          items?: AdminNotificationPreviewItem[];
+        };
         const nextCount = Number(payload.pending_count || 0);
         setAdminNotificationCount(Number.isFinite(nextCount) ? Math.max(0, nextCount) : 0);
+        setAdminNotificationItems(Array.isArray(payload.items) ? payload.items.slice(0, 10) : []);
       } catch (error) {
         if (controller.signal.aborted) {
           return;
@@ -425,6 +499,12 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
 
         console.error(error);
         setAdminNotificationCount(null);
+        setAdminNotificationItems([]);
+        setAdminNotificationsError('No se pudieron cargar las notificaciones.');
+      } finally {
+        if (!controller.signal.aborted) {
+          setAdminNotificationsLoading(false);
+        }
       }
     };
 
@@ -433,7 +513,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
     return () => {
       controller.abort();
     };
-  }, [activeWorkspaceId, initialState, navigationContext, role]);
+  }, [activeWorkspaceId, navigationContext, role]);
 
   useEffect(() => {
     try {
@@ -484,7 +564,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
             ? adminNotificationsHref
             : role === 'admin'
               ? `${buildAdminHref('/admin', activeWorkspaceSlug)}#notificaciones`
-            : '/cuenta#notificaciones',
+              : '/cuenta#notificaciones',
         );
         return;
       }
@@ -551,7 +631,10 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
     >
       <NavbarContent justify="start">
         <NavbarBrand className="h-full items-center py-0 md:w-[14rem]">
-          <NextLink href={contextualHomeHref} className="flex h-full items-center no-underline md:w-full">
+          <NextLink
+            href={contextualHomeHref}
+            className="flex h-full items-center no-underline md:w-full"
+          >
             <HeaderBrand />
           </NextLink>
         </NavbarBrand>
@@ -605,14 +688,15 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
           </NavbarItem>
         ) : null}
 
-        {!loading && role !== 'guest' && navigationContext === 'public' ? (
+        {!loading && role !== 'guest' ? (
           <NavbarItem className="hidden md:flex">
             <Button
               as={NextLink}
               href={subscriptionHref}
               variant="ghost"
               size="sm"
-              className={actionButtonClassName}
+              className={subscriptionButtonClassName}
+              startContent={<CreditCard className="h-4 w-4" />}
             >
               Suscripcion
             </Button>
@@ -657,24 +741,119 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
         ) : null}
 
         {!loading && role !== 'guest' && navigationContext === 'admin' ? (
-          <NavbarItem>
-            <Button
-              as={NextLink}
-              href={adminNotificationsHref}
-              isIconOnly
-              variant="light"
-              radius="full"
-              aria-label="Abrir notificaciones"
-              title="Notificaciones"
-              className="relative h-10 w-10 min-w-10 rounded-2xl border border-white/75 bg-white/58 p-0 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition data-[hover=true]:border-white/90 data-[hover=true]:bg-white/84 data-[pressed=true]:scale-100 data-[pressed=true]:bg-white/88 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:data-[hover=true]:bg-white/[0.08]"
-            >
-              <Bell className="h-4 w-4" />
-              {effectiveNotificationCount > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-black">
-                  {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
-                </span>
-              ) : null}
-            </Button>
+          <NavbarItem className="overflow-visible">
+            <Popover placement="bottom-end" offset={14}>
+              <PopoverTrigger>
+                <button
+                  type="button"
+                  aria-label="Abrir notificaciones"
+                  title="Notificaciones"
+                  className={notificationTriggerClassName}
+                >
+                  <Bell className="h-4 w-4" />
+                  {effectiveNotificationCount > 0 ? (
+                    <span className="pointer-events-none absolute right-0.5 top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold leading-none text-black">
+                      {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
+                    </span>
+                  ) : null}
+                </button>
+              </PopoverTrigger>
+
+              <PopoverContent className={notificationDropdownContentClassName}>
+                <div className="flex max-h-[32rem] w-full flex-col">
+                  <div className="border-b border-slate-200/80 px-4 py-4 dark:border-white/10">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                          Notificaciones
+                        </p>
+                        <h3 className="mt-1 text-base font-semibold text-ink dark:text-slate-100">
+                          Local activo
+                        </h3>
+                      </div>
+                      <span
+                        className="meta-chip"
+                        data-tone={effectiveNotificationCount > 0 ? 'warning' : 'success'}
+                      >
+                        {effectiveNotificationCount > 0
+                          ? `${effectiveNotificationCount} activas`
+                          : 'Todo al dia'}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs leading-6 text-slate-600 dark:text-slate-300">
+                      {effectiveNotificationCount > adminNotificationItems.length &&
+                      adminNotificationItems.length > 0
+                        ? `Mostrando ${adminNotificationItems.length} de ${effectiveNotificationCount}.`
+                        : 'Resumen rapido del inbox operativo del local.'}
+                    </p>
+                    {hasNewAdminNotifications ? (
+                      <p className="mt-1 text-[11px] font-medium text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))]">
+                        Las alertas nuevas llevan un punto lila.
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <div className="max-h-[24rem] space-y-2 overflow-y-auto p-3">
+                    {adminNotificationsLoading ? (
+                      <div className="admin-premium-subcard rounded-[1.3rem] px-4 py-5 text-sm text-slate-600 dark:text-slate-300">
+                        Cargando notificaciones...
+                      </div>
+                    ) : adminNotificationsError ? (
+                      <div className="rounded-[1.3rem] border border-rose-200/80 bg-rose-50/80 px-4 py-5 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+                        {adminNotificationsError}
+                      </div>
+                    ) : adminNotificationItems.length === 0 ? (
+                      <div className="admin-premium-subcard rounded-[1.3rem] px-4 py-5 text-sm text-slate-600 dark:text-slate-300">
+                        No hay alertas activas por ahora.
+                      </div>
+                    ) : (
+                      adminNotificationItems.map((item) => (
+                        <NextLink
+                          key={item.id}
+                          href={`${adminNotificationsHref}#${item.targetId}`}
+                          className={notificationPreviewLinkClassName}
+                        >
+                          <NotificationPreviewIcon kind={item.kind} />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate text-sm font-semibold text-ink dark:text-slate-100">
+                                {item.title}
+                              </p>
+                              {item.isNew ? (
+                                <>
+                                  <span
+                                    aria-hidden="true"
+                                    className="h-2.5 w-2.5 shrink-0 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_0_4px_hsl(var(--primary)/0.18)]"
+                                  />
+                                  <span className="sr-only">Nueva notificacion</span>
+                                </>
+                              ) : null}
+                            </div>
+                            <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                              {item.detail}
+                            </p>
+                            <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
+                              {formatNotificationPreviewTime(item.createdAt)}
+                            </p>
+                          </div>
+                          <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-slate-400 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-[hsl(var(--primary))] dark:text-slate-500 dark:group-hover:text-[hsl(var(--primary))]" />
+                        </NextLink>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="border-t border-slate-200/80 p-3 dark:border-white/10">
+                    <NextLink
+                      href={adminNotificationsHref}
+                      className="admin-premium-subcard flex items-center justify-between rounded-[1.15rem] px-4 py-3 text-sm font-semibold text-ink no-underline hover:border-[hsl(var(--primary)/0.28)] dark:text-slate-100 dark:hover:border-[hsl(var(--primary)/0.24)]"
+                    >
+                      <span>Abrir inbox</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </NextLink>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </NavbarItem>
         ) : null}
 
@@ -694,7 +873,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
                     size="sm"
                     className="h-10 w-10 border border-white/75 bg-white/68 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.28)] dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
                   />
-                  {effectiveNotificationCount > 0 ? (
+                  {navigationContext !== 'admin' && effectiveNotificationCount > 0 ? (
                     <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-black">
                       {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
                     </span>
@@ -722,7 +901,9 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
                 ) : null}
                 <DropdownItem
                   key="theme-toggle"
-                  startContent={theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  startContent={
+                    theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />
+                  }
                 >
                   {theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
                 </DropdownItem>
@@ -858,7 +1039,6 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
             </Button>
           </NavbarMenuItem>
         ) : null}
-
       </NavbarMenu>
     </Navbar>
   );

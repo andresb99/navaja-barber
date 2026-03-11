@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
-import { Select, SelectItem } from '@heroui/select';
+import { SelectItem } from '@heroui/select';
 import {
   createStaffInvitationsAction,
   createTimeOffAction,
   searchStaffInviteeAction,
   upsertWorkingHoursRangeAction,
 } from '@/app/admin/actions';
+import { AdminSelect } from '@/components/heroui/admin-select';
 
 interface StaffOption {
   id: string;
@@ -45,16 +46,6 @@ const formInputClassNames = {
 const temporalInputClassNames = {
   ...formInputClassNames,
   input: 'temporal-placeholder-hidden text-sm text-slate-900 dark:text-zinc-100',
-} as const;
-
-const formSelectClassNames = {
-  label: 'text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500',
-  trigger:
-    'min-h-[56px] rounded-[1.2rem] border border-slate-900/10 bg-white/82 shadow-none transition data-[hover=true]:border-sky-300 group-data-[focus=true]:border-sky-400 dark:border-white/10 dark:bg-white/[0.04]',
-  value: 'text-sm text-slate-900 dark:text-zinc-100',
-  selectorIcon: 'text-slate-500 dark:text-zinc-400',
-  popoverContent:
-    'rounded-[1.2rem] border border-slate-900/8 bg-white p-1 dark:border-white/10 dark:bg-[#0b1527]',
 } as const;
 
 function getInviteeInitials(name: string, email: string) {
@@ -100,42 +91,45 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
     setInviteMessage(null);
   }, []);
 
-  const handleInviteSubmit = useCallback((event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleInviteSubmit = useCallback(
+    (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
 
-    if (!selectedInvitees.length) {
-      setInviteError('Agrega al menos un usuario a la lista antes de guardar.');
-      setInviteMessage(null);
-      return;
-    }
-
-    startSaveTransition(async () => {
-      setInviteError(null);
-      setInviteMessage(null);
-
-      const result = await createStaffInvitationsAction({
-        shopId,
-        role: inviteRole,
-        invitees: selectedInvitees.map((invitee) => ({
-          email: invitee.email,
-          userId: invitee.userId,
-        })),
-      });
-
-      if (!result.ok) {
-        setInviteError(result.message);
+      if (!selectedInvitees.length) {
+        setInviteError('Agrega al menos un usuario a la lista antes de guardar.');
+        setInviteMessage(null);
         return;
       }
 
-      setInviteMessage(result.message);
-      setInviteQuery('');
-      setSearchResults([]);
-      setSelectedInvitees([]);
-      setLastResolvedQuery('');
-      setInviteRole('staff');
-      router.refresh();
-    });
-  }, [inviteRole, router, selectedInvitees, shopId, startSaveTransition]);
+      startSaveTransition(async () => {
+        setInviteError(null);
+        setInviteMessage(null);
+
+        const result = await createStaffInvitationsAction({
+          shopId,
+          role: inviteRole,
+          invitees: selectedInvitees.map((invitee) => ({
+            email: invitee.email,
+            userId: invitee.userId,
+          })),
+        });
+
+        if (!result.ok) {
+          setInviteError(result.message);
+          return;
+        }
+
+        setInviteMessage(result.message);
+        setInviteQuery('');
+        setSearchResults([]);
+        setSelectedInvitees([]);
+        setLastResolvedQuery('');
+        setInviteRole('staff');
+        router.refresh();
+      });
+    },
+    [inviteRole, router, selectedInvitees, shopId, startSaveTransition],
+  );
 
   const handleAddInvitee = useCallback((invitee: InviteePreview) => {
     setSelectedInvitees((current) => {
@@ -209,7 +203,9 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
             </div>
 
             <span className="meta-chip">
-              {selectedInvitees.length ? `${selectedInvitees.length} listos para invitar` : 'Sin lista preparada'}
+              {selectedInvitees.length
+                ? `${selectedInvitees.length} listos para invitar`
+                : 'Sin lista preparada'}
             </span>
           </div>
 
@@ -298,17 +294,16 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
               ) : null}
             </div>
 
-            <Select
+            <AdminSelect
               aria-label="Rol de la invitacion"
               label="Rol"
               labelPlacement="inside"
-              classNames={formSelectClassNames}
               selectedKeys={[inviteRole]}
               onChange={(event) => setInviteRole(event.target.value as InviteRole)}
             >
               <SelectItem key="staff">Personal</SelectItem>
               <SelectItem key="admin">Administrador</SelectItem>
-            </Select>
+            </AdminSelect>
 
             <div className="rounded-[1.4rem] border border-white/65 bg-white/50 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03]">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -386,7 +381,9 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
                   Carga bloques semanales amplios sin depender de una tabla larga.
                 </p>
               </div>
-              <span className="meta-chip">{hasStaff ? 'Listo para asignar' : 'Requiere personal'}</span>
+              <span className="meta-chip">
+                {hasStaff ? 'Listo para asignar' : 'Requiere personal'}
+              </span>
             </div>
 
             {!hasStaff ? (
@@ -399,13 +396,12 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
               <input type="hidden" name="shop_id" value={shopId} />
               <input type="hidden" name="shop_slug" value={shopSlug} />
 
-              <Select
+              <AdminSelect
                 name="staff_id"
                 aria-label="Selecciona personal"
                 label="Personal"
                 labelPlacement="inside"
                 placeholder="Selecciona personal"
-                classNames={formSelectClassNames}
                 defaultSelectedKeys={defaultStaffKeys}
                 disallowEmptySelection
                 isDisabled={!hasStaff}
@@ -414,15 +410,14 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
                 {staff.map((item) => (
                   <SelectItem key={item.id}>{item.name}</SelectItem>
                 ))}
-              </Select>
+              </AdminSelect>
 
               <div className="grid grid-cols-2 gap-3">
-                <Select
+                <AdminSelect
                   name="day_from"
                   aria-label="Dia inicial"
                   label="Desde dia"
                   labelPlacement="inside"
-                  classNames={formSelectClassNames}
                   disallowEmptySelection
                   isDisabled={!hasStaff}
                   isRequired
@@ -431,14 +426,13 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
                   {weekdays.map((day, index) => (
                     <SelectItem key={String(index)}>{day}</SelectItem>
                   ))}
-                </Select>
+                </AdminSelect>
 
-                <Select
+                <AdminSelect
                   name="day_to"
                   aria-label="Dia final"
                   label="Hasta dia"
                   labelPlacement="inside"
-                  classNames={formSelectClassNames}
                   disallowEmptySelection
                   isDisabled={!hasStaff}
                   isRequired
@@ -447,7 +441,7 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
                   {weekdays.map((day, index) => (
                     <SelectItem key={String(index)}>{day}</SelectItem>
                   ))}
-                </Select>
+                </AdminSelect>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -509,7 +503,9 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
                   Registra ausencias, pausas o cierres sin romper la lectura general del equipo.
                 </p>
               </div>
-              <span className="meta-chip">{hasStaff ? 'Agenda editable' : 'Sin staff cargado'}</span>
+              <span className="meta-chip">
+                {hasStaff ? 'Agenda editable' : 'Sin staff cargado'}
+              </span>
             </div>
 
             {!hasStaff ? (
@@ -522,13 +518,12 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
               <input type="hidden" name="shop_id" value={shopId} />
               <input type="hidden" name="shop_slug" value={shopSlug} />
 
-              <Select
+              <AdminSelect
                 name="staff_id"
                 aria-label="Selecciona personal"
                 label="Personal"
                 labelPlacement="inside"
                 placeholder="Selecciona personal"
-                classNames={formSelectClassNames}
                 defaultSelectedKeys={defaultStaffKeys}
                 disallowEmptySelection
                 isDisabled={!hasStaff}
@@ -537,7 +532,7 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
                 {staff.map((item) => (
                   <SelectItem key={item.id}>{item.name}</SelectItem>
                 ))}
-              </Select>
+              </AdminSelect>
 
               <Input
                 id="time-off-start-at"

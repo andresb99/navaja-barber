@@ -1,22 +1,82 @@
-﻿<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="84" fill="#040404"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Beautiful deep background gradient -->
+    <radialGradient id="bgGrad" cx="30%" cy="20%" r="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="100%" stop-color="#020617" />
+    </radialGradient>
+    
+    <!-- Polished steel / silver gradients -->
+    <linearGradient id="silverGrad1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="60%" stop-color="#F1F5F9" />
+      <stop offset="100%" stop-color="#94A3B8" />
+    </linearGradient>
 
-  <!-- Razor -->
-  <g transform="translate(66 82)">
-    <path d="M76 96C92 83 108 81 122 88L128 101H145V113H116L112 103C103 98 95 100 84 109L76 96Z" fill="#F4F6F8"/>
-    <rect x="140" y="102" width="210" height="42" rx="8" fill="#F4F6F8"/>
-    <path d="M44 109C52 114 58 127 58 144V272C58 294 52 312 40 323C27 317 20 303 20 284V145C20 128 29 115 44 109Z" fill="#F4F6F8"/>
-    <path d="M78 125C87 133 93 149 93 169V271C93 292 86 309 74 322C63 311 57 294 57 274V168C57 149 64 133 78 125Z" fill="#FAFAFB"/>
-    <circle cx="119" cy="106" r="7" fill="#040404"/>
+    <linearGradient id="silverGrad2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#CBD5E1" />
+      <stop offset="100%" stop-color="#475569" />
+    </linearGradient>
+
+    <!-- Shiny razor blade gradient -->
+    <linearGradient id="bladeGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#94A3B8" />
+      <stop offset="30%" stop-color="#FFFFFF" />
+      <stop offset="70%" stop-color="#E2E8F0" />
+      <stop offset="100%" stop-color="#64748B" />
+    </linearGradient>
+
+    <!-- Subtle pop gradient for the accent cut -->
+    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#818CF8" />
+    </linearGradient>
+
+    <!-- Depth shadow -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Base Card -->
+  <rect width="512" height="512" rx="100" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle inner border for premium glass/metal edge -->
+  <rect x="2" y="2" width="508" height="508" rx="98" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.1"/>
+  <rect x="1" y="1" width="510" height="510" rx="99" fill="none" stroke="#000000" stroke-width="2" stroke-opacity="0.4"/>
+
+  <!-- Razor Group -->
+  <g transform="translate(66 82)" filter="url(#shadow)">
+    <!-- Base connection -->
+    <path d="M76 96C92 83 108 81 122 88L128 101H145V113H116L112 103C103 98 95 100 84 109L76 96Z" fill="url(#silverGrad2)"/>
+    <!-- Sharp blade -->
+    <rect x="140" y="102" width="210" height="42" rx="8" fill="url(#bladeGrad)"/>
+    <!-- Blade edge (shiny line) -->
+    <rect x="142" y="104" width="206" height="2" rx="1" fill="#FFFFFF" opacity="0.8"/>
+    <!-- Curved Handles -->
+    <path d="M44 109C52 114 58 127 58 144V272C58 294 52 312 40 323C27 317 20 303 20 284V145C20 128 29 115 44 109Z" fill="url(#silverGrad2)"/>
+    <path d="M78 125C87 133 93 149 93 169V271C93 292 86 309 74 322C63 311 57 294 57 274V168C57 149 64 133 78 125Z" fill="url(#silverGrad1)"/>
+    <!-- Hinge Detail -->
+    <circle cx="119" cy="106" r="9" fill="#020617"/>
+    <circle cx="119" cy="106" r="4" fill="#94A3B8"/>
   </g>
 
-  <!-- N monogram -->
-  <g transform="translate(165 176)">
-    <path d="M0 0H70L132 177V0H197V339H132L66 141V339H0V0Z" fill="#F4F6F8"/>
-    <path d="M185 100L245 100L185 180V100Z" fill="#F4F6F8"/>
-    <path d="M197 140L259 140V366L197 324V140Z" fill="#E7ECF2"/>
+  <!-- N monogram Group -->
+  <g transform="translate(165 176)" filter="url(#shadow)">
+    <!-- Main N shape -->
+    <path d="M0 0H70L132 177V0H197V339H132L66 141V339H0V0Z" fill="url(#silverGrad1)"/>
+    <!-- Sub paths adding 3D facetting to the N -->
+    <path d="M185 100L245 100L185 180V100Z" fill="url(#silverGrad2)" opacity="0.8"/>
+    <path d="M197 140L259 140V366L197 324V140Z" fill="url(#silverGrad2)"/>
+    
+    <!-- Crisp highlight on the N's left edge -->
+    <path d="M1 1H69V338H1V1Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.4" stroke-width="2"/>
   </g>
 
   <!-- Accent cut under N -->
-  <path d="M224 470L338 414V455L264 512H224V470Z" fill="#F4F6F8" fill-opacity="0.94"/>
+  <g transform="translate(0 0)" filter="url(#shadow)">
+    <path d="M224 470L338 414V455L264 512H224V470Z" fill="url(#accentGrad)"/>
+    <!-- Light catch on the accent cut -->
+    <path d="M226 472L334 417" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="2" stroke-linecap="round"/>
+  </g>
 </svg>

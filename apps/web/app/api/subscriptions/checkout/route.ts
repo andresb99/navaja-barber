@@ -138,9 +138,9 @@ export async function POST(request: NextRequest) {
       },
       payerEmail: user.email || null,
       externalReference,
-      successUrl: `${env.NEXT_PUBLIC_APP_URL}/admin/barbershop?shop=${encodeURIComponent(shop.slug)}&billing=success`,
-      pendingUrl: `${env.NEXT_PUBLIC_APP_URL}/admin/barbershop?shop=${encodeURIComponent(shop.slug)}&billing=pending`,
-      failureUrl: `${env.NEXT_PUBLIC_APP_URL}/admin/barbershop?shop=${encodeURIComponent(shop.slug)}&billing=failure`,
+      successUrl: `${env.NEXT_PUBLIC_APP_URL}/suscripcion?shop=${encodeURIComponent(shop.slug)}&billing=success`,
+      pendingUrl: `${env.NEXT_PUBLIC_APP_URL}/suscripcion?shop=${encodeURIComponent(shop.slug)}&billing=pending`,
+      failureUrl: `${env.NEXT_PUBLIC_APP_URL}/suscripcion?shop=${encodeURIComponent(shop.slug)}&billing=failure`,
       notificationUrl: webhookUrl,
       metadata: {
         intent_id: String(paymentIntent.id),

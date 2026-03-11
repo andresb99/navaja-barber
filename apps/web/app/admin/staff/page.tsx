@@ -1,13 +1,8 @@
-import {
-  CalendarRange,
-  Clock3,
-  ShieldCheck,
-  UserRoundPlus,
-  type LucideIcon,
-} from 'lucide-react';
+﻿import { CalendarRange, Clock3, ShieldCheck, UserRoundPlus, type LucideIcon } from 'lucide-react';
 import { AdminStaffForms } from '@/components/admin/staff-forms';
 import { requireAdmin } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { Container } from '@/components/heroui/container';
 
 const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
@@ -224,11 +219,7 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
     ]);
 
   const membershipUserIds = Array.from(
-    new Set(
-      (memberships || [])
-        .map((item) => String(item.user_id || ''))
-        .filter(Boolean),
-    ),
+    new Set((memberships || []).map((item) => String(item.user_id || '')).filter(Boolean)),
   );
   const { data: membershipProfiles } = membershipUserIds.length
     ? await supabase
@@ -305,7 +296,7 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="pageHeader" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 space-y-6">
           <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr] xl:items-end">
             <div>
@@ -353,7 +344,7 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <AdminStaffForms
         shopId={ctx.shopId}
@@ -409,7 +400,10 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
                   Aqui ves rapidamente si cada invitacion fue aceptada o sigue pendiente.
                 </p>
               </div>
-              <span className="meta-chip" data-tone={pendingInvitesCount > 0 ? 'warning' : undefined}>
+              <span
+                className="meta-chip"
+                data-tone={pendingInvitesCount > 0 ? 'warning' : undefined}
+              >
                 {pendingInvitesCount} pendientes
               </span>
             </div>

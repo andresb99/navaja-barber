@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { formatCurrency } from '@navaja/shared';
 import { Card, CardBody } from '@heroui/card';
 import { PencilLine } from 'lucide-react';
@@ -8,6 +8,7 @@ import { AdminCourseSessionForm } from '@/components/admin/course-session-form';
 import { requireAdmin } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { buildAdminHref } from '@/lib/workspace-routes';
+import { Container } from '@/components/heroui/container';
 
 interface CoursesAdminPageProps {
   searchParams: Promise<{ shop?: string; edit?: string }>;
@@ -113,7 +114,7 @@ export default async function CoursesAdminPage({ searchParams }: CoursesAdminPag
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="pageHeader" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Cursos</p>
@@ -153,7 +154,7 @@ export default async function CoursesAdminPage({ searchParams }: CoursesAdminPag
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       {editingCourse ? (
         <Card className="spotlight-card soft-panel rounded-[1.8rem] border-0 shadow-none">
@@ -172,7 +173,9 @@ export default async function CoursesAdminPage({ searchParams }: CoursesAdminPag
                 priceCents: Number(editingCourse.price_cents || 0),
                 durationHours: Number(editingCourse.duration_hours || 0),
                 level: String(editingCourse.level || 'Inicial'),
-                imageUrl: (typeof editingCourse.image_url === 'string' && editingCourse.image_url.trim()) || null,
+                imageUrl:
+                  (typeof editingCourse.image_url === 'string' && editingCourse.image_url.trim()) ||
+                  null,
                 requiresModel: Boolean(editingCourse.requires_model),
                 modelCategories: parseModelCategories(editingCourse.model_categories),
                 isActive: Boolean(editingCourse.is_active),
@@ -241,7 +244,9 @@ export default async function CoursesAdminPage({ searchParams }: CoursesAdminPag
                     </div>
                     <div className="flex items-center gap-2">
                       <Link
-                        href={buildAdminHref('/admin/courses', ctx.shopSlug, { edit: String(course.id) })}
+                        href={buildAdminHref('/admin/courses', ctx.shopSlug, {
+                          edit: String(course.id),
+                        })}
                         className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/60 bg-white/55 text-ink transition hover:bg-white/78 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.09]"
                         aria-label={`Editar curso ${String(course.title)}`}
                         title="Editar curso"
@@ -347,7 +352,10 @@ export default async function CoursesAdminPage({ searchParams }: CoursesAdminPag
                             {String(session.capacity)} inscriptos
                           </p>
                           <Link
-                            href={buildAdminHref(`/admin/courses/sessions/${session.id}/modelos`, ctx.shopSlug)}
+                            href={buildAdminHref(
+                              `/admin/courses/sessions/${session.id}/modelos`,
+                              ctx.shopSlug,
+                            )}
                             className="inline-flex rounded-full border border-white/60 bg-white/46 px-3 py-1.5 no-underline text-[10px] font-semibold uppercase tracking-[0.16em] text-ink transition hover:bg-white/65 dark:border-transparent dark:bg-white/[0.04] dark:text-slate-100 dark:hover:bg-white/[0.06]"
                           >
                             Gestionar modelos

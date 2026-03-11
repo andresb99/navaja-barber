@@ -9,6 +9,8 @@ interface MercadoPagoSettingsPanelProps {
   message: { text: string; tone: 'success' | 'warning' | 'error' } | null;
 }
 
+const secondaryCardClassName = 'admin-premium-subcard rounded-[1.25rem] p-4';
+
 function formatDate(value: string | null | undefined, timeZone: string) {
   const normalized = String(value || '').trim();
   if (!normalized) {
@@ -127,19 +129,19 @@ export function MercadoPagoSettingsPanel({
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">
-        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className={secondaryCardClassName}>
           <p className="text-sm font-semibold text-ink dark:text-slate-100">1. Iniciar conexion</p>
           <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
             Abre Mercado Pago y autoriza la cuenta del negocio.
           </p>
         </div>
-        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className={secondaryCardClassName}>
           <p className="text-sm font-semibold text-ink dark:text-slate-100">2. Validar la cuenta</p>
           <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
             La plataforma guarda la cuenta y la usa para reservas nuevas.
           </p>
         </div>
-        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className={secondaryCardClassName}>
           <p className="text-sm font-semibold text-ink dark:text-slate-100">3. Cobrar y devolver</p>
           <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
             Cobros y reembolsos salen desde la misma cuenta conectada.

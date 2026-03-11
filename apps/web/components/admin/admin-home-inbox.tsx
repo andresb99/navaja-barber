@@ -1,5 +1,6 @@
 import { Card, CardBody } from '@heroui/card';
 import { reviewStaffTimeOffRequestAction } from '@/app/admin/actions';
+import { Container } from '@/components/heroui/container';
 
 interface PendingTimeOffItem {
   id: string;
@@ -31,9 +32,12 @@ export function AdminHomeInbox({
     pendingTimeOffRequests.length + pendingMembershipNotifications.length + stalePendingIntents;
 
   return (
-    <Card
+    <Container
+      as={Card}
+      variant="section"
       id="notificaciones"
-      className="surface-card rounded-[1.9rem] border-0 shadow-none scroll-mt-28"
+      className="rounded-[1.9rem] scroll-mt-28"
+      shadow="none"
     >
       <CardBody className="p-5 md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -56,8 +60,8 @@ export function AdminHomeInbox({
 
         {urgentItemsCount === 0 ? (
           <div className="mt-5 rounded-[1.5rem] border border-emerald-400/20 bg-emerald-500/10 px-4 py-4 text-sm text-emerald-50">
-            No hay acciones urgentes en este momento. Puedes entrar directo a citas, staff,
-            metricas o configuracion sin revisar una home cargada de ruido.
+            No hay acciones urgentes en este momento. Puedes entrar directo a citas, staff, metricas
+            o configuracion sin revisar una home cargada de ruido.
           </div>
         ) : (
           <div className="mt-5 space-y-4">
@@ -78,7 +82,9 @@ export function AdminHomeInbox({
                     <p className="text-sm font-semibold text-ink dark:text-slate-100">
                       Solicitud de ausencia
                     </p>
-                    <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">{item.staffName}</p>
+                    <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">
+                      {item.staffName}
+                    </p>
                     <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
                       {item.startAt} a {item.endAt}
                     </p>
@@ -142,6 +148,6 @@ export function AdminHomeInbox({
           </div>
         )}
       </CardBody>
-    </Card>
+    </Container>
   );
 }

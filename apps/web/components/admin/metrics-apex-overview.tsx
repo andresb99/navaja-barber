@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { Card, CardBody } from '@heroui/card';
 import { formatCurrency } from '@navaja/shared';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { BookingMetricsChannelView, DashboardMetrics } from '@/lib/metrics';
+import type { DashboardMetrics } from '@/lib/metrics';
 
 const ApexChart = dynamic(() => import('react-apexcharts'), {
   ssr: false,
@@ -16,7 +16,6 @@ const ApexChart = dynamic(() => import('react-apexcharts'), {
 
 interface MetricsApexOverviewProps {
   metrics: DashboardMetrics;
-  selectedChannel: BookingMetricsChannelView;
   selectedStaffId?: string;
   selectedStaffName?: string;
   staffComparison: Array<{
@@ -86,38 +85,6 @@ function sanitizePositiveNumber(value: unknown) {
   }
 
   return Math.max(0, numeric);
-}
-
-function normalizeChannelValue(value: unknown) {
-  return String(value || '')
-    .trim()
-    .toUpperCase();
-}
-
-function matchesChannelView(channel: unknown, view: BookingMetricsChannelView) {
-  const normalized = normalizeChannelValue(channel);
-
-  if (view === 'ALL') {
-    return true;
-  }
-
-  if (view === 'ONLINE_ONLY') {
-    return normalized === 'WEB';
-  }
-
-  return normalized === 'WALK_IN' || normalized === 'ADMIN_CREATED';
-}
-
-function getChannelViewLabel(channelView: BookingMetricsChannelView) {
-  if (channelView === 'ONLINE_ONLY') {
-    return 'Solo online';
-  }
-
-  if (channelView === 'WALK_INS_ONLY') {
-    return 'Solo presenciales';
-  }
-
-  return 'Todos los canales';
 }
 
 function getPillClassName(isActive: boolean) {
@@ -190,7 +157,6 @@ function createBaseOptions(isDarkTheme: boolean): ApexOptions {
 
 export function MetricsApexOverview({
   metrics,
-  selectedChannel,
   selectedStaffId,
   selectedStaffName,
   staffComparison,
@@ -419,7 +385,8 @@ export function MetricsApexOverview({
       flatValue,
     };
   }, [normalizedArea.data]);
-  const hasOnlyZeroAreaValues = !isRatingScale && flatAreaStats.isFlat && flatAreaStats.flatValue === 0;
+  const hasOnlyZeroAreaValues =
+    !isRatingScale && flatAreaStats.isFlat && flatAreaStats.flatValue === 0;
   const shouldShowAreaEmptyState =
     areaDefinition.chartType === 'area' && hasOnlyZeroAreaValues && !areaDefinition.usingMock;
   const chartCategories = useMemo(() => {
@@ -433,7 +400,9 @@ export function MetricsApexOverview({
     }
 
     const step = Math.max(1, Math.ceil(total / 7));
-    return normalizedArea.categories.map((label, index) => (index % step === 0 || index === total - 1 ? label : ''));
+    return normalizedArea.categories.map((label, index) =>
+      index % step === 0 || index === total - 1 ? label : '',
+    );
   }, [areaDefinition.chartType, normalizedArea.categories]);
 
   const areaOptions = useMemo<ApexOptions>(() => {
@@ -523,7 +492,7 @@ export function MetricsApexOverview({
                     }
                   : {}),
               }
-          : {}),
+            : {}),
         labels: {
           show: !hasOnlyZeroAreaValues,
           style: {
@@ -574,7 +543,6 @@ export function MetricsApexOverview({
   }, [metrics.countsByStatus]);
   const channelBreakdown = useMemo(() => {
     const real = metrics.channelMix
-      .filter((item) => matchesChannelView(item.channel, selectedChannel))
       .map((item, index) => ({
         label: String(item.label || '').trim() || `Canal ${index + 1}`,
         color: CHANNEL_COLORS[index % CHANNEL_COLORS.length] || '#0ea5e9',
@@ -585,7 +553,7 @@ export function MetricsApexOverview({
       items: real,
       usingMock: false,
     };
-  }, [metrics.channelMix, selectedChannel]);
+  }, [metrics.channelMix]);
   const pieData = useMemo(() => {
     const selectedBreakdown = pieView === 'STATUS' ? statusBreakdown : channelBreakdown;
     const safeItems = selectedBreakdown.items.map((item) => ({
@@ -705,7 +673,9 @@ export function MetricsApexOverview({
           {shouldShowAreaEmptyState ? (
             <div className="flex h-[320px] items-center justify-center rounded-[1.3rem] border border-dashed border-white/20 bg-white/[0.01] text-center">
               <div className="px-6">
-                <p className="text-sm font-semibold text-slate-200">Sin movimiento en este periodo</p>
+                <p className="text-sm font-semibold text-slate-200">
+                  Sin movimiento en este periodo
+                </p>
                 <p className="mt-2 text-xs text-slate/70 dark:text-slate-400">
                   Cambia el canal, barbero o rango para ver tendencia en esta vista.
                 </p>
@@ -729,7 +699,7 @@ export function MetricsApexOverview({
               Distribucion
             </h2>
             <p className="text-sm text-slate/80 dark:text-slate-300">
-              Canal activo: {getChannelViewLabel(selectedChannel)}.
+              Estados y origen de reservas dentro del periodo seleccionado.
             </p>
           </div>
 
@@ -793,7 +763,9 @@ export function MetricsApexOverview({
                     {formatPercent(item.share)}
                   </p>
                 </div>
-                <p className="mt-1 text-xs text-slate/75 dark:text-slate-300">{item.value} reservas</p>
+                <p className="mt-1 text-xs text-slate/75 dark:text-slate-300">
+                  {item.value} reservas
+                </p>
               </div>
             ))}
           </div>

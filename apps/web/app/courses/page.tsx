@@ -4,6 +4,7 @@ import { PublicSectionEmptyState } from '@/components/public/public-section-empt
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { Container } from '@/components/heroui/container';
 
 interface CourseRow {
   id: string;
@@ -62,7 +63,7 @@ export default async function CoursesPage() {
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Academia marketplace</p>
@@ -70,7 +71,8 @@ export default async function CoursesPage() {
               Todos los cursos activos en un solo catalogo
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
-              Aqui comparas oferta educativa entre barberias y luego entras al detalle del tenant que publica el curso.
+              Aqui comparas oferta educativa entre barberias y luego entras al detalle del tenant
+              que publica el curso.
             </p>
           </div>
 
@@ -79,23 +81,29 @@ export default async function CoursesPage() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Cursos
               </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">{items.length}</p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {items.length}
+              </p>
             </div>
             <div className="stat-tile">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Barberias
               </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">{shops.length}</p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {shops.length}
+              </p>
             </div>
             <div className="stat-tile">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Cobertura
               </p>
-              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">Catalogo global</p>
+              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                Catalogo global
+              </p>
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       {items.length === 0 ? (
         <div className="soft-panel rounded-[1.8rem] p-6">

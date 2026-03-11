@@ -31,6 +31,14 @@ describe('AdminNotificationsWorkspace', () => {
             createdAt: '2026-03-10T11:30:00.000Z',
           },
         ]}
+        pendingPaymentNotifications={[
+          {
+            id: 'payment-1',
+            intentType: 'booking',
+            createdAt: '2026-03-10T10:15:00.000Z',
+            customerName: 'Carlos Gomez',
+          },
+        ]}
         pendingMembershipCount={1}
         pendingTimeOffCount={1}
         stalePendingIntents={2}
@@ -42,7 +50,12 @@ describe('AdminNotificationsWorkspace', () => {
     expect(screen.getByText('Resuelve primero lo operativo')).toBeInTheDocument();
     expect(screen.getByText('Solicitud de ausencia')).toBeInTheDocument();
     expect(screen.getByText('Invitacion pendiente')).toBeInTheDocument();
+    expect(screen.getByText('Pago de reserva pendiente')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Aprobar ausencia' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Abrir citas' })).toHaveAttribute(
+      'href',
+      '/admin/appointments?shop=barberandres',
+    );
     expect(screen.getByText('Hay 2 checkouts que conviene revisar antes de que el cliente abandone la reserva.')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ir a citas' })).toHaveAttribute(
       'href',
@@ -58,6 +71,7 @@ describe('AdminNotificationsWorkspace', () => {
         shopSlug="barberandres"
         shopTimezone="America/Montevideo"
         pendingMembershipNotifications={[]}
+        pendingPaymentNotifications={[]}
         pendingTimeOffRequests={[]}
         pendingMembershipCount={0}
         pendingTimeOffCount={0}

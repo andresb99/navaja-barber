@@ -4,6 +4,7 @@ import { ModelRegistrationForm } from '@/components/public/model-registration-fo
 import { listMarketplaceOpenModelCalls } from '@/lib/modelos';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
+import { Container } from '@/components/heroui/container';
 
 interface ModelRegistrationPageProps {
   searchParams: Promise<{ session_id?: string }>;
@@ -36,7 +37,7 @@ export default async function ModelRegistrationPage({ searchParams }: ModelRegis
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Registro de modelos</p>
@@ -44,7 +45,8 @@ export default async function ModelRegistrationPage({ searchParams }: ModelRegis
               Crea tu perfil y postulate a distintas barberias
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
-              Puedes elegir una barberia concreta o registrarte para futuras convocatorias de su academia.
+              Puedes elegir una barberia concreta o registrarte para futuras convocatorias de su
+              academia.
             </p>
           </div>
 
@@ -53,17 +55,21 @@ export default async function ModelRegistrationPage({ searchParams }: ModelRegis
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Barberias
               </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">{shops.length}</p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {shops.length}
+              </p>
             </div>
             <div className="stat-tile">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Sesiones abiertas
               </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">{openCalls.length}</p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {openCalls.length}
+              </p>
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <ModelRegistrationForm
         shops={shops.map((shop) => ({

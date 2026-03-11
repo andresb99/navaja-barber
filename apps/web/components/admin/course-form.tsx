@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { centsToCurrencyInput } from '@navaja/shared';
 import { Button } from '@heroui/button';
 import { Input, Textarea } from '@heroui/input';
-import { Select, SelectItem } from '@heroui/select';
+import { SelectItem } from '@heroui/select';
 import { upsertCourseAction } from '@/app/admin/actions';
+import { AdminSelect } from '@/components/heroui/admin-select';
 
 interface AdminCourseFormProps {
   shopId: string;
@@ -38,25 +39,23 @@ const defaultModelCategoryOptions = [
   { value: 'Diseno', label: 'Diseno' },
 ] as const;
 
-const adminSelectClassNames = {
-  trigger:
-    'min-h-14 rounded-2xl border border-white/8 bg-white/[0.03] shadow-none data-[hover=true]:border-white/12 data-[hover=true]:bg-white/[0.05] data-[focus=true]:border-white/12 data-[focus=true]:bg-white/[0.05] data-[open=true]:border-white/12 data-[open=true]:bg-white/[0.05]',
-  label: 'text-[11px] font-semibold text-slate-400',
-  value: 'text-sm font-medium text-slate-100',
-  selectorIcon: 'text-slate-400',
-  popoverContent: 'rounded-2xl border border-white/10 bg-[#091120]/92 p-1',
-} as const;
-
-export function AdminCourseForm({ shopId, shopSlug, initialCourse, cancelHref }: AdminCourseFormProps) {
+export function AdminCourseForm({
+  shopId,
+  shopSlug,
+  initialCourse,
+  cancelHref,
+}: AdminCourseFormProps) {
   const isEditing = Boolean(initialCourse);
   const [requiresModel, setRequiresModel] = useState(initialCourse?.requiresModel ?? false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     initialCourse?.modelCategories || [],
   );
   const [customCategory, setCustomCategory] = useState('');
-  const levelOptions = initialCourse?.level && !courseLevelOptions.includes(initialCourse.level as (typeof courseLevelOptions)[number])
-    ? [initialCourse.level, ...courseLevelOptions]
-    : [...courseLevelOptions];
+  const levelOptions =
+    initialCourse?.level &&
+    !courseLevelOptions.includes(initialCourse.level as (typeof courseLevelOptions)[number])
+      ? [initialCourse.level, ...courseLevelOptions]
+      : [...courseLevelOptions];
   const knownCategoryValues = useMemo<Set<string>>(
     () => new Set(defaultModelCategoryOptions.map((option) => option.value)),
     [],
@@ -81,7 +80,9 @@ export function AdminCourseForm({ shopId, shopSlug, initialCourse, cancelHref }:
     }
 
     const dedupeKey = trimmed.toLowerCase();
-    const alreadyExists = selectedCategories.some((category) => category.toLowerCase() === dedupeKey);
+    const alreadyExists = selectedCategories.some(
+      (category) => category.toLowerCase() === dedupeKey,
+    );
     if (alreadyExists) {
       setCustomCategory('');
       return;
@@ -98,11 +99,7 @@ export function AdminCourseForm({ shopId, shopSlug, initialCourse, cancelHref }:
   }
 
   return (
-    <form
-      action={upsertCourseAction}
-      onSubmit={handleSubmit}
-      className="mt-4 grid gap-3"
-    >
+    <form action={upsertCourseAction} onSubmit={handleSubmit} className="mt-4 grid gap-3">
       <input type="hidden" name="shop_id" value={shopId} />
       <input type="hidden" name="shop_slug" value={shopSlug} />
       {isEditing ? <input type="hidden" name="id" value={initialCourse?.id} /> : null}
@@ -146,12 +143,11 @@ export function AdminCourseForm({ shopId, shopSlug, initialCourse, cancelHref }:
           step={1}
           required
         />
-        <Select
+        <AdminSelect
           name="level"
           aria-label="Nivel del curso"
           label="Nivel"
           labelPlacement="inside"
-          classNames={adminSelectClassNames}
           defaultSelectedKeys={[initialCourse?.level || 'Inicial']}
           disallowEmptySelection
           isRequired
@@ -159,7 +155,7 @@ export function AdminCourseForm({ shopId, shopSlug, initialCourse, cancelHref }:
           {levelOptions.map((level) => (
             <SelectItem key={level}>{level}</SelectItem>
           ))}
-        </Select>
+        </AdminSelect>
       </div>
 
       <div className="space-y-3 rounded-2xl border border-white/70 bg-white/65 p-3 shadow-[0_16px_24px_-24px_rgba(15,23,42,0.22)] dark:border-white/10 dark:bg-white/[0.04]">
@@ -239,10 +235,7 @@ export function AdminCourseForm({ shopId, shopSlug, initialCourse, cancelHref }:
             ) : null}
 
             {!isModelCategoriesValid ? (
-              <p
-                className="text-xs font-medium text-rose-600 dark:text-rose-300"
-                role="alert"
-              >
+              <p className="text-xs font-medium text-rose-600 dark:text-rose-300" role="alert">
                 Selecciona al menos una categoria para la convocatoria de modelos.
               </p>
             ) : null}
@@ -290,7 +283,8 @@ export function AdminCourseForm({ shopId, shopSlug, initialCourse, cancelHref }:
       </div>
 
       <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="is_active" defaultChecked={initialCourse?.isActive ?? true} /> Activo
+        <input type="checkbox" name="is_active" defaultChecked={initialCourse?.isActive ?? true} />{' '}
+        Activo
       </label>
       <div className="flex flex-wrap items-center gap-3">
         <Button
@@ -301,7 +295,12 @@ export function AdminCourseForm({ shopId, shopSlug, initialCourse, cancelHref }:
           {isEditing ? 'Guardar cambios' : 'Guardar curso'}
         </Button>
         {isEditing && cancelHref ? (
-          <Button as={Link} href={cancelHref} variant="ghost" className="action-secondary w-fit px-5 text-sm font-semibold">
+          <Button
+            as={Link}
+            href={cancelHref}
+            variant="ghost"
+            className="action-secondary w-fit px-5 text-sm font-semibold"
+          >
             Cancelar
           </Button>
         ) : null}

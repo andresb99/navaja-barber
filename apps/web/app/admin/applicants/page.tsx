@@ -1,7 +1,8 @@
-import { AdminApplicantsViewSwitcher } from '@/components/admin/applicants-view-switcher';
+﻿import { AdminApplicantsViewSwitcher } from '@/components/admin/applicants-view-switcher';
 import { requireAdmin } from '@/lib/auth';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { Container } from '@/components/heroui/container';
 
 interface ApplicantsPageProps {
   searchParams: Promise<{ shop?: string; view?: string }>;
@@ -48,7 +49,7 @@ export default async function ApplicantsPage({ searchParams }: ApplicantsPagePro
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="pageHeader" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Postulantes</p>
@@ -87,9 +88,13 @@ export default async function ApplicantsPage({ searchParams }: ApplicantsPagePro
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
-      <AdminApplicantsViewSwitcher rows={applicantRows} shopId={ctx.shopId} initialView={viewMode} />
+      <AdminApplicantsViewSwitcher
+        rows={applicantRows}
+        shopId={ctx.shopId}
+        initialView={viewMode}
+      />
     </section>
   );
 }

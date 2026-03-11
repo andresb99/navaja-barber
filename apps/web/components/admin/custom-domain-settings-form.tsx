@@ -22,6 +22,9 @@ interface CustomDomainResponse {
   message?: string | null;
 }
 
+const secondaryCardClassName = 'admin-premium-subcard rounded-[1.25rem] p-4';
+const compactSecondaryCardClassName = 'admin-premium-subcard rounded-[1.2rem] px-4 py-3 text-sm';
+
 function getStatusLabel(status: string | null | undefined) {
   const normalized = String(status || '').trim().toLowerCase();
   if (normalized === 'pending') {
@@ -180,7 +183,7 @@ export function CustomDomainSettingsForm({
       </div>
 
       <div className="grid gap-3 md:grid-cols-3">
-        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className={secondaryCardClassName}>
           <div className="flex items-start gap-3">
             <Globe className="mt-0.5 h-4 w-4 text-slate/75 dark:text-slate-300" />
             <div>
@@ -191,7 +194,7 @@ export function CustomDomainSettingsForm({
             </div>
           </div>
         </div>
-        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className={secondaryCardClassName}>
           <div className="flex items-start gap-3">
             <Link2 className="mt-0.5 h-4 w-4 text-slate/75 dark:text-slate-300" />
             <div>
@@ -202,7 +205,7 @@ export function CustomDomainSettingsForm({
             </div>
           </div>
         </div>
-        <div className="rounded-[1.25rem] border border-white/60 bg-white/45 p-4 dark:border-white/10 dark:bg-white/[0.03]">
+        <div className={secondaryCardClassName}>
           <div className="flex items-start gap-3">
             <Sparkles className="mt-0.5 h-4 w-4 text-slate/75 dark:text-slate-300" />
             <div>
@@ -216,7 +219,7 @@ export function CustomDomainSettingsForm({
       </div>
 
       {!isBusinessPlan ? (
-        <div className="rounded-[1.35rem] border border-amber-400/20 bg-amber-500/10 px-4 py-4">
+        <div className="admin-premium-subcard rounded-[1.35rem] px-4 py-4" data-tone="warning">
           <p className="text-sm font-semibold text-ink dark:text-slate-100">
             Disponible solo en Business
           </p>
@@ -260,7 +263,7 @@ export function CustomDomainSettingsForm({
       </div>
 
       {currentDomain ? (
-        <div className="rounded-[1.2rem] border border-white/60 bg-white/45 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/[0.03]">
+        <div className={compactSecondaryCardClassName}>
           <p className="font-semibold text-ink dark:text-slate-100">{currentDomain}</p>
           <p className="mt-1 text-xs text-slate/75 dark:text-slate-400">
             Guardado para este workspace.

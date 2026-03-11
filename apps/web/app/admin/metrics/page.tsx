@@ -1,24 +1,19 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { formatCurrency } from '@navaja/shared';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { Input } from '@heroui/input';
 import { MetricsApexOverview } from '@/components/admin/metrics-apex-overview';
 import { requireAdmin } from '@/lib/auth';
-import {
-  getDashboardMetricsForDateRange,
-  getStaffPerformanceDashboard,
-  resolveBookingChannelView,
-  type BookingMetricsChannelView,
-} from '@/lib/metrics';
+import { getDashboardMetricsForDateRange, getStaffPerformanceDashboard } from '@/lib/metrics';
 import { buildAdminHref } from '@/lib/workspace-routes';
+import { Container } from '@/components/heroui/container';
 
 interface MetricsPageProps {
   searchParams: Promise<{
     range?: string;
     from?: string;
     to?: string;
-    channel?: string;
     staff?: string;
     shop?: string;
   }>;
@@ -37,11 +32,14 @@ interface MetricSparkCardProps {
 
 function getRangePillClassName(isActive: boolean) {
   if (isActive) {
-    return 'border-white/70 bg-white/78 text-ink shadow-[0_14px_24px_-22px_rgba(56,189,248,0.34)] dark:border-transparent dark:bg-white/[0.06] dark:text-white';
+    return 'border-white/65 bg-white/72 text-ink dark:border-white/12 dark:bg-white/[0.08] dark:text-slate-100';
   }
 
-  return 'border-white/55 bg-white/40 text-slate/80 hover:bg-white/58 dark:border-transparent dark:bg-white/[0.03] dark:text-slate-300 dark:hover:bg-white/[0.05]';
+  return 'border-white/45 bg-white/36 text-slate/80 hover:bg-white/52 dark:border-white/6 dark:bg-white/[0.03] dark:text-slate-300 dark:hover:bg-white/[0.05]';
 }
+
+const filterPanelSectionClassName =
+  'rounded-[1.45rem] border border-white/58 bg-white/42 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] dark:border-white/8 dark:bg-white/[0.02] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]';
 
 function coerceStaffId(value: string | undefined) {
   const normalized = String(value || '').trim();
@@ -51,39 +49,16 @@ function coerceStaffId(value: string | undefined) {
 function buildRangeHref(
   shopSlug: string,
   range: 'today' | 'last7' | 'month',
-  selectedChannel: BookingMetricsChannelView,
   selectedStaffId?: string,
 ) {
   return buildAdminHref('/admin/metrics', shopSlug, {
     range,
-    channel: selectedChannel,
-    ...(selectedStaffId ? { staff: selectedStaffId } : {}),
-  });
-}
-
-function buildChannelHref(
-  shopSlug: string,
-  channel: BookingMetricsChannelView,
-  dateRange: { rangeKey: string; fromDate: string; toDate: string },
-  selectedStaffId?: string,
-) {
-  return buildAdminHref('/admin/metrics', shopSlug, {
-    ...(dateRange.rangeKey === 'custom'
-      ? {
-          from: dateRange.fromDate,
-          to: dateRange.toDate,
-        }
-      : {
-          range: dateRange.rangeKey,
-        }),
-    channel,
     ...(selectedStaffId ? { staff: selectedStaffId } : {}),
   });
 }
 
 function buildStaffHref(
   shopSlug: string,
-  selectedChannel: BookingMetricsChannelView,
   dateRange: { rangeKey: string; fromDate: string; toDate: string },
   staffId?: string,
 ) {
@@ -96,7 +71,6 @@ function buildStaffHref(
       : {
           range: dateRange.rangeKey,
         }),
-    channel: selectedChannel,
     ...(staffId ? { staff: staffId } : {}),
   });
 }
@@ -134,9 +108,9 @@ function buildSparklinePaths(values: number[], width = 260, height = 84, padding
   const linePath = points
     .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`)
     .join(' ');
-  const areaPath = `${linePath} L ${points[points.length - 1]?.x.toFixed(2)} ${(height - padding).toFixed(
-    2,
-  )} L ${points[0]?.x.toFixed(2)} ${(height - padding).toFixed(2)} Z`;
+  const areaPath = `${linePath} L ${points[points.length - 1]?.x.toFixed(2)} ${(
+    height - padding
+  ).toFixed(2)} L ${points[0]?.x.toFixed(2)} ${(height - padding).toFixed(2)} Z`;
   const lastPoint = points[points.length - 1] || { x: width - padding, y: height - padding };
 
   return {
@@ -198,7 +172,13 @@ function MetricSparkCard({ id, label, value, hint, series, tone }: MetricSparkCa
               </linearGradient>
             </defs>
             <path d={spark.areaPath} fill={`url(#${gradientId})`} />
-            <path d={spark.linePath} fill="none" stroke={palette.stroke} strokeWidth="2.5" strokeLinecap="round" />
+            <path
+              d={spark.linePath}
+              fill="none"
+              stroke={palette.stroke}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
             <circle cx={spark.lastPoint.x} cy={spark.lastPoint.y} r="4" fill={palette.dot} />
           </svg>
         </div>
@@ -210,7 +190,6 @@ function MetricSparkCard({ id, label, value, hint, series, tone }: MetricSparkCa
 export default async function MetricsPage({ searchParams }: MetricsPageProps) {
   const params = await searchParams;
   const ctx = await requireAdmin({ shopSlug: params.shop });
-  const selectedChannel = resolveBookingChannelView(params.channel);
   const selectedStaffId = coerceStaffId(params.staff);
   const [dashboard, businessMetrics] = await Promise.all([
     getStaffPerformanceDashboard(
@@ -229,7 +208,7 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
         to: params.to,
       },
       ctx.shopId,
-      selectedChannel,
+      'ALL',
       selectedStaffId,
     ),
   ]);
@@ -247,12 +226,7 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
   const revenueSeries = businessMetrics.dailySeries.map((item) => Number(item.revenueCents || 0));
   const effectiveBookingsValue = businessMetrics.channelBreakdown.filteredAppointments;
   const effectiveBookingsSeries = bookingsSeries;
-  const effectiveBookingsHint =
-    selectedChannel === 'ALL'
-      ? `Online ${businessMetrics.channelBreakdown.onlineAppointments} | Presenciales ${businessMetrics.channelBreakdown.walkInAppointments}`
-      : selectedChannel === 'ONLINE_ONLY'
-        ? `Solo web ${effectiveBookingsValue}`
-        : `Solo presencial ${effectiveBookingsValue}`;
+  const effectiveBookingsHint = `Online ${businessMetrics.channelBreakdown.onlineAppointments} | Presenciales ${businessMetrics.channelBreakdown.walkInAppointments}`;
   const effectiveRevenueValueCents = businessMetrics.estimatedRevenueCents;
   const effectiveRevenueSeries = revenueSeries;
   const effectiveRevenueHint = 'Valor cobrado en citas realizadas';
@@ -268,8 +242,12 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
     },
   );
   const teamRatingInView =
-    viewRatingTotals.reviewCount > 0 ? viewRatingTotals.ratingScore / viewRatingTotals.reviewCount : 0;
-  const ratingValue = selectedStaffBreakdown ? selectedStaffBreakdown.averageRating : teamRatingInView;
+    viewRatingTotals.reviewCount > 0
+      ? viewRatingTotals.ratingScore / viewRatingTotals.reviewCount
+      : 0;
+  const ratingValue = selectedStaffBreakdown
+    ? selectedStaffBreakdown.averageRating
+    : teamRatingInView;
   const ratingHint = selectedStaff
     ? `${selectedStaffBreakdown?.reviewCount || 0} resenas verificadas`
     : viewRatingTotals.reviewCount > 0
@@ -277,8 +255,9 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
       : 'Sin resenas verificadas en esta vista';
 
   const ratingSeries = selectedStaffBreakdown
-    ? [ratingValue - 0.2, ratingValue - 0.1, ratingValue, ratingValue + 0.05, ratingValue]
-        .map((value) => Number(clamp(value, 0, 5).toFixed(2)))
+    ? [ratingValue - 0.2, ratingValue - 0.1, ratingValue, ratingValue + 0.05, ratingValue].map(
+        (value) => Number(clamp(value, 0, 5).toFixed(2)),
+      )
     : businessMetrics.staffBreakdown.map((item) => item.averageRating);
   const staffComparisonDataMap = new Map(
     dashboard.staff.map((item) => [
@@ -319,13 +298,17 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
     dashboard.dateRange.rangeKey,
     dashboard.dateRange.fromDate,
     dashboard.dateRange.toDate,
-    selectedChannel,
     selectedStaffId || 'business',
   ].join(':');
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container
+        variant="pageHeader"
+        className="relative overflow-hidden rounded-[2.5rem] px-6 py-7 md:px-8 md:py-9"
+      >
+        <div className="pointer-events-none absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-400/18 blur-3xl dark:bg-[hsl(var(--primary)/0.16)]" />
+        <div className="pointer-events-none absolute bottom-0 left-0 -mb-20 -ml-20 h-72 w-72 rounded-full bg-rose-400/16 blur-3xl dark:bg-[hsl(var(--destructive)/0.14)]" />
         <div className="relative z-10 grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Metricas</p>
@@ -338,7 +321,7 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="stat-tile">
+            <div className="admin-premium-subcard rounded-[1.35rem] p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Rango
               </p>
@@ -346,7 +329,7 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
                 {dashboard.dateRange.label}
               </p>
             </div>
-            <div className="stat-tile">
+            <div className="admin-premium-subcard rounded-[1.35rem] p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Vista
               </p>
@@ -356,50 +339,55 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
-      <Card className="spotlight-card soft-panel rounded-[1.9rem] border-0 shadow-none">
-        <CardBody className="space-y-4 p-5">
-          <div className="flex items-center justify-between gap-3">
+      <Container
+        as={Card}
+        variant="section"
+        className="overflow-hidden rounded-[2rem]"
+        shadow="none"
+      >
+        <CardBody className="space-y-5 p-4 md:p-5">
+          <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Filtros
               </p>
               <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">
-                Ajusta periodo, canal y vista del equipo.
+                Ajusta periodo y vista del equipo.
               </p>
             </div>
-            <div className="hidden rounded-2xl border border-white/55 bg-white/40 px-3 py-1.5 text-xs font-semibold text-slate/75 dark:border-transparent dark:bg-white/[0.03] dark:text-slate-300 sm:block">
+            <div className="hidden rounded-full border border-white/50 bg-white/30 px-3 py-1.5 text-xs font-medium text-slate/75 dark:border-white/8 dark:bg-white/[0.03] dark:text-slate-300 sm:block">
               {dashboard.dateRange.label}
             </div>
           </div>
 
-          <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr] xl:items-start">
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px] xl:items-start">
             <div className="grid gap-3">
-              <div className="data-card no-hover-motion rounded-2xl p-3">
+              <div className={filterPanelSectionClassName}>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                   Periodo
                 </p>
-                <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                <div className="mt-3 flex flex-wrap gap-2 text-sm">
                   <Link
-                    href={buildRangeHref(ctx.shopSlug, 'today', selectedChannel, selectedStaffId)}
-                    className={`rounded-2xl border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
+                    href={buildRangeHref(ctx.shopSlug, 'today', selectedStaffId)}
+                    className={`rounded-full border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
                       dashboard.dateRange.rangeKey === 'today',
                     )}`}
                   >
                     Hoy
                   </Link>
                   <Link
-                    href={buildRangeHref(ctx.shopSlug, 'last7', selectedChannel, selectedStaffId)}
-                    className={`rounded-2xl border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
+                    href={buildRangeHref(ctx.shopSlug, 'last7', selectedStaffId)}
+                    className={`rounded-full border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
                       dashboard.dateRange.rangeKey === 'last7',
                     )}`}
                   >
                     Ultimos 7 dias
                   </Link>
                   <Link
-                    href={buildRangeHref(ctx.shopSlug, 'month', selectedChannel, selectedStaffId)}
-                    className={`rounded-2xl border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
+                    href={buildRangeHref(ctx.shopSlug, 'month', selectedStaffId)}
+                    className={`rounded-full border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
                       dashboard.dateRange.rangeKey === 'month',
                     )}`}
                   >
@@ -408,46 +396,14 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
                 </div>
               </div>
 
-              <div className="data-card no-hover-motion rounded-2xl p-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                  Canal
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2 text-sm">
-                  <Link
-                    href={buildChannelHref(ctx.shopSlug, 'ALL', dashboard.dateRange, selectedStaffId)}
-                    className={`rounded-2xl border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
-                      selectedChannel === 'ALL',
-                    )}`}
-                  >
-                    Todos
-                  </Link>
-                  <Link
-                    href={buildChannelHref(ctx.shopSlug, 'ONLINE_ONLY', dashboard.dateRange, selectedStaffId)}
-                    className={`rounded-2xl border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
-                      selectedChannel === 'ONLINE_ONLY',
-                    )}`}
-                  >
-                    Solo web
-                  </Link>
-                  <Link
-                    href={buildChannelHref(ctx.shopSlug, 'WALK_INS_ONLY', dashboard.dateRange, selectedStaffId)}
-                    className={`rounded-2xl border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
-                      selectedChannel === 'WALK_INS_ONLY',
-                    )}`}
-                  >
-                    Solo presencial
-                  </Link>
-                </div>
-              </div>
-
-              <div className="data-card no-hover-motion rounded-2xl p-3">
+              <div className={filterPanelSectionClassName}>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                   Barbero
                 </p>
-                <div className="mt-2 flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                   <Link
-                    href={buildStaffHref(ctx.shopSlug, selectedChannel, dashboard.dateRange)}
-                    className={`rounded-2xl border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
+                    href={buildStaffHref(ctx.shopSlug, dashboard.dateRange)}
+                    className={`rounded-full border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
                       !selectedStaffId,
                     )}`}
                   >
@@ -456,8 +412,8 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
                   {dashboard.staff.map((staff) => (
                     <Link
                       key={staff.staffId}
-                      href={buildStaffHref(ctx.shopSlug, selectedChannel, dashboard.dateRange, staff.staffId)}
-                      className={`rounded-2xl border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
+                      href={buildStaffHref(ctx.shopSlug, dashboard.dateRange, staff.staffId)}
+                      className={`rounded-full border px-4 py-2 text-xs font-semibold no-underline transition ${getRangePillClassName(
                         selectedStaffId === staff.staffId,
                       )}`}
                     >
@@ -471,13 +427,14 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
             <form
               method="get"
               action={buildAdminHref('/admin/metrics', ctx.shopSlug)}
-              className="data-card no-hover-motion grid gap-3 rounded-[1.6rem] p-4 md:grid-cols-2 xl:grid-cols-1"
+              className={`${filterPanelSectionClassName} grid gap-3 sm:grid-cols-2`}
             >
               <input type="hidden" name="shop" value={ctx.shopSlug} />
-              <input type="hidden" name="channel" value={selectedChannel} />
-              {selectedStaffId ? <input type="hidden" name="staff" value={selectedStaffId} /> : null}
+              {selectedStaffId ? (
+                <input type="hidden" name="staff" value={selectedStaffId} />
+              ) : null}
 
-              <div className="md:col-span-2 xl:col-span-1">
+              <div className="sm:col-span-2">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                   Rango personalizado
                 </p>
@@ -508,15 +465,19 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
                   input: 'temporal-placeholder-hidden',
                 }}
               />
-              <div className="md:col-span-2 xl:col-span-1">
-                <Button type="submit" className="action-primary w-full px-5 text-sm font-semibold">
+              <div className="sm:col-span-2 sm:flex sm:justify-end">
+                <Button
+                  type="submit"
+                  color="primary"
+                  className="w-full rounded-[1rem] px-5 text-sm font-semibold shadow-[0_14px_28px_-22px_rgba(139,92,246,0.42)] sm:w-auto sm:min-w-[132px]"
+                >
                   Aplicar
                 </Button>
               </div>
             </form>
           </div>
         </CardBody>
-      </Card>
+      </Container>
 
       <div className="grid gap-4 md:grid-cols-3">
         <MetricSparkCard
@@ -548,7 +509,6 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
       <MetricsApexOverview
         key={metricsViewKey}
         metrics={businessMetrics}
-        selectedChannel={selectedChannel}
         {...(selectedStaffId ? { selectedStaffId } : {})}
         {...(selectedStaff?.staffName ? { selectedStaffName: selectedStaff.staffName } : {})}
         staffComparison={staffComparisonData}
@@ -556,4 +516,3 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
     </section>
   );
 }
-

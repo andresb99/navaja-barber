@@ -13,6 +13,7 @@ import {
   getFavoriteWorkspaceForCurrentUser,
   getSelectedWorkspaceForCurrentUser,
 } from '@/lib/workspaces';
+import { Container } from '@/components/heroui/container';
 
 interface MyBarbershopsPageProps {
   searchParams: Promise<{ error?: string }>;
@@ -58,7 +59,7 @@ export default async function MyBarbershopsPage({ searchParams }: MyBarbershopsP
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Mis barberias</p>
@@ -90,7 +91,7 @@ export default async function MyBarbershopsPage({ searchParams }: MyBarbershopsP
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       {error ? <p className="status-banner error">{error}</p> : null}
 
@@ -109,7 +110,13 @@ export default async function MyBarbershopsPage({ searchParams }: MyBarbershopsP
               Crea tu primera barberia o espera una invitacion de un owner para entrar como staff.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Button as="a" href="/onboarding/barbershop" color="primary" size="sm" className="px-4 text-sm font-semibold">
+              <Button
+                as="a"
+                href="/onboarding/barbershop"
+                color="primary"
+                size="sm"
+                className="px-4 text-sm font-semibold"
+              >
                 Crear barberia
               </Button>
               <Button

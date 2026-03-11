@@ -1,11 +1,6 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { formatCurrency } from '@navaja/shared';
-import {
-  CalendarClock,
-  CircleAlert,
-  NotebookPen,
-  type LucideIcon,
-} from 'lucide-react';
+import { CalendarClock, CircleAlert, NotebookPen, type LucideIcon } from 'lucide-react';
 import { AdminAppointmentsFilters } from '@/components/admin/appointments-filters';
 import { AdminAppointmentsPagination } from '@/components/admin/appointments-pagination';
 import { AdminAppointmentsViewSwitcher } from '@/components/admin/appointments-view-switcher';
@@ -25,6 +20,7 @@ import {
 } from '@/lib/admin-appointments';
 import { requireAdmin } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { Container } from '@/components/heroui/container';
 
 interface AppointmentsPageProps {
   searchParams: Promise<{
@@ -140,7 +136,8 @@ function resolveStatusLabel(value: string | undefined) {
 
 function resolveSortLabel(value: AdminAppointmentsSortField) {
   return (
-    ADMIN_APPOINTMENTS_SORT_OPTIONS.find((option) => option.id === value)?.label || 'Fecha de la cita'
+    ADMIN_APPOINTMENTS_SORT_OPTIONS.find((option) => option.id === value)?.label ||
+    'Fecha de la cita'
   );
 }
 
@@ -211,7 +208,9 @@ function resolveSourceChannel(value: unknown, notes: unknown) {
   }
 
   const noteText = String(notes || '');
-  const matched = noteText.match(/\bCanal:\s*(WEB|WALK_IN|ADMIN_CREATED|WHATSAPP|INSTAGRAM|PHONE)\b/i);
+  const matched = noteText.match(
+    /\bCanal:\s*(WEB|WALK_IN|ADMIN_CREATED|WHATSAPP|INSTAGRAM|PHONE)\b/i,
+  );
   return matched?.[1]?.toUpperCase() || 'WEB';
 }
 
@@ -294,7 +293,8 @@ function sortAppointmentRows(
         break;
       case 'status':
         comparison =
-          (appointmentStatusSortRank[left.status] ?? 99) - (appointmentStatusSortRank[right.status] ?? 99);
+          (appointmentStatusSortRank[left.status] ?? 99) -
+          (appointmentStatusSortRank[right.status] ?? 99);
         break;
       case 'payment':
         comparison =
@@ -342,7 +342,10 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
   const requestedSortDir = isAdminAppointmentsSortDir(params.sort_dir)
     ? params.sort_dir
     : ADMIN_APPOINTMENTS_DEFAULT_SORT_DIR;
-  const requestedPageSize = parsePositiveInt(params.page_size, ADMIN_APPOINTMENTS_DEFAULT_PAGE_SIZE);
+  const requestedPageSize = parsePositiveInt(
+    params.page_size,
+    ADMIN_APPOINTMENTS_DEFAULT_PAGE_SIZE,
+  );
   const pageSize = ADMIN_APPOINTMENTS_PAGE_SIZE_OPTIONS.includes(
     requestedPageSize as (typeof ADMIN_APPOINTMENTS_PAGE_SIZE_OPTIONS)[number],
   )
@@ -385,7 +388,9 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
   if (appointmentsResult.error) {
     const missingSourceColumn = isMissingSourceChannelColumnError(appointmentsResult.error);
     const missingPaymentColumn = isMissingPaymentIntentColumnError(appointmentsResult.error);
-    const missingCustomerSnapshotColumn = isMissingCustomerSnapshotColumnError(appointmentsResult.error);
+    const missingCustomerSnapshotColumn = isMissingCustomerSnapshotColumnError(
+      appointmentsResult.error,
+    );
 
     if (!missingSourceColumn && !missingPaymentColumn && !missingCustomerSnapshotColumn) {
       throw new Error(appointmentsResult.error.message || 'No se pudieron cargar las citas.');
@@ -418,7 +423,7 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
       throw new Error(fallbackResult.error.message || 'No se pudieron cargar las citas.');
     }
 
-    appointments = ((fallbackResult.data || []) as unknown) as AppointmentListItem[];
+    appointments = (fallbackResult.data || []) as unknown as AppointmentListItem[];
   }
 
   if (selectedStaffId) {
@@ -432,9 +437,7 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
   const paymentIntentIds = canReadPaymentIntentColumn
     ? Array.from(
         new Set(
-          appointments
-            .map((item) => String(item.payment_intent_id || '').trim())
-            .filter(Boolean),
+          appointments.map((item) => String(item.payment_intent_id || '').trim()).filter(Boolean),
         ),
       )
     : [];
@@ -449,7 +452,9 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
     (paymentIntents || []).forEach((item) => {
       const row = item as PaymentIntentStatusItem;
       const intentId = String(row.id || '').trim();
-      const status = String(row.status || '').trim().toLowerCase();
+      const status = String(row.status || '')
+        .trim()
+        .toLowerCase();
       if (intentId && status) {
         paymentStatusByIntentId.set(intentId, status);
       }
@@ -547,9 +552,12 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
     sortDir: ADMIN_APPOINTMENTS_DEFAULT_SORT_DIR,
   })}`;
   const manualCount = allAppointmentRows.filter(
-    (item) => item.sourceChannelLabel === 'Presencial' || item.sourceChannelLabel === 'Carga manual',
+    (item) =>
+      item.sourceChannelLabel === 'Presencial' || item.sourceChannelLabel === 'Carga manual',
   ).length;
-  const visibleStaffCount = new Set(allAppointmentRows.map((item) => item.staffName).filter(Boolean)).size;
+  const visibleStaffCount = new Set(
+    allAppointmentRows.map((item) => item.staffName).filter(Boolean),
+  ).size;
   const nextUpcomingRow = [...allAppointmentRows]
     .filter((item) => {
       const timestamp = new Date(item.startAtValue).getTime();
@@ -559,7 +567,7 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="pageHeader" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 space-y-6">
           <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr] xl:items-end">
             <div>
@@ -576,8 +584,12 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
               <div className="mt-5 flex flex-wrap gap-2">
                 <span className="meta-chip">{activeRangeLabel}</span>
                 <span className="meta-chip">{shopTimeZone}</span>
-                {selectedStaffLabel ? <span className="meta-chip">Equipo: {selectedStaffLabel}</span> : null}
-                {selectedStatusLabel ? <span className="meta-chip">Estado: {selectedStatusLabel}</span> : null}
+                {selectedStaffLabel ? (
+                  <span className="meta-chip">Equipo: {selectedStaffLabel}</span>
+                ) : null}
+                {selectedStatusLabel ? (
+                  <span className="meta-chip">Estado: {selectedStatusLabel}</span>
+                ) : null}
                 <span className="meta-chip">
                   Orden: {selectedSortLabel} {requestedSortDir === 'asc' ? 'asc' : 'desc'}
                 </span>
@@ -606,7 +618,7 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.95fr)]">
         <div className="space-y-5">
@@ -878,7 +890,9 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
                   Proxima cita
                 </p>
                 <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
-                  {nextUpcomingRow ? nextUpcomingRow.startAtLabel : 'Sin citas futuras en este rango'}
+                  {nextUpcomingRow
+                    ? nextUpcomingRow.startAtLabel
+                    : 'Sin citas futuras en este rango'}
                 </p>
                 <p className="mt-1 text-sm text-slate/75 dark:text-slate-400">
                   {nextUpcomingRow
@@ -907,7 +921,8 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
                   {visibleStaffCount} barberos con citas visibles
                 </p>
                 <p className="mt-1 text-sm text-slate/75 dark:text-slate-400">
-                  Orden actual: {selectedSortLabel} {requestedSortDir === 'asc' ? 'ascendente' : 'descendente'}.
+                  Orden actual: {selectedSortLabel}{' '}
+                  {requestedSortDir === 'asc' ? 'ascendente' : 'descendente'}.
                 </p>
               </div>
             </div>

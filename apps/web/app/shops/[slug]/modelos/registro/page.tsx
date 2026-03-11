@@ -7,6 +7,7 @@ import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildTenantPublicHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
+import { Container } from '@/components/heroui/container';
 
 interface ShopModelRegistrationPageProps {
   params: Promise<{ slug: string }>;
@@ -50,7 +51,7 @@ export default async function ShopModelRegistrationPage({
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Registro de modelos</p>
@@ -83,7 +84,7 @@ export default async function ShopModelRegistrationPage({
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <ModelRegistrationForm
         shopId={shop.id}

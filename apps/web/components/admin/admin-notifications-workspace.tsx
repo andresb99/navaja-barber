@@ -1,12 +1,15 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import { BellRing, CalendarClock, CreditCard, Users } from 'lucide-react';
 import { reviewStaffTimeOffRequestAction } from '@/app/admin/actions';
-import type {
-  AdminPendingMembershipNotification,
-  AdminPendingTimeOffNotification,
+import {
+  buildAdminNotificationTargetId,
+  type AdminPendingMembershipNotification,
+  type AdminPendingPaymentNotification,
+  type AdminPendingTimeOffNotification,
 } from '@/lib/admin-notifications';
+import { Container } from '@/components/heroui/container';
 
 interface AdminNotificationsWorkspaceProps {
   shopId: string;
@@ -14,6 +17,7 @@ interface AdminNotificationsWorkspaceProps {
   shopSlug: string;
   shopTimezone: string;
   pendingMembershipNotifications: AdminPendingMembershipNotification[];
+  pendingPaymentNotifications: AdminPendingPaymentNotification[];
   pendingTimeOffRequests: AdminPendingTimeOffNotification[];
   pendingMembershipCount: number;
   pendingTimeOffCount: number;
@@ -74,15 +78,35 @@ export function AdminNotificationsWorkspace({
   shopSlug,
   shopTimezone,
   pendingMembershipNotifications,
+  pendingPaymentNotifications,
   pendingTimeOffRequests,
   pendingMembershipCount,
   pendingTimeOffCount,
   stalePendingIntents,
   totalCount,
 }: AdminNotificationsWorkspaceProps) {
+  const latestAlert = [
+    ...pendingTimeOffRequests.map((item) => ({
+      createdAt: item.createdAt,
+      copy: `La alerta mas reciente entro ${formatDateTime(item.createdAt, shopTimezone)}.`,
+    })),
+    ...pendingMembershipNotifications.map((item) => ({
+      createdAt: item.createdAt,
+      copy: `La ultima invitacion quedo pendiente ${formatDateTime(item.createdAt, shopTimezone)}.`,
+    })),
+    ...pendingPaymentNotifications.map((item) => ({
+      createdAt: item.createdAt,
+      copy: `El checkout mas reciente quedo pendiente ${formatDateTime(item.createdAt, shopTimezone)}.`,
+    })),
+  ]
+    .map((item) => ({ ...item, timestamp: new Date(item.createdAt).getTime() }))
+    .filter((item) => Number.isFinite(item.timestamp))
+    .sort((left, right) => right.timestamp - left.timestamp)[0];
+  const latestAlertCopy = latestAlert?.copy || 'No hay nuevas alertas de equipo por ahora.';
+
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="pageHeader" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-5 lg:grid-cols-[1.12fr_0.88fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Notificaciones</p>
@@ -100,7 +124,12 @@ export function AdminNotificationsWorkspace({
               Estado actual
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <Chip size="sm" radius="full" variant="flat" color={totalCount > 0 ? 'warning' : 'success'}>
+              <Chip
+                size="sm"
+                radius="full"
+                variant="flat"
+                color={totalCount > 0 ? 'warning' : 'success'}
+              >
                 {totalCount > 0 ? `${totalCount} pendientes` : 'Todo al dia'}
               </Chip>
               <Chip size="sm" radius="full" variant="flat">
@@ -113,7 +142,7 @@ export function AdminNotificationsWorkspace({
             </p>
           </div>
         </div>
-      </div>
+      </Container>
 
       <div className="grid gap-3 lg:grid-cols-3">
         <SummaryCard
@@ -137,7 +166,7 @@ export function AdminNotificationsWorkspace({
       </div>
 
       {totalCount === 0 ? (
-        <Card className="surface-card rounded-[1.9rem] border-0 shadow-none">
+        <Container as={Card} variant="section" className="rounded-[1.9rem]" shadow="none">
           <CardBody className="flex flex-col items-start gap-4 p-5 md:p-6">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-200/80 dark:text-emerald-200/70">
@@ -158,10 +187,10 @@ export function AdminNotificationsWorkspace({
               Volver al resumen
             </Link>
           </CardBody>
-        </Card>
+        </Container>
       ) : (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_360px]">
-          <Card className="surface-card rounded-[1.9rem] border-0 shadow-none">
+          <Container as={Card} variant="section" className="rounded-[1.9rem]" shadow="none">
             <CardBody className="space-y-4 p-5 md:p-6">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
@@ -171,26 +200,31 @@ export function AdminNotificationsWorkspace({
                   Resuelve primero lo operativo
                 </h2>
                 <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-                  Este inbox prioriza lo que cambia la operacion del dia. No muestra ruido
-                  historico ni eventos que ya quedaron cerrados.
+                  Este inbox prioriza lo que cambia la operacion del dia. No muestra ruido historico
+                  ni eventos que ya quedaron cerrados.
                 </p>
               </div>
 
               {pendingTimeOffRequests.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-[1.45rem] border border-white/65 bg-white/55 p-4 dark:border-white/10 dark:bg-white/[0.03]"
+                  id={buildAdminNotificationTargetId('time_off', item.id)}
+                  className="scroll-mt-28 rounded-[1.45rem] border border-white/65 bg-white/55 p-4 dark:border-white/10 dark:bg-white/[0.03]"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-ink dark:text-slate-100">
                         Solicitud de ausencia
                       </p>
-                      <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">{item.staffName}</p>
+                      <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">
+                        {item.staffName}
+                      </p>
                       <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
                         {item.startAt} a {item.endAt}
                       </p>
-                      <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">{item.reason}</p>
+                      <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
+                        {item.reason}
+                      </p>
                     </div>
                     <Chip size="sm" radius="full" variant="flat" color="warning">
                       Pendiente
@@ -227,7 +261,8 @@ export function AdminNotificationsWorkspace({
               {pendingMembershipNotifications.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-[1.45rem] border border-white/65 bg-white/55 p-4 dark:border-white/10 dark:bg-white/[0.03]"
+                  id={buildAdminNotificationTargetId('membership', item.id)}
+                  className="scroll-mt-28 rounded-[1.45rem] border border-white/65 bg-white/55 p-4 dark:border-white/10 dark:bg-white/[0.03]"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -247,10 +282,48 @@ export function AdminNotificationsWorkspace({
                   </div>
                 </div>
               ))}
-            </CardBody>
-          </Card>
 
-          <Card className="surface-card rounded-[1.9rem] border-0 shadow-none">
+              {pendingPaymentNotifications.map((item) => (
+                <div
+                  key={item.id}
+                  id={buildAdminNotificationTargetId('payment', item.id)}
+                  className="scroll-mt-28 rounded-[1.45rem] border border-white/65 bg-white/55 p-4 dark:border-white/10 dark:bg-white/[0.03]"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-ink dark:text-slate-100">
+                        {item.intentType === 'subscription'
+                          ? 'Cobro de suscripcion pendiente'
+                          : item.intentType === 'course_enrollment'
+                            ? 'Pago de curso pendiente'
+                            : 'Pago de reserva pendiente'}
+                      </p>
+                      <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">
+                        {item.customerName || 'Checkout sin cliente visible'}
+                      </p>
+                      <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
+                        Detectado {formatDateTime(item.createdAt, shopTimezone)}
+                      </p>
+                    </div>
+                    <Chip size="sm" radius="full" variant="flat" color="warning">
+                      Seguimiento
+                    </Chip>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Link
+                      href={`/admin/appointments?shop=${encodeURIComponent(shopSlug)}`}
+                      className="action-primary inline-flex rounded-full px-5 py-2.5 text-sm font-semibold no-underline"
+                    >
+                      Abrir citas
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </CardBody>
+          </Container>
+
+          <Container as={Card} variant="section" className="rounded-[1.9rem]" shadow="none">
             <CardBody className="space-y-4 p-5 md:p-6">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
@@ -299,17 +372,13 @@ export function AdminNotificationsWorkspace({
               </div>
 
               <div className="rounded-[1.45rem] border border-white/65 bg-white/55 p-4 dark:border-white/10 dark:bg-white/[0.03]">
-                <p className="text-sm font-semibold text-ink dark:text-slate-100">Ultima actividad</p>
-                <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-                  {pendingTimeOffRequests[0]?.createdAt
-                    ? `La alerta mas reciente entro ${formatDateTime(pendingTimeOffRequests[0].createdAt, shopTimezone)}.`
-                    : pendingMembershipNotifications[0]?.createdAt
-                      ? `La ultima invitacion quedo pendiente ${formatDateTime(pendingMembershipNotifications[0].createdAt, shopTimezone)}.`
-                      : 'No hay nuevas alertas de equipo por ahora.'}
+                <p className="text-sm font-semibold text-ink dark:text-slate-100">
+                  Ultima actividad
                 </p>
+                <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">{latestAlertCopy}</p>
               </div>
             </CardBody>
-          </Card>
+          </Container>
         </div>
       )}
     </section>

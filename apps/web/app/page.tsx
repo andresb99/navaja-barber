@@ -6,6 +6,7 @@ import {
   type WorkspaceSummary,
 } from '@/lib/workspaces';
 import { buildAdminHref, buildStaffHref } from '@/lib/workspace-routes';
+import { Container } from '@/components/heroui/container';
 
 function getWorkspaceLandingPath(workspace: WorkspaceSummary) {
   return workspace.accessRole === 'staff'
@@ -67,7 +68,7 @@ export default async function HomePage() {
 
   return (
     <section className="space-y-8 pb-10">
-      <div className="section-hero px-6 py-8 md:px-8 md:py-10">
+      <Container variant="hero" className="px-6 py-8 md:px-8 md:py-10">
         <div className="relative z-10 grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Software para barberias</p>
@@ -127,7 +128,7 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <div className="grid gap-4 lg:grid-cols-3">
         {capabilityGroups.map((group) => (
@@ -154,9 +155,7 @@ export default async function HomePage() {
           </h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             <div className="surface-card">
-              <p className="text-sm font-semibold text-ink dark:text-slate-100">
-                Antes de la cita
-              </p>
+              <p className="text-sm font-semibold text-ink dark:text-slate-100">Antes de la cita</p>
               <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
                 Captacion desde marketplace, disponibilidad real, checkout y validacion final del
                 horario antes de cerrar la reserva.
@@ -167,8 +166,8 @@ export default async function HomePage() {
                 Durante la operacion
               </p>
               <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-                Staff, bloqueos, ausencias, estados de cita, payment status y vista clara de lo
-                que queda pendiente.
+                Staff, bloqueos, ausencias, estados de cita, payment status y vista clara de lo que
+                queda pendiente.
               </p>
             </div>
             <div className="surface-card">
@@ -176,17 +175,15 @@ export default async function HomePage() {
                 Despues de la cita
               </p>
               <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-                Reseñas, metricas, reembolsos cuando corresponde y mas visibilidad sobre
-                conversion y cancelaciones.
+                Reseñas, metricas, reembolsos cuando corresponde y mas visibilidad sobre conversion
+                y cancelaciones.
               </p>
             </div>
             <div className="surface-card">
-              <p className="text-sm font-semibold text-ink dark:text-slate-100">
-                Expansion
-              </p>
+              <p className="text-sm font-semibold text-ink dark:text-slate-100">Expansion</p>
               <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-                Cursos, convocatorias de modelos y postulaciones para hacer crecer la barberia
-                desde la misma base de datos operativa.
+                Cursos, convocatorias de modelos y postulaciones para hacer crecer la barberia desde
+                la misma base de datos operativa.
               </p>
             </div>
           </div>

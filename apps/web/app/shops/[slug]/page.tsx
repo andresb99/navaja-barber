@@ -7,6 +7,7 @@ import { buildTenantPublicHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
+import { Container } from '@/components/heroui/container';
 
 interface ShopProfilePageProps {
   params: Promise<{ slug: string }>;
@@ -66,15 +67,18 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
-            <p className="hero-eyebrow">{shop.isVerified ? 'Barbershop verificada' : 'Barbershop activa'}</p>
+            <p className="hero-eyebrow">
+              {shop.isVerified ? 'Barbershop verificada' : 'Barbershop activa'}
+            </p>
             <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.45rem] dark:text-slate-100">
               {shop.name}
             </h1>
             <p className="mt-3 max-w-3xl text-sm text-slate/80 dark:text-slate-300">
-              {shop.description || 'Este workspace ya puede recibir reservas, resenas, postulaciones y cursos.'}
+              {shop.description ||
+                'Este workspace ya puede recibir reservas, resenas, postulaciones y cursos.'}
             </p>
             <p className="mt-3 text-sm text-slate/75 dark:text-slate-400">
               {[shop.locationLabel, shop.city, shop.region].filter(Boolean).join(' - ') ||
@@ -113,7 +117,7 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <div className="flex flex-wrap gap-3">
         <Link

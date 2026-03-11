@@ -1,5 +1,6 @@
-import { Card, CardBody } from '@heroui/card';
+﻿import { Card, CardBody } from '@heroui/card';
 import { CalendarClock, CheckCircle2, Star, type LucideIcon } from 'lucide-react';
+import { Container } from '@/components/heroui/container';
 
 interface SummaryCardItem {
   id: string;
@@ -60,7 +61,7 @@ export function AdminHomeSummary({
 }: AdminHomeSummaryProps) {
   return (
     <>
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="pageHeader" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 xl:grid-cols-[minmax(0,1.12fr)_320px] xl:items-end">
           <div>
             <p className="hero-eyebrow">Panel admin</p>
@@ -68,8 +69,8 @@ export function AdminHomeSummary({
               Resumen corto del local
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-slate/80 dark:text-slate-300">
-              {shopName} entra mejor por una home que resume lo ultimo y lo proximo del negocio,
-              sin repetir botones que ya viven en la navegacion.
+              {shopName} entra mejor por una home que resume lo ultimo y lo proximo del negocio, sin
+              repetir botones que ya viven en la navegacion.
             </p>
 
             <div className="mt-5 flex flex-wrap gap-2">
@@ -115,9 +116,9 @@ export function AdminHomeSummary({
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
-      <Card className="surface-card rounded-[1.9rem] border-0 shadow-none">
+      <Container as={Card} variant="section" className="rounded-[1.9rem]" shadow="none">
         <CardBody className="p-5 md:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
@@ -128,8 +129,8 @@ export function AdminHomeSummary({
                 Lo ultimo y lo proximo, sin repetir el menu
               </h2>
               <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-                La navegacion queda en el sidebar. La home solo conserva contexto util para abrir
-                el dia rapido.
+                La navegacion queda en el sidebar. La home solo conserva contexto util para abrir el
+                dia rapido.
               </p>
             </div>
             <span className="meta-chip">3 senales clave</span>
@@ -141,7 +142,7 @@ export function AdminHomeSummary({
             ))}
           </div>
         </CardBody>
-      </Card>
+      </Container>
     </>
   );
 }

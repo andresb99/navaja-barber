@@ -1,12 +1,13 @@
 import { BarbershopOnboardingForm } from '@/components/public/barbershop-onboarding-form';
 import { requireAuthenticated } from '@/lib/auth';
+import { Container } from '@/components/heroui/container';
 
 export default async function BarbershopOnboardingPage() {
   await requireAuthenticated('/onboarding/barbershop');
 
   return (
     <section className="mx-auto max-w-5xl space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Owner onboarding</p>
@@ -40,7 +41,7 @@ export default async function BarbershopOnboardingPage() {
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <div className="soft-panel rounded-[2rem] p-6 md:p-8">
         <BarbershopOnboardingForm />

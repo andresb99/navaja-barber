@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Card, CardBody } from '@heroui/card';
+import { Container } from '@/components/heroui/container';
 
 interface AdminNotificationsDigestProps {
   shopSlug: string;
@@ -17,7 +18,7 @@ export function AdminNotificationsDigest({
   stalePendingIntents,
 }: AdminNotificationsDigestProps) {
   return (
-    <Card className="surface-card rounded-[1.9rem] border-0 shadow-none">
+    <Container as={Card} variant="section" className="rounded-[1.9rem]" shadow="none">
       <CardBody className="p-5 md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
@@ -71,6 +72,6 @@ export function AdminNotificationsDigest({
           Abrir inbox de notificaciones
         </Link>
       </CardBody>
-    </Card>
+    </Container>
   );
 }

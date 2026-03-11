@@ -2,8 +2,9 @@
 
 import { Button } from '@heroui/button';
 import { Textarea } from '@heroui/input';
-import { Select, SelectItem } from '@heroui/select';
+import { SelectItem } from '@heroui/select';
 import { updateJobApplicationAction } from '@/app/admin/actions';
+import { AdminSelect } from '@/components/heroui/admin-select';
 
 interface ApplicantUpdateFormProps {
   applicationId: string;
@@ -22,7 +23,7 @@ export function ApplicantUpdateForm({
     <form action={updateJobApplicationAction} className="mt-4 space-y-2">
       <input type="hidden" name="application_id" value={applicationId} />
       <input type="hidden" name="shop_id" value={shopId} />
-      <Select
+      <AdminSelect
         name="status"
         aria-label="Estado de postulacion"
         label="Estado"
@@ -34,7 +35,7 @@ export function ApplicantUpdateForm({
         <SelectItem key="interview">Entrevista</SelectItem>
         <SelectItem key="rejected">Rechazado</SelectItem>
         <SelectItem key="hired">Contratado</SelectItem>
-      </Select>
+      </AdminSelect>
       <Textarea
         name="notes"
         rows={3}

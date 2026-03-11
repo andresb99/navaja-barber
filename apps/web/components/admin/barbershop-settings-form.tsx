@@ -2,7 +2,7 @@
 
 import { type FormEvent, type ReactNode, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, Textarea } from '@heroui/react';
+import { Button, Input, Textarea, Card, CardBody, Chip, Divider } from '@heroui/react';
 import {
   ArrowUpRight,
   Clock3,
@@ -21,6 +21,10 @@ import { buildAdminHref } from '@/lib/workspace-routes';
 const MAX_RECOMMENDED_SHOP_IMAGES = 3;
 const MAX_SHOP_IMAGES = 6;
 const MIN_REQUIRED_SHOP_IMAGES = 1;
+const secondaryPanelClassName = 'admin-premium-subcard rounded-[1.45rem] p-4';
+const dashedSecondaryPanelClassName = 'admin-premium-subcard rounded-[1.55rem] border-dashed p-4';
+const selectedSecondaryPanelClassName =
+  'rounded-[1.4rem] border border-primary/35 bg-primary/10 p-4 text-left shadow-[0_18px_30px_-24px_rgba(139,92,246,0.28)] transition dark:border-primary/30 dark:bg-primary/12';
 
 interface AdminBarbershopSettingsFormProps {
   shopId: string;
@@ -123,37 +127,42 @@ function SettingsSection({
   children,
 }: SettingsSectionProps) {
   return (
-    <section id={id} className="surface-card scroll-mt-28 rounded-[1.75rem] p-5 md:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-            {eyebrow}
-          </p>
-          <h3 className="mt-2 text-xl font-semibold text-ink dark:text-slate-100">{title}</h3>
-          <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">{description}</p>
+    <Card id={id} className="admin-premium-card scroll-mt-32" shadow="none">
+      <CardBody className="p-6 md:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
+              {eyebrow}
+            </p>
+            <h3 className="text-xl font-bold tracking-tight text-foreground">{title}</h3>
+            <p className="mt-1 text-sm text-default-500 leading-relaxed">{description}</p>
+          </div>
+          {badge ? (
+            <Chip size="sm" variant="flat" color="primary" className="font-medium mt-1">
+              {badge}
+            </Chip>
+          ) : null}
         </div>
-        {badge ? <span className="meta-chip">{badge}</span> : null}
-      </div>
-      <div className="mt-5 space-y-5">{children}</div>
-    </section>
+        <Divider className="my-6 block opacity-50" />
+        <div className="space-y-6">{children}</div>
+      </CardBody>
+    </Card>
   );
 }
 
 function ChecklistItem({ done, label, detail }: ChecklistItemProps) {
   return (
-    <div className="flex items-start gap-3 rounded-[1.2rem] border border-white/60 bg-white/45 px-3 py-3 dark:border-white/10 dark:bg-white/[0.03]">
+    <div className="flex items-start gap-3 rounded-2xl border border-default-200/50 bg-background/40 hover:bg-default-100/50 transition-colors px-4 py-3">
       <span
-        className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
-          done
-            ? 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/18 dark:text-emerald-200'
-            : 'bg-slate-900/8 text-slate-500 dark:bg-white/10 dark:text-slate-300'
+        className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold shadow-sm ${
+          done ? 'bg-success/20 text-success' : 'bg-default-200/50 text-default-500'
         }`}
       >
-        {done ? 'OK' : '...'}
+        {done ? '✓' : '—'}
       </span>
       <div>
-        <p className="text-sm font-semibold text-ink dark:text-slate-100">{label}</p>
-        <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">{detail}</p>
+        <p className="text-sm font-semibold text-foreground">{label}</p>
+        <p className="mt-0.5 text-xs text-default-500 leading-relaxed">{detail}</p>
       </div>
     </div>
   );
@@ -233,7 +242,9 @@ export function AdminBarbershopSettingsForm({
     ...newImages.map((image) => ({ ref: `new-local:${image.id}`, url: image.previewUrl })),
   ];
   const coverPreviewUrl =
-    previewImages.find((image) => image.ref === coverImageRef)?.url || previewImages[0]?.url || null;
+    previewImages.find((image) => image.ref === coverImageRef)?.url ||
+    previewImages[0]?.url ||
+    null;
   const completionItems = [
     {
       done: Boolean(resolvedShopName && resolvedSlug),
@@ -322,7 +333,10 @@ export function AdminBarbershopSettingsForm({
       return;
     }
 
-    const availableSlots = Math.max(MAX_SHOP_IMAGES - (existingImages.length + newImages.length), 0);
+    const availableSlots = Math.max(
+      MAX_SHOP_IMAGES - (existingImages.length + newImages.length),
+      0,
+    );
     if (availableSlots <= 0) {
       return;
     }
@@ -440,19 +454,25 @@ export function AdminBarbershopSettingsForm({
     } catch (requestError) {
       setSubmitting(false);
       setError(
-        requestError instanceof Error
-          ? requestError.message
-          : 'No se pudo actualizar la barberia.',
+        requestError instanceof Error ? requestError.message : 'No se pudo actualizar la barberia.',
       );
     }
   }
- 
-  return (
-    <form className="space-y-5" onSubmit={handleSubmit}>
-      {error ? <p className="status-banner error">{error}</p> : null}
-      {success ? <p className="status-banner success">{success}</p> : null}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.14fr)_320px]">
+  return (
+    <form className="space-y-6" onSubmit={handleSubmit}>
+      {error ? (
+        <div className="rounded-2xl border border-danger/30 bg-danger/10 px-5 py-4 text-sm font-medium text-danger">
+          {error}
+        </div>
+      ) : null}
+      {success ? (
+        <div className="rounded-2xl border border-success/30 bg-success/10 px-5 py-4 text-sm font-medium text-success">
+          {success}
+        </div>
+      ) : null}
+
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_340px]">
         <div className="space-y-5">
           <SettingsSection
             id="business-settings"
@@ -479,7 +499,7 @@ export function AdminBarbershopSettingsForm({
               />
             </div>
 
-            <div className="rounded-[1.45rem] border border-white/65 bg-white/55 p-4 dark:border-white/10 dark:bg-white/[0.04]">
+            <div className={secondaryPanelClassName}>
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Ruta publica
               </p>
@@ -550,7 +570,7 @@ export function AdminBarbershopSettingsForm({
               />
             </div>
 
-            <div className="rounded-[1.45rem] border border-white/65 bg-white/55 p-4 dark:border-white/10 dark:bg-white/[0.04]">
+            <div className={secondaryPanelClassName}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-ink dark:text-slate-100">
@@ -588,7 +608,7 @@ export function AdminBarbershopSettingsForm({
                 />
               </div>
             </div>
-            <div className="rounded-[1.55rem] border border-dashed border-white/70 bg-white/52 p-4 dark:border-white/10 dark:bg-white/[0.04]">
+            <div className={dashedSecondaryPanelClassName}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-semibold text-ink dark:text-slate-100">
@@ -609,8 +629,8 @@ export function AdminBarbershopSettingsForm({
               <label
                 className={`mt-4 block rounded-[1.4rem] border border-dashed px-4 py-4 transition ${
                   totalImages >= MAX_SHOP_IMAGES
-                    ? 'cursor-not-allowed border-white/40 bg-white/35 opacity-70 dark:border-white/10 dark:bg-white/[0.03]'
-                    : 'cursor-pointer border-white/75 bg-white/65 hover:border-sky-300/55 hover:bg-white/80 dark:border-white/12 dark:bg-white/[0.05] dark:hover:border-sky-400/30'
+                    ? 'admin-premium-subcard cursor-not-allowed border-dashed opacity-70'
+                    : 'admin-premium-subcard cursor-pointer border-dashed hover:-translate-y-0.5 hover:border-sky-300/55 dark:hover:border-sky-400/30'
                 }`}
               >
                 <input
@@ -752,7 +772,7 @@ export function AdminBarbershopSettingsForm({
                 onChange={(event) => setBookingCancellationNoticeHours(event.target.value)}
                 description="Rango admitido: 0 a 168 horas."
               />
-              <div className="rounded-[1.45rem] border border-white/65 bg-white/55 p-4 dark:border-white/10 dark:bg-white/[0.04]">
+              <div className={secondaryPanelClassName}>
                 <div className="flex items-start gap-3">
                   <Clock3 className="mt-0.5 h-4 w-4 text-slate/75 dark:text-slate-300" />
                   <div>
@@ -771,8 +791,8 @@ export function AdminBarbershopSettingsForm({
                 type="button"
                 className={`rounded-[1.4rem] border p-4 text-left transition ${
                   bookingRefundMode === 'automatic_full'
-                    ? 'border-sky-300/45 bg-sky-500/10 shadow-[0_18px_30px_-24px_rgba(14,165,233,0.34)] dark:border-sky-400/25 dark:bg-sky-500/10'
-                    : 'border-white/65 bg-white/45 dark:border-white/10 dark:bg-white/[0.03]'
+                    ? selectedSecondaryPanelClassName
+                    : 'admin-premium-subcard'
                 }`}
                 onClick={() => setBookingRefundMode('automatic_full')}
               >
@@ -787,8 +807,8 @@ export function AdminBarbershopSettingsForm({
                 type="button"
                 className={`rounded-[1.4rem] border p-4 text-left transition ${
                   bookingRefundMode === 'manual_review'
-                    ? 'border-sky-300/45 bg-sky-500/10 shadow-[0_18px_30px_-24px_rgba(14,165,233,0.34)] dark:border-sky-400/25 dark:bg-sky-500/10'
-                    : 'border-white/65 bg-white/45 dark:border-white/10 dark:bg-white/[0.03]'
+                    ? selectedSecondaryPanelClassName
+                    : 'admin-premium-subcard'
                 }`}
                 onClick={() => setBookingRefundMode('manual_review')}
               >
@@ -811,60 +831,64 @@ export function AdminBarbershopSettingsForm({
             />
           </SettingsSection>
 
-          <div className="surface-card rounded-[1.75rem] p-4 md:p-5">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-ink dark:text-slate-100">
-                  Guardado centralizado
-                </p>
-                <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">
-                  Actualiza identidad, perfil publico, galeria y politicas en una sola accion.
-                </p>
+          <Card className="admin-premium-accent" shadow="none">
+            <CardBody className="p-5 md:p-6">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="max-w-md">
+                  <p className="text-base font-bold text-foreground">Guardado centralizado</p>
+                  <p className="mt-1 text-sm text-default-500 leading-relaxed">
+                    Actualiza identidad, perfil público, galería y políticas en una sola acción.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    type="submit"
+                    isLoading={submitting}
+                    isDisabled={submitting}
+                    color="primary"
+                    variant="shadow"
+                    className="px-6 font-semibold"
+                  >
+                    {submitting ? 'Guardando cambios...' : 'Guardar cambios'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="flat"
+                    className="px-6 font-semibold bg-default-200 text-foreground"
+                    onClick={() => router.push(buildAdminHref('/admin', initialShopSlug))}
+                    isDisabled={submitting}
+                  >
+                    Volver al resumen
+                  </Button>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  type="submit"
-                  isLoading={submitting}
-                  isDisabled={submitting}
-                  className="action-primary px-5 text-sm font-semibold"
-                >
-                  {submitting ? 'Guardando cambios...' : 'Guardar cambios'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="action-secondary px-5 text-sm font-semibold"
-                  onClick={() => router.push(buildAdminHref('/admin', initialShopSlug))}
-                  isDisabled={submitting}
-                >
-                  Volver al resumen
-                </Button>
-              </div>
-            </div>
-          </div>
+            </CardBody>
+          </Card>
         </div>
 
-        <aside className="space-y-4 xl:sticky xl:top-24 xl:self-start">
-          <div className="surface-card rounded-[1.7rem] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-              Ir directo
-            </p>
-            <div className="mt-3 grid gap-2">
-              {quickLinks.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="flex items-center justify-between rounded-[1.1rem] border border-white/65 bg-white/45 px-3 py-3 text-sm font-semibold text-ink no-underline transition hover:border-white/90 hover:bg-white/70 dark:border-white/10 dark:bg-white/[0.03] dark:text-slate-100"
-                >
-                  <span>{item.label}</span>
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
-          </div>
+        <aside className="space-y-6 xl:sticky xl:top-28 xl:self-start">
+          <Card className="admin-premium-card" shadow="none">
+            <CardBody className="p-5">
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-3">
+                Accesos rápidos
+              </p>
+              <div className="grid gap-2">
+                {quickLinks.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    className="flex items-center justify-between rounded-xl border border-default-200/50 bg-background/40 hover:bg-default-100/50 px-4 py-3 text-sm font-semibold text-foreground no-underline transition-colors"
+                  >
+                    <span>{item.label}</span>
+                    <ArrowUpRight className="h-4 w-4 text-default-400" />
+                  </a>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
 
-          <div className="surface-card overflow-hidden rounded-[1.8rem] p-0">
-            <div className="relative h-44 overflow-hidden bg-slate-950">
+          <Card className="admin-premium-card overflow-hidden" shadow="none" radius="lg">
+            <div className="relative h-48 overflow-hidden bg-content1">
               {coverPreviewUrl ? (
                 <img
                   src={coverPreviewUrl}
@@ -876,119 +900,132 @@ export function AdminBarbershopSettingsForm({
                   <Scissors className="h-10 w-10 text-white/70" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               <div className="absolute left-4 top-4">
-                <span className="meta-chip bg-white/18 text-white dark:bg-white/18 dark:text-white">
-                  Vista previa publica
-                </span>
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  className="bg-white/20 text-white backdrop-blur-md border border-white/30 font-medium"
+                >
+                  Vista previa pública
+                </Chip>
               </div>
             </div>
 
-            <div className="space-y-4 p-4">
+            <div className="space-y-5 p-5 md:p-6">
               <div>
-                <p className="text-lg font-semibold text-ink dark:text-slate-100">
+                <p className="text-xl font-bold tracking-tight text-foreground">
                   {resolvedShopName}
                 </p>
-                <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
+                <p className="mt-2 text-sm text-default-500 leading-relaxed">
                   {description.trim()
                     ? truncateText(description.trim(), 148)
-                    : 'Todavia no hay una descripcion visible para clientes.'}
+                    : 'Todavía no hay una descripción visible para clientes.'}
                 </p>
               </div>
 
               <div className="grid gap-2">
-                <div className="flex items-start gap-2 rounded-[1.1rem] border border-white/60 bg-white/45 px-3 py-3 dark:border-white/10 dark:bg-white/[0.03]">
-                  <MapPin className="mt-0.5 h-4 w-4 text-slate/75 dark:text-slate-300" />
+                <div className="flex items-start gap-3 rounded-2xl border border-default-200/50 bg-background/40 px-4 py-3">
+                  <MapPin className="mt-0.5 h-4 w-4 text-primary" />
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                      Ubicacion
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-default-500 mb-0.5">
+                      Ubicación
                     </p>
-                    <p className="mt-1 text-sm text-ink dark:text-slate-100">
-                      {locationSummary || 'Sin ubicacion visible'}
+                    <p className="text-sm font-medium text-foreground">
+                      {locationSummary || 'Sin ubicación visible'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2 rounded-[1.1rem] border border-white/60 bg-white/45 px-3 py-3 dark:border-white/10 dark:bg-white/[0.03]">
-                  <Phone className="mt-0.5 h-4 w-4 text-slate/75 dark:text-slate-300" />
+                <div className="flex items-start gap-3 rounded-2xl border border-default-200/50 bg-background/40 px-4 py-3">
+                  <Phone className="mt-0.5 h-4 w-4 text-primary" />
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-default-500 mb-0.5">
                       Contacto y horario
                     </p>
-                    <p className="mt-1 text-sm text-ink dark:text-slate-100">
-                      {phone.trim() || 'Telefono opcional'}
+                    <p className="text-sm font-medium text-foreground">
+                      {phone.trim() || 'Teléfono opcional'}
                     </p>
-                    <p className="mt-1 text-xs text-slate/75 dark:text-slate-400">{timezone}</p>
+                    <p className="mt-0.5 text-xs text-default-400">{timezone}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-2 rounded-[1.1rem] border border-white/60 bg-white/45 px-3 py-3 dark:border-white/10 dark:bg-white/[0.03]">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 text-slate/75 dark:text-slate-300" />
+                <div className="flex items-start gap-3 rounded-2xl border border-default-200/50 bg-background/40 px-4 py-3">
+                  <ShieldCheck className="mt-0.5 h-4 w-4 text-primary" />
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                      Politica visible
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-default-500 mb-0.5">
+                      Política visible
                     </p>
-                    <p className="mt-1 text-sm text-ink dark:text-slate-100">
+                    <p className="text-sm font-medium text-foreground">
                       {bookingPolicyText.trim()
                         ? truncateText(bookingPolicyText.trim(), 110)
-                        : 'Sin texto publico cargado.'}
+                        : 'Sin texto público cargado.'}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <a
+              <div className="flex flex-col gap-2 pt-2">
+                <Button
+                  as="a"
                   href={publicProfileHref}
                   target="_blank"
                   rel="noreferrer"
-                  className="action-primary inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold no-underline"
+                  color="primary"
+                  variant="shadow"
+                  className="w-full font-semibold"
+                  endContent={<ArrowUpRight className="h-4 w-4" />}
                 >
                   Ver perfil
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
-                <a
+                </Button>
+                <Button
+                  as="a"
                   href={publicBookingHref}
                   target="_blank"
                   rel="noreferrer"
-                  className="action-secondary inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold no-underline"
+                  variant="flat"
+                  className="w-full font-semibold bg-default-100 hover:bg-default-200 text-foreground"
+                  endContent={<ArrowUpRight className="h-4 w-4 text-default-500" />}
                 >
                   Ver reservas
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
+                </Button>
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="surface-card rounded-[1.7rem] p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                  Checklist de publicacion
-                </p>
-                <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">
-                  Te ayuda a ver rapido si esta pagina ya se siente lista de cara al cliente.
-                </p>
+          <Card className="admin-premium-card" shadow="none">
+            <CardBody className="p-5 md:p-6">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                    Checklist de publicación
+                  </p>
+                  <p className="mt-1 text-xs text-default-500 leading-relaxed">
+                    Te ayuda a ver rápido si esta página ya se siente lista de cara al cliente.
+                  </p>
+                </div>
+                <Chip
+                  size="sm"
+                  color={completionCount === completionItems.length ? 'success' : 'default'}
+                  variant="flat"
+                  className="font-medium mt-1 shrink-0"
+                >
+                  {completionCount}/{completionItems.length}
+                </Chip>
               </div>
-              <span
-                className="meta-chip"
-                data-tone={completionCount === completionItems.length ? 'success' : undefined}
-              >
-                {completionCount}/{completionItems.length}
-              </span>
-            </div>
 
-            <div className="mt-4 space-y-3">
-              {completionItems.map((item) => (
-                <ChecklistItem
-                  key={item.label}
-                  done={item.done}
-                  label={item.label}
-                  detail={item.detail}
-                />
-              ))}
-            </div>
-          </div>
+              <div className="space-y-2">
+                {completionItems.map((item) => (
+                  <ChecklistItem
+                    key={item.label}
+                    done={item.done}
+                    label={item.label}
+                    detail={item.detail}
+                  />
+                ))}
+              </div>
+            </CardBody>
+          </Card>
         </aside>
       </div>
     </form>

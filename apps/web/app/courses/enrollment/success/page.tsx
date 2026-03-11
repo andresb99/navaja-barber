@@ -5,6 +5,7 @@ import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildTenantCourseHref, buildTenantPublicHref } from '@/lib/shop-links';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { Container } from '@/components/heroui/container';
 
 interface CourseEnrollmentSuccessPageProps {
   searchParams: Promise<{
@@ -31,7 +32,9 @@ interface PaymentIntentRow {
 }
 
 function resolvePaymentState(input: string | null | undefined): PaymentState {
-  const normalized = String(input || '').trim().toLowerCase();
+  const normalized = String(input || '')
+    .trim()
+    .toLowerCase();
   if (normalized === 'pending' || normalized === 'processing') {
     return 'pending';
   }
@@ -134,7 +137,7 @@ export default async function CourseEnrollmentSuccessPage({
 
   return (
     <section className="mx-auto max-w-2xl">
-      <div className="section-hero px-6 py-8 md:px-8">
+      <Container variant="hero" className="px-6 py-8 md:px-8">
         <div className="relative z-10">
           <p className={eyebrowClassName}>
             <EyebrowIcon className="h-3.5 w-3.5" />
@@ -159,12 +162,20 @@ export default async function CourseEnrollmentSuccessPage({
           </dl>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            <Button as="a" href={fallbackHref} className="action-primary px-5 text-sm font-semibold">
+            <Button
+              as="a"
+              href={fallbackHref}
+              className="action-primary px-5 text-sm font-semibold"
+            >
               {result.paymentState === 'failure' ? 'Reintentar pago' : 'Volver al curso'}
             </Button>
             <Button
               as="a"
-              href={shopSlug ? buildTenantPublicHref(shopSlug, routeContext.mode, 'courses') : '/courses'}
+              href={
+                shopSlug
+                  ? buildTenantPublicHref(shopSlug, routeContext.mode, 'courses')
+                  : '/courses'
+              }
               variant="ghost"
               className="action-secondary px-5 text-sm font-semibold"
             >
@@ -172,7 +183,7 @@ export default async function CourseEnrollmentSuccessPage({
             </Button>
           </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

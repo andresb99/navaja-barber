@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
+import { Container } from '@/components/heroui/container';
 
 export const metadata: Metadata = buildSitePageMetadata({
   title: 'Software para barberias',
@@ -12,18 +13,15 @@ export const metadata: Metadata = buildSitePageMetadata({
 const sections = [
   {
     title: 'Reservas y pagos',
-    copy:
-      'Permite reservas online por barberia, staff y servicio. Si el cliente no marca pagar en el local, el flujo abre checkout online con validacion final del horario.',
+    copy: 'Permite reservas online por barberia, staff y servicio. Si el cliente no marca pagar en el local, el flujo abre checkout online con validacion final del horario.',
   },
   {
     title: 'Operacion del local',
-    copy:
-      'Agenda diaria, bloqueos, ausencias, estados de cita, no-shows, metricas y control operativo para admins y staff desde web y mobile.',
+    copy: 'Agenda diaria, bloqueos, ausencias, estados de cita, no-shows, metricas y control operativo para admins y staff desde web y mobile.',
   },
   {
     title: 'Crecimiento del negocio',
-    copy:
-      'Marketplace publico, reseñas verificadas, bolsa de trabajo, cursos y captacion de modelos sobre la misma base de datos del local.',
+    copy: 'Marketplace publico, reseñas verificadas, bolsa de trabajo, cursos y captacion de modelos sobre la misma base de datos del local.',
   },
 ] as const;
 
@@ -48,7 +46,7 @@ const faqs = [
 export default function SoftwareParaBarberiasPage() {
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Plataforma SaaS</p>
@@ -60,10 +58,16 @@ export default function SoftwareParaBarberiasPage() {
               seguimiento del negocio para que una barberia no dependa de herramientas sueltas.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/suscripcion" className="action-primary rounded-full px-5 py-3 text-sm font-semibold">
+              <Link
+                href="/suscripcion"
+                className="action-primary rounded-full px-5 py-3 text-sm font-semibold"
+              >
                 Ver planes
               </Link>
-              <Link href="/shops" className="action-secondary rounded-full px-5 py-3 text-sm font-semibold">
+              <Link
+                href="/shops"
+                className="action-secondary rounded-full px-5 py-3 text-sm font-semibold"
+              >
                 Ver marketplace
               </Link>
             </div>
@@ -96,7 +100,7 @@ export default function SoftwareParaBarberiasPage() {
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <div className="grid gap-4 lg:grid-cols-3">
         {sections.map((section) => (

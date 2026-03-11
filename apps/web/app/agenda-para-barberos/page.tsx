@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
+import { Container } from '@/components/heroui/container';
 
 export const metadata: Metadata = buildSitePageMetadata({
   title: 'Agenda para barberos',
@@ -19,7 +20,7 @@ const workflowSteps = [
 export default function AgendaParaBarberosPage() {
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Operacion diaria</p>
@@ -27,14 +28,20 @@ export default function AgendaParaBarberosPage() {
               Agenda para barberos con disponibilidad real y menos friccion operativa.
             </h1>
             <p className="mt-4 max-w-3xl text-base text-slate/80 dark:text-slate-300">
-              Beardly conecta disponibilidad por staff, estados de cita, bloqueos, ausencias,
-              cobros y rendimiento para que la agenda no se rompa entre web, mobile y mostrador.
+              Beardly conecta disponibilidad por staff, estados de cita, bloqueos, ausencias, cobros
+              y rendimiento para que la agenda no se rompa entre web, mobile y mostrador.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link href="/shops" className="action-primary rounded-full px-5 py-3 text-sm font-semibold">
+              <Link
+                href="/shops"
+                className="action-primary rounded-full px-5 py-3 text-sm font-semibold"
+              >
                 Probar reservas
               </Link>
-              <Link href="/software-para-barberias" className="action-secondary rounded-full px-5 py-3 text-sm font-semibold">
+              <Link
+                href="/software-para-barberias"
+                className="action-secondary rounded-full px-5 py-3 text-sm font-semibold"
+              >
                 Ver plataforma completa
               </Link>
             </div>
@@ -56,7 +63,7 @@ export default function AgendaParaBarberosPage() {
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="soft-panel rounded-[1.8rem] p-5">
@@ -82,8 +89,8 @@ export default function AgendaParaBarberosPage() {
             Rendimiento
           </h2>
           <p className="mt-3 text-sm text-slate/80 dark:text-slate-300">
-            Ticket promedio, facturacion, ocupacion y desempeno por barbero para ajustar capacidad
-            y turnos de mayor demanda.
+            Ticket promedio, facturacion, ocupacion y desempeno por barbero para ajustar capacidad y
+            turnos de mayor demanda.
           </p>
         </div>
       </div>

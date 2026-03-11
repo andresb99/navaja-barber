@@ -5,7 +5,7 @@ import { useCallback, useTransition } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
-import { Select, SelectItem } from '@heroui/select';
+import { SelectItem } from '@heroui/select';
 import {
   ADMIN_APPOINTMENTS_PAGE_SIZE_OPTIONS,
   ADMIN_APPOINTMENTS_SORT_OPTIONS,
@@ -14,6 +14,7 @@ import {
   type AdminAppointmentsSortDir,
   type AdminAppointmentsSortField,
 } from '@/lib/admin-appointments';
+import { AdminSelect } from '@/components/heroui/admin-select';
 
 interface StaffOption {
   id: string;
@@ -69,19 +70,12 @@ export function AdminAppointmentsFilters({
     selectedSortDir,
   ].join('|');
   const inputClassNames = {
-    label: 'text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500',
+    label:
+      'text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500',
     inputWrapper:
       'min-h-[56px] rounded-[1.2rem] border border-slate-900/10 bg-white/82 shadow-none transition data-[hover=true]:border-sky-300 group-data-[focus=true]:border-sky-400 dark:border-white/10 dark:bg-white/[0.04]',
     input: 'text-sm text-slate-900 dark:text-zinc-100',
   } as const;
-  const selectClassNames = {
-    label: 'text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-500',
-    trigger:
-      'min-h-[56px] rounded-[1.2rem] border border-slate-900/10 bg-white/82 shadow-none transition data-[hover=true]:border-sky-300 group-data-[focus=true]:border-sky-400 dark:border-white/10 dark:bg-white/[0.04]',
-    value: 'text-sm text-slate-900 dark:text-zinc-100',
-    selectorIcon: 'text-slate-500 dark:text-zinc-400',
-  } as const;
-
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
@@ -96,7 +90,9 @@ export function AdminAppointmentsFilters({
         selectedView:
           String(formData.get('view') || selectedView || 'table') === 'cards' ? 'cards' : 'table',
         page: 1,
-        pageSize: Number.parseInt(String(formData.get('page_size') || selectedPageSize), 10) || selectedPageSize,
+        pageSize:
+          Number.parseInt(String(formData.get('page_size') || selectedPageSize), 10) ||
+          selectedPageSize,
         sortBy: String(formData.get('sort_by') || selectedSortBy) as AdminAppointmentsSortField,
         sortDir: String(formData.get('sort_dir') || selectedSortDir) as AdminAppointmentsSortDir,
         ...(staffIdValue !== 'all' ? { selectedStaffId: staffIdValue } : {}),
@@ -160,74 +156,69 @@ export function AdminAppointmentsFilters({
         }}
       />
 
-      <Select
+      <AdminSelect
         id="staff"
         name="staff_id"
         aria-label="Filtrar por equipo"
         label="Equipo"
         labelPlacement="inside"
         defaultSelectedKeys={[selectedStaffId || 'all']}
-        classNames={selectClassNames}
       >
         {staffOptions.map((item) => (
           <SelectItem key={item.id}>{item.name}</SelectItem>
         ))}
-      </Select>
+      </AdminSelect>
 
-      <Select
+      <AdminSelect
         id="status"
         name="status"
         aria-label="Filtrar por estado"
         label="Estado"
         labelPlacement="inside"
         defaultSelectedKeys={[selectedStatus || 'all']}
-        classNames={selectClassNames}
       >
         {statusOptions.map((item) => (
           <SelectItem key={item.id}>{item.label}</SelectItem>
         ))}
-      </Select>
+      </AdminSelect>
 
-      <Select
+      <AdminSelect
         id="sort_by"
         name="sort_by"
         aria-label="Ordenar por"
         label="Ordenar por"
         labelPlacement="inside"
         defaultSelectedKeys={[selectedSortBy]}
-        classNames={selectClassNames}
       >
         {ADMIN_APPOINTMENTS_SORT_OPTIONS.map((item) => (
           <SelectItem key={item.id}>{item.label}</SelectItem>
         ))}
-      </Select>
+      </AdminSelect>
 
-      <Select
+      <AdminSelect
         id="sort_dir"
         name="sort_dir"
         aria-label="Direccion del orden"
         label="Direccion"
         labelPlacement="inside"
         defaultSelectedKeys={[selectedSortDir]}
-        classNames={selectClassNames}
       >
         <SelectItem key="asc">Menor a mayor</SelectItem>
         <SelectItem key="desc">Mayor a menor</SelectItem>
-      </Select>
+      </AdminSelect>
 
-      <Select
+      <AdminSelect
         id="page_size"
         name="page_size"
         aria-label="Cantidad por pagina"
         label="Por pagina"
         labelPlacement="inside"
         defaultSelectedKeys={[String(selectedPageSize)]}
-        classNames={selectClassNames}
       >
         {ADMIN_APPOINTMENTS_PAGE_SIZE_OPTIONS.map((value) => (
           <SelectItem key={String(value)}>{`${value} por pagina`}</SelectItem>
         ))}
-      </Select>
+      </AdminSelect>
 
       <div className="flex items-end md:col-span-2 xl:col-span-4 xl:justify-end">
         <Button

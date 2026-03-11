@@ -1,4 +1,4 @@
-import { Button } from '@heroui/button';
+﻿import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import { Input, Textarea } from '@heroui/input';
@@ -7,6 +7,7 @@ import { updateModelInternalNotesAction } from '@/app/admin/actions';
 import { AdminModelsViewSwitcher } from '@/components/admin/models-view-switcher';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { buildAdminHref } from '@/lib/workspace-routes';
+import { Container } from '@/components/heroui/container';
 
 interface ModelosAdminPageProps {
   searchParams: Promise<{
@@ -87,7 +88,7 @@ export default async function ModelosAdminPage({ searchParams }: ModelosAdminPag
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="pageHeader" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Modelos</p>
@@ -126,7 +127,7 @@ export default async function ModelosAdminPage({ searchParams }: ModelosAdminPag
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       {params.ok ? <p className="status-banner success">{params.ok}</p> : null}
       {params.error ? <p className="status-banner error">{params.error}</p> : null}

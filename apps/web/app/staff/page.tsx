@@ -1,11 +1,15 @@
 import { formatCurrency } from '@navaja/shared';
 import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
-import { createManualAppointmentAction, createStaffTimeOffRequestAction } from '@/app/admin/actions';
+import {
+  createManualAppointmentAction,
+  createStaffTimeOffRequestAction,
+} from '@/app/admin/actions';
 import { requireStaff } from '@/lib/auth';
 import { getStaffPerformanceDetail } from '@/lib/metrics';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isPendingTimeOffReason, stripPendingTimeOffReason } from '@/lib/time-off-requests';
+import { Container } from '@/components/heroui/container';
 
 const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
@@ -82,59 +86,70 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
   const end = new Date(start);
   end.setUTCDate(end.getUTCDate() + 7);
 
-  const [appointmentsResult, workingHoursResult, timeOffResult, coursesResult, staffResult, servicesResult, performance] =
-    await Promise.all([
-      supabase
-        .from('appointments')
-        .select('id, start_at, end_at, status, payment_intent_id, customer_name_snapshot, customer_phone_snapshot, services(name), customers(name, phone), notes')
-        .eq('staff_id', ctx.staffId)
-        .gte('start_at', start.toISOString())
-        .lt('start_at', end.toISOString())
-        .order('start_at'),
-      supabase
-        .from('working_hours')
-        .select('id, staff_id, day_of_week, start_time, end_time, staff(name)')
-        .eq('shop_id', ctx.shopId)
-        .order('day_of_week'),
-      supabase
-        .from('time_off')
-        .select('id, staff_id, start_at, end_at, reason, created_at, staff(name)')
-        .eq('shop_id', ctx.shopId)
-        .order('start_at', { ascending: false })
-        .limit(20),
-      supabase
-        .from('courses')
-        .select('id, title, level, duration_hours, price_cents')
-        .eq('shop_id', ctx.shopId)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(6),
-      supabase
-        .from('staff')
-        .select('id, name')
-        .eq('shop_id', ctx.shopId)
-        .eq('is_active', true)
-        .order('name'),
-      supabase
-        .from('services')
-        .select('id, name')
-        .eq('shop_id', ctx.shopId)
-        .eq('is_active', true)
-        .order('name'),
-      getStaffPerformanceDetail(
-        ctx.staffId,
-        {
-          range: 'last7',
-        },
-        ctx.shopId,
-      ).catch(() => null),
-    ]);
+  const [
+    appointmentsResult,
+    workingHoursResult,
+    timeOffResult,
+    coursesResult,
+    staffResult,
+    servicesResult,
+    performance,
+  ] = await Promise.all([
+    supabase
+      .from('appointments')
+      .select(
+        'id, start_at, end_at, status, payment_intent_id, customer_name_snapshot, customer_phone_snapshot, services(name), customers(name, phone), notes',
+      )
+      .eq('staff_id', ctx.staffId)
+      .gte('start_at', start.toISOString())
+      .lt('start_at', end.toISOString())
+      .order('start_at'),
+    supabase
+      .from('working_hours')
+      .select('id, staff_id, day_of_week, start_time, end_time, staff(name)')
+      .eq('shop_id', ctx.shopId)
+      .order('day_of_week'),
+    supabase
+      .from('time_off')
+      .select('id, staff_id, start_at, end_at, reason, created_at, staff(name)')
+      .eq('shop_id', ctx.shopId)
+      .order('start_at', { ascending: false })
+      .limit(20),
+    supabase
+      .from('courses')
+      .select('id, title, level, duration_hours, price_cents')
+      .eq('shop_id', ctx.shopId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(6),
+    supabase
+      .from('staff')
+      .select('id, name')
+      .eq('shop_id', ctx.shopId)
+      .eq('is_active', true)
+      .order('name'),
+    supabase
+      .from('services')
+      .select('id, name')
+      .eq('shop_id', ctx.shopId)
+      .eq('is_active', true)
+      .order('name'),
+    getStaffPerformanceDetail(
+      ctx.staffId,
+      {
+        range: 'last7',
+      },
+      ctx.shopId,
+    ).catch(() => null),
+  ]);
 
   const appointments = appointmentsResult.data || [];
   const paymentIntentIds = Array.from(
     new Set(
       appointments
-        .map((item) => String((item as { payment_intent_id?: string | null }).payment_intent_id || '').trim())
+        .map((item) =>
+          String((item as { payment_intent_id?: string | null }).payment_intent_id || '').trim(),
+        )
         .filter(Boolean),
     ),
   );
@@ -149,7 +164,9 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
     (paymentIntents || []).forEach((item) => {
       const row = item as PaymentIntentStatusItem;
       const intentId = String(row.id || '').trim();
-      const status = String(row.status || '').trim().toLowerCase();
+      const status = String(row.status || '')
+        .trim()
+        .toLowerCase();
       if (intentId && status) {
         paymentStatusByIntentId.set(intentId, status);
       }
@@ -188,16 +205,18 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
 
   const myPendingTimeOff = timeOffRows.filter(
     (item) =>
-      String(item.staff_id || '') === ctx.staffId && isPendingTimeOffReason(item.reason as string | null),
+      String(item.staff_id || '') === ctx.staffId &&
+      isPendingTimeOffReason(item.reason as string | null),
   );
   const myApprovedTimeOff = timeOffRows.filter(
     (item) =>
-      String(item.staff_id || '') === ctx.staffId && !isPendingTimeOffReason(item.reason as string | null),
+      String(item.staff_id || '') === ctx.staffId &&
+      !isPendingTimeOffReason(item.reason as string | null),
   );
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-8">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-8">
         <div className="relative z-10">
           <h1 className="font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.1rem] dark:text-slate-100">
             Panel de staff
@@ -207,7 +226,7 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
             metricas propias, horarios del equipo y solicitudes de ausencia.
           </p>
         </div>
-      </div>
+      </Container>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="data-card rounded-[1.7rem] border-0 shadow-none">
@@ -357,7 +376,10 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
             </p>
           ) : null}
 
-          <form action={createManualAppointmentAction} className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <form
+            action={createManualAppointmentAction}
+            className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4"
+          >
             <input type="hidden" name="shop_id" value={ctx.shopId} />
 
             <select
@@ -467,10 +489,15 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
             ) : null}
 
             {appointments.map((item) => {
-              const paymentStatus = paymentStatusByIntentId.get(
-                String((item as { payment_intent_id?: string | null }).payment_intent_id || '').trim(),
-              ) || null;
-              const normalizedPaymentStatus = String(paymentStatus || '').trim().toLowerCase();
+              const paymentStatus =
+                paymentStatusByIntentId.get(
+                  String(
+                    (item as { payment_intent_id?: string | null }).payment_intent_id || '',
+                  ).trim(),
+                ) || null;
+              const normalizedPaymentStatus = String(paymentStatus || '')
+                .trim()
+                .toLowerCase();
               const paymentLabel = normalizedPaymentStatus
                 ? paymentStatusLabel[normalizedPaymentStatus] || normalizedPaymentStatus
                 : 'Sin pago online';
@@ -508,7 +535,8 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
                     )}{' '}
                     -{' '}
                     {String(
-                      (item as { customer_phone_snapshot?: string | null }).customer_phone_snapshot ||
+                      (item as { customer_phone_snapshot?: string | null })
+                        .customer_phone_snapshot ||
                         (item.customers as { phone?: string } | null)?.phone ||
                         'Sin telefono',
                     )}
@@ -562,9 +590,7 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
 
         <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
           <CardBody className="p-5">
-            <h3 className="text-xl font-semibold text-ink dark:text-slate-100">
-              Mis ausencias
-            </h3>
+            <h3 className="text-xl font-semibold text-ink dark:text-slate-100">Mis ausencias</h3>
             <p className="text-sm text-slate/80 dark:text-slate-300">
               Las solicitudes nuevas quedan pendientes hasta que el admin las apruebe.
             </p>
@@ -628,8 +654,8 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
             Cursos activos del local
           </h3>
           <p className="text-sm text-slate/80 dark:text-slate-300">
-            El sistema todavia no modela asignacion de profesor por curso; por ahora ves el
-            catalogo activo del workspace en modo lectura.
+            El sistema todavia no modela asignacion de profesor por curso; por ahora ves el catalogo
+            activo del workspace en modo lectura.
           </p>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">

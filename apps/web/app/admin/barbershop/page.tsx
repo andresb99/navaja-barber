@@ -1,32 +1,19 @@
-import Link from 'next/link';
-import { Card, CardBody } from '@heroui/card';
-import {
-  BadgeCheck,
-  CreditCard,
-  Globe,
-  MapPin,
-  ShieldCheck,
-  type LucideIcon,
-} from 'lucide-react';
+﻿import { Card, CardBody, Chip, Button } from '@heroui/react';
+import { BadgeCheck, CreditCard, Globe, MapPin, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { AdminBarbershopSettingsForm } from '@/components/admin/barbershop-settings-form';
 import { CustomDomainSettingsForm } from '@/components/admin/custom-domain-settings-form';
 import { MercadoPagoSettingsPanel } from '@/components/admin/mercadopago-settings-panel';
-import { SubscriptionBillingPanel } from '@/components/admin/subscription-billing-panel';
 import { requireAdmin } from '@/lib/auth';
 import { buildShopHref } from '@/lib/shop-links';
 import { getShopMercadoPagoAccountSummary } from '@/lib/shop-payment-accounts.server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import {
-  getSubscriptionPlanDescriptor,
-  type SubscriptionStatus,
-  type SubscriptionTier,
-} from '@/lib/subscription-plans';
+import { type SubscriptionTier } from '@/lib/subscription-plans';
 import { buildAdminHref } from '@/lib/workspace-routes';
+import { Container } from '@/components/heroui/container';
 
 interface AdminBarbershopSettingsPageProps {
   searchParams: Promise<{
     shop?: string;
-    billing?: string;
     payments?: string;
   }>;
 }
@@ -64,7 +51,6 @@ interface GalleryRow {
 interface SubscriptionRow {
   shop_id: string;
   plan: SubscriptionTier;
-  status: SubscriptionStatus;
 }
 
 type PanelMessageTone = 'success' | 'warning' | 'error';
@@ -90,34 +76,13 @@ function resolveCurrentPlan(value: string | null | undefined): SubscriptionTier 
   return 'free';
 }
 
-function resolveCurrentStatus(value: string | null | undefined): SubscriptionStatus {
-  const normalized = String(value || '').trim();
-  if (
-    normalized === 'active' ||
-    normalized === 'trialing' ||
-    normalized === 'past_due' ||
-    normalized === 'cancelled'
-  ) {
-    return normalized;
-  }
-
-  return 'active';
-}
-
-function resolveBillingMessage(value: string | null | undefined) {
-  const normalized = String(value || '').trim().toLowerCase();
-  if (normalized === 'success' || normalized === 'pending' || normalized === 'failure') {
-    return normalized;
-  }
-
-  return null;
-}
-
 function resolvePaymentsMessage(value: string | null | undefined): {
   text: string;
   tone: PanelMessageTone;
 } | null {
-  const normalized = String(value || '').trim().toLowerCase();
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase();
   if (normalized === 'connected') {
     return {
       text: 'Mercado Pago quedo conectado. Las nuevas reservas online se cobraran en la cuenta del dueno.',
@@ -164,7 +129,9 @@ function resolvePaymentsMessage(value: string | null | undefined): {
 }
 
 function resolveDomainLabel(status: string | null | undefined) {
-  const normalized = String(status || '').trim().toLowerCase();
+  const normalized = String(status || '')
+    .trim()
+    .toLowerCase();
   if (normalized === 'active') {
     return 'Activo';
   }
@@ -182,22 +149,6 @@ function resolveDomainLabel(status: string | null | undefined) {
   }
 
   return 'Sin dominio';
-}
-
-function resolveSubscriptionStatusLabel(status: SubscriptionStatus) {
-  if (status === 'trialing') {
-    return 'En prueba';
-  }
-
-  if (status === 'past_due') {
-    return 'Pago pendiente';
-  }
-
-  if (status === 'cancelled') {
-    return 'Cancelado';
-  }
-
-  return 'Activo';
 }
 
 function resolveRefundModeLabel(value: string | null | undefined) {
@@ -226,8 +177,8 @@ function getProfileCompletionScore(input: {
     Boolean(String(input.description || '').trim()),
     Boolean(
       String(input.location?.label || '').trim() ||
-        String(input.location?.city || '').trim() ||
-        String(input.location?.region || '').trim(),
+      String(input.location?.city || '').trim() ||
+      String(input.location?.region || '').trim(),
     ),
     input.galleryCount >= 1,
     input.galleryCount >= 3,
@@ -242,23 +193,22 @@ function getProfileCompletionScore(input: {
 
 function SummaryCard({ icon: Icon, label, value, detail }: SummaryCardProps) {
   return (
-    <article className="data-card rounded-[1.7rem] p-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-            {label}
-          </p>
-          <p className="mt-3 text-2xl font-semibold tracking-tight text-ink dark:text-slate-100">
-            {value}
-          </p>
-          <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">{detail}</p>
+    <Card className="admin-premium-card" shadow="none">
+      <CardBody className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary/80">
+              {label}
+            </p>
+            <p className="text-2xl font-bold tracking-tight text-foreground">{value}</p>
+            <p className="text-sm text-default-500 leading-relaxed">{detail}</p>
+          </div>
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-inner">
+            <Icon className="h-6 w-6" />
+          </div>
         </div>
-
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.1rem] border border-white/65 bg-white/70 text-ink shadow-[0_16px_28px_-22px_rgba(15,23,42,0.18)] dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </article>
+      </CardBody>
+    </Card>
   );
 }
 
@@ -269,33 +219,38 @@ export default async function AdminBarbershopSettingsPage({
   const ctx = await requireAdmin({ shopSlug: params.shop });
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: shop }, { data: location }, { data: gallery }, { data: subscription }, paymentAccount] =
-    await Promise.all([
-      supabase
-        .from('shops')
-        .select(
-          'id, name, slug, timezone, phone, description, cover_image_url, custom_domain, domain_status, domain_verified_at, booking_cancellation_notice_hours, booking_staff_cancellation_refund_mode, booking_cancellation_policy_text',
-        )
-        .eq('id', ctx.shopId)
-        .maybeSingle(),
-      supabase
-        .from('shop_locations')
-        .select('label, city, region, country_code, latitude, longitude')
-        .eq('shop_id', ctx.shopId)
-        .maybeSingle(),
-      supabase
-        .from('shop_gallery_images')
-        .select('id, public_url, sort_order, created_at')
-        .eq('shop_id', ctx.shopId)
-        .order('sort_order')
-        .order('created_at'),
-      supabase
-        .from('subscriptions')
-        .select('shop_id, plan, status')
-        .eq('shop_id', ctx.shopId)
-        .maybeSingle(),
-      getShopMercadoPagoAccountSummary(ctx.shopId),
-    ]);
+  const [
+    { data: shop },
+    { data: location },
+    { data: gallery },
+    { data: subscription },
+    paymentAccount,
+  ] = await Promise.all([
+    supabase
+      .from('shops')
+      .select(
+        'id, name, slug, timezone, phone, description, cover_image_url, custom_domain, domain_status, domain_verified_at, booking_cancellation_notice_hours, booking_staff_cancellation_refund_mode, booking_cancellation_policy_text',
+      )
+      .eq('id', ctx.shopId)
+      .maybeSingle(),
+    supabase
+      .from('shop_locations')
+      .select('label, city, region, country_code, latitude, longitude')
+      .eq('shop_id', ctx.shopId)
+      .maybeSingle(),
+    supabase
+      .from('shop_gallery_images')
+      .select('id, public_url, sort_order, created_at')
+      .eq('shop_id', ctx.shopId)
+      .order('sort_order')
+      .order('created_at'),
+    supabase
+      .from('subscriptions')
+      .select('shop_id, plan, status')
+      .eq('shop_id', ctx.shopId)
+      .maybeSingle(),
+    getShopMercadoPagoAccountSummary(ctx.shopId),
+  ]);
 
   const shopData = (shop as ShopRow | null) || null;
   const locationData = (location as LocationRow | null) || null;
@@ -304,10 +259,7 @@ export default async function AdminBarbershopSettingsPage({
   );
   const subscriptionData = (subscription as SubscriptionRow | null) || null;
   const currentPlan = resolveCurrentPlan(subscriptionData?.plan);
-  const currentStatus = resolveCurrentStatus(subscriptionData?.status);
-  const billingMessage = resolveBillingMessage(params.billing);
   const paymentsMessage = resolvePaymentsMessage(params.payments);
-  const currentPlanDescriptor = getSubscriptionPlanDescriptor(currentPlan);
   const publicProfileHref = buildShopHref(shopData?.slug || ctx.shopSlug);
   const publicBookingsHref = buildShopHref(shopData?.slug || ctx.shopSlug, 'book');
   const profileScore = getProfileCompletionScore({
@@ -316,7 +268,9 @@ export default async function AdminBarbershopSettingsPage({
     galleryCount: galleryRows.length,
     phone: shopData?.phone || null,
   });
-  const isPaymentsReady = Boolean(paymentAccount?.isActive && paymentAccount?.status === 'connected');
+  const isPaymentsReady = Boolean(
+    paymentAccount?.isActive && paymentAccount?.status === 'connected',
+  );
   const layoutZones = [
     {
       title: 'Perfil publico',
@@ -328,74 +282,93 @@ export default async function AdminBarbershopSettingsPage({
     },
     {
       title: 'Comercial',
-      detail: 'Dominio, Mercado Pago y plan en una columna separada del formulario.',
+      detail: 'Dominio y cobros en una columna separada del formulario.',
     },
   ];
 
   return (
-    <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
-        <div className="relative z-10 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(300px,0.9fr)] xl:items-end">
-          <div>
-            <p className="hero-eyebrow">Configuracion del local</p>
-            <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.35rem] dark:text-slate-100">
-              {ctx.shopName}: perfil, reservas y cobros
-            </h1>
-            <p className="mt-3 max-w-3xl text-sm text-slate/80 dark:text-slate-300">
-              Reorganizamos esta pantalla para separar lo que ve el cliente de la configuracion
-              operativa y comercial. El perfil publico vive arriba del flujo, y dominio, pagos y
-              suscripcion quedan en su propio carril.
-            </p>
+    <section className="space-y-8">
+      <Container
+        variant="pageHeader"
+        className="relative overflow-hidden rounded-[2.5rem] px-8 py-10 md:px-12 md:py-14"
+      >
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-sky-400/18 blur-3xl pointer-events-none dark:bg-[hsl(var(--primary)/0.16)]" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-72 w-72 rounded-full bg-rose-400/16 blur-3xl pointer-events-none dark:bg-[hsl(var(--destructive)/0.14)]" />
 
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link
+        <div className="relative z-10 grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] xl:items-center">
+          <div className="space-y-6">
+            <div>
+              <Chip
+                size="sm"
+                color="primary"
+                variant="flat"
+                className="mb-4 font-medium tracking-wide"
+              >
+                Configuracion del local
+              </Chip>
+              <h1 className="text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
+                {ctx.shopName}
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-relaxed text-default-500">
+                Gestiona el perfil publico de tu barberia, reglas de reserva, dominio personalizado
+                y cuentas de cobro, todo en un solo lugar.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Button
+                as="a"
                 href={publicProfileHref}
                 target="_blank"
                 rel="noreferrer"
-                className="action-primary inline-flex items-center rounded-2xl px-5 py-3 text-sm font-semibold no-underline"
+                color="primary"
+                variant="shadow"
+                className="font-semibold"
+                startContent={<Globe className="h-4 w-4" />}
               >
                 Ver perfil publico
-              </Link>
-              <Link
+              </Button>
+              <Button
+                as="a"
                 href={publicBookingsHref}
                 target="_blank"
                 rel="noreferrer"
-                className="action-secondary inline-flex items-center rounded-2xl px-5 py-3 text-sm font-semibold no-underline"
+                variant="flat"
+                className="bg-default-100 font-semibold text-foreground hover:bg-default-200"
               >
                 Abrir reservas
-              </Link>
-              <Link
+              </Button>
+              <Button
+                as="a"
                 href={buildAdminHref('/admin', ctx.shopSlug)}
-                className="action-secondary inline-flex items-center rounded-2xl px-5 py-3 text-sm font-semibold no-underline"
+                variant="light"
+                className="font-medium text-default-500"
               >
                 Volver al panel
-              </Link>
+              </Button>
             </div>
           </div>
 
-          <div className="surface-card rounded-[1.8rem] p-4 md:p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-              Nueva estructura
-            </p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-              {layoutZones.map((zone) => (
-                <div
-                  key={zone.title}
-                  className="rounded-[1.35rem] border border-white/65 bg-white/52 p-4 dark:border-white/10 dark:bg-white/[0.04]"
-                >
-                  <p className="text-sm font-semibold text-ink dark:text-slate-100">
-                    {zone.title}
-                  </p>
-                  <p className="mt-1 text-xs leading-6 text-slate/80 dark:text-slate-300">
-                    {zone.detail}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Card className="admin-premium-card" shadow="none">
+            <CardBody className="p-6">
+              <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-primary">
+                Estructura de la pagina
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                {layoutZones.map((zone) => (
+                  <div
+                    key={zone.title}
+                    className="flex flex-col gap-1 rounded-2xl border border-default-200/50 bg-background/50 p-4 transition-colors hover:bg-default-100/50"
+                  >
+                    <p className="text-sm font-bold text-foreground">{zone.title}</p>
+                    <p className="text-xs leading-relaxed text-default-500">{zone.detail}</p>
+                  </div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
         </div>
-      </div>
-
+      </Container>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
           icon={BadgeCheck}
@@ -421,32 +394,44 @@ export default async function AdminBarbershopSettingsPage({
         />
         <SummaryCard
           icon={CreditCard}
-          label="Plan"
-          value={currentPlanDescriptor.name}
-          detail={`${resolveSubscriptionStatusLabel(currentStatus)} - ${isPaymentsReady ? 'Mercado Pago listo' : 'Cobros pendientes'}`}
+          label="Cobros"
+          value={isPaymentsReady ? 'Listos' : 'Pendientes'}
+          detail={
+            isPaymentsReady
+              ? 'Mercado Pago conectado para cobrar reservas online.'
+              : 'Conecta una cuenta para habilitar cobros online.'
+          }
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.9fr)]">
-        <Card className="soft-panel rounded-[1.95rem] border-0 shadow-none">
-          <CardBody className="space-y-5 p-5 md:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="hero-eyebrow">Perfil y operacion</p>
-                <h2 className="mt-2 font-[family-name:var(--font-heading)] text-2xl font-semibold text-ink dark:text-slate-100">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.9fr)]">
+        <Card className="border-none bg-transparent shadow-none">
+          <CardBody className="p-0 space-y-6">
+            <div className="flex flex-wrap items-start justify-between gap-4 px-2">
+              <div className="max-w-xl">
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  color="primary"
+                  className="mb-3 font-medium tracking-wide"
+                >
+                  Perfil y operacion
+                </Chip>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
                   Lo que define tu storefront
                 </h2>
-                <p className="mt-2 max-w-3xl text-sm text-slate/80 dark:text-slate-300">
+                <p className="mt-2 text-sm text-default-500 leading-relaxed">
                   Nombre, slug, fotos, ubicacion y politicas visibles para clientes. Todo lo que
                   impacta la lectura del perfil publico y el flujo de reserva se edita aqui.
                 </p>
               </div>
-              <span
-                className="meta-chip"
-                data-tone={profileScore.completed >= 4 ? 'success' : undefined}
+              <Chip
+                color={profileScore.completed >= 4 ? 'success' : 'default'}
+                variant={profileScore.completed >= 4 ? 'flat' : 'faded'}
+                className="font-medium mt-1"
               >
                 {profileScore.completed}/{profileScore.total} listo
-              </span>
+              </Chip>
             </div>
 
             <AdminBarbershopSettingsForm
@@ -480,18 +465,25 @@ export default async function AdminBarbershopSettingsPage({
           </CardBody>
         </Card>
 
-        <div className="space-y-4">
-          <div className="soft-panel rounded-[1.9rem] px-5 py-5 md:px-6">
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[1.1rem] border border-white/65 bg-white/70 text-ink shadow-[0_16px_28px_-22px_rgba(15,23,42,0.18)] dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
-                <ShieldCheck className="h-5 w-5" />
+        <div className="space-y-6">
+          <div className="admin-premium-accent rounded-[2rem] px-6 py-6 md:px-8">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/20 text-primary shadow-inner">
+                <ShieldCheck className="h-6 w-6" />
               </div>
               <div>
-                <p className="hero-eyebrow">Comercial y canales</p>
-                <h2 className="mt-2 font-[family-name:var(--font-heading)] text-2xl font-semibold text-ink dark:text-slate-100">
-                  Dominio, pagos y plan
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  color="primary"
+                  className="mb-3 font-medium tracking-wide"
+                >
+                  Comercial y canales
+                </Chip>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                  Dominio y cobros
                 </h2>
-                <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
+                <p className="mt-2 text-sm text-default-500 leading-relaxed">
                   Esta columna separa la capa comercial del perfil publico para que la pagina no se
                   lea como un unico formulario gigante.
                 </p>
@@ -499,7 +491,7 @@ export default async function AdminBarbershopSettingsPage({
             </div>
           </div>
 
-          <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
+          <Card className="admin-premium-card" shadow="none">
             <CardBody className="space-y-5 p-5 md:p-6">
               <div>
                 <p className="hero-eyebrow">Custom Domain</p>
@@ -523,7 +515,7 @@ export default async function AdminBarbershopSettingsPage({
             </CardBody>
           </Card>
 
-          <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
+          <Card className="admin-premium-card" shadow="none">
             <CardBody className="space-y-5 p-5 md:p-6">
               <div>
                 <p className="hero-eyebrow">Pagos online</p>
@@ -541,28 +533,6 @@ export default async function AdminBarbershopSettingsPage({
                 account={paymentAccount}
                 timeZone={shopData?.timezone || ctx.shopTimezone}
                 message={paymentsMessage}
-              />
-            </CardBody>
-          </Card>
-
-          <Card className="soft-panel rounded-[1.9rem] border-0 shadow-none">
-            <CardBody className="space-y-5 p-5 md:p-6">
-              <div>
-                <p className="hero-eyebrow">Facturacion</p>
-                <h3 className="mt-2 font-[family-name:var(--font-heading)] text-xl font-semibold text-ink dark:text-slate-100">
-                  Plan y checkout
-                </h3>
-                <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-                  Cambia o renueva tu suscripcion desde aqui sin mezclarlo con la edicion del
-                  storefront.
-                </p>
-              </div>
-
-              <SubscriptionBillingPanel
-                shopId={ctx.shopId}
-                currentPlan={currentPlan}
-                currentStatus={currentStatus}
-                billingMessage={billingMessage}
               />
             </CardBody>
           </Card>

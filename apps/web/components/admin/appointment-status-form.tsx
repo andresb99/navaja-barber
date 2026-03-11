@@ -2,8 +2,9 @@
 
 import { useState, useTransition, type FormEvent } from 'react';
 import { Button } from '@heroui/button';
-import { Select, SelectItem } from '@heroui/select';
+import { SelectItem } from '@heroui/select';
 import { markAppointmentCompletedAction, updateAppointmentStatusAction } from '@/app/admin/actions';
+import { AdminSelect } from '@/components/heroui/admin-select';
 
 interface AdminAppointmentStatusFormProps {
   appointmentId: string;
@@ -11,14 +12,6 @@ interface AdminAppointmentStatusFormProps {
   shopId: string;
   compact?: boolean;
 }
-
-const compactSelectClassNames = {
-  label: 'text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-300/90',
-  trigger:
-    'h-11 min-h-[44px] rounded-xl border border-white/12 bg-slate-900/55 shadow-none',
-  value: 'text-sm text-slate-100',
-  selectorIcon: 'text-slate-300',
-} as const;
 
 const compactSubmitClass =
   'action-secondary h-10 min-h-[40px] w-full rounded-xl px-3 text-xs font-semibold leading-none';
@@ -66,21 +59,21 @@ export function AdminAppointmentStatusForm({
       <div className={compact ? 'grid w-full gap-2' : 'flex flex-wrap items-stretch gap-2'}>
         <input type="hidden" name="appointment_id" value={appointmentId} />
         <input type="hidden" name="shop_id" value={shopId} />
-        <Select
+        <AdminSelect
           name="status"
           aria-label="Actualizar estado"
           label="Estado"
           labelPlacement={compact ? 'outside' : 'inside'}
           defaultSelectedKeys={[status]}
           size={compact ? 'sm' : 'md'}
+          uiVariant={compact ? 'compact' : 'default'}
           className={compact ? 'w-full min-w-[15rem]' : 'w-48 shrink-0'}
-          {...(compact ? { classNames: compactSelectClassNames } : {})}
         >
           <SelectItem key="confirmed">Confirmada</SelectItem>
           <SelectItem key="cancelled">Cancelada</SelectItem>
           <SelectItem key="no_show">No asistio</SelectItem>
           <SelectItem key="done">Realizada</SelectItem>
-        </Select>
+        </AdminSelect>
         <Button
           type="submit"
           variant="flat"

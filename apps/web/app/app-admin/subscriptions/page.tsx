@@ -1,6 +1,7 @@
-import { requirePlatformAdmin } from '@/lib/auth';
+﻿import { requirePlatformAdmin } from '@/lib/auth';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { setShopSubscriptionForTestingAction } from './actions';
+import { Container } from '@/components/heroui/container';
 
 interface ShopRow {
   id: string;
@@ -32,7 +33,7 @@ export default async function AppAdminSubscriptionsPage() {
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="pageHeader" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10">
           <p className="hero-eyebrow">App admin</p>
           <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.2rem] dark:text-slate-100">
@@ -42,7 +43,7 @@ export default async function AppAdminSubscriptionsPage() {
             Cambia plan/estado por barberia para validar flows de pago, reservas y permisos.
           </p>
         </div>
-      </div>
+      </Container>
 
       <div className="grid gap-4">
         {((shops || []) as ShopRow[]).map((shop) => {

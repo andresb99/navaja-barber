@@ -2,11 +2,12 @@
 
 import { Button } from '@heroui/button';
 import { Input, Textarea } from '@heroui/input';
-import { Select, SelectItem } from '@heroui/select';
+import { SelectItem } from '@heroui/select';
 import {
   updateModelApplicationStatusAction,
   upsertModelRequirementsAction,
 } from '@/app/admin/actions';
+import { AdminSelect } from '@/components/heroui/admin-select';
 
 interface AdminModelRequirementsFormProps {
   shopId: string;
@@ -58,7 +59,7 @@ export function AdminModelRequirementsForm({
         defaultValue={String(modelsNeeded)}
         required
       />
-      <Select
+      <AdminSelect
         id="hair_length_category"
         name="hair_length_category"
         aria-label="Largo de pelo"
@@ -70,7 +71,7 @@ export function AdminModelRequirementsForm({
         <SelectItem key="corto">Corto</SelectItem>
         <SelectItem key="medio">Medio</SelectItem>
         <SelectItem key="largo">Largo</SelectItem>
-      </Select>
+      </AdminSelect>
       <Input
         id="hair_type"
         name="hair_type"
@@ -79,7 +80,7 @@ export function AdminModelRequirementsForm({
         defaultValue={hairType}
         placeholder="Ej: lacio, rulos, mixto"
       />
-      <Select
+      <AdminSelect
         id="compensation_type"
         name="compensation_type"
         aria-label="Tipo de compensacion"
@@ -90,7 +91,7 @@ export function AdminModelRequirementsForm({
         <SelectItem key="gratis">Gratis</SelectItem>
         <SelectItem key="descuento">Descuento</SelectItem>
         <SelectItem key="pago">Pago</SelectItem>
-      </Select>
+      </AdminSelect>
       <Input
         id="compensation_value_cents"
         name="compensation_value_cents"
@@ -147,7 +148,7 @@ export function AdminModelApplicationStatusForm({
       <input type="hidden" name="application_id" value={applicationId} />
       <input type="hidden" name="shop_id" value={shopId} />
       <input type="hidden" name="shop_slug" value={shopSlug} />
-      <Select
+      <AdminSelect
         name="status"
         aria-label="Estado de postulacion"
         label="Estado"
@@ -158,7 +159,7 @@ export function AdminModelApplicationStatusForm({
         <SelectItem key="waitlist">Lista de espera</SelectItem>
         <SelectItem key="rejected">Rechazar</SelectItem>
         <SelectItem key="applied">Pendiente</SelectItem>
-      </Select>
+      </AdminSelect>
       <Input
         name="notes_internal"
         label="Nota interna"

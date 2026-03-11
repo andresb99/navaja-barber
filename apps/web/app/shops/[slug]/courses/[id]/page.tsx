@@ -6,6 +6,7 @@ import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
+import { Container } from '@/components/heroui/container';
 
 interface ShopCourseDetailsPageProps {
   params: Promise<{ slug: string; id: string }>;
@@ -136,7 +137,7 @@ export default async function ShopCourseDetailsPage({ params }: ShopCourseDetail
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Detalle del curso</p>
@@ -173,7 +174,7 @@ export default async function ShopCourseDetailsPage({ params }: ShopCourseDetail
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <div className="space-y-3">
         <h2 className="font-[family-name:var(--font-heading)] text-2xl text-ink dark:text-slate-100">

@@ -12,6 +12,7 @@ import {
 } from '@/lib/subscription-plans';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { buildAdminHref } from '@/lib/workspace-routes';
+import { Container } from '@/components/heroui/container';
 
 interface SubscriptionPageProps {
   searchParams: Promise<{
@@ -23,7 +24,7 @@ interface SubscriptionPageProps {
 export const metadata: Metadata = buildSitePageMetadata({
   title: 'Planes y precios',
   description:
-    'Compara los planes Free, Pro y Business para barberias, con reservas, operacion y dominios personalizados.',
+    'Gestiona la suscripcion de tu cuenta y compara los planes Free, Pro y Business para tu operacion.',
   path: '/suscripcion',
 });
 
@@ -72,7 +73,9 @@ function resolveCurrentStatus(value: string | null | undefined): SubscriptionSta
 }
 
 function resolveBillingMessage(value: string | null | undefined) {
-  const normalized = String(value || '').trim().toLowerCase();
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase();
   if (normalized === 'success' || normalized === 'pending' || normalized === 'failure') {
     return normalized;
   }
@@ -114,16 +117,16 @@ export default async function SubscriptionPage({ searchParams }: SubscriptionPag
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Suscripcion</p>
             <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.3rem] dark:text-slate-100">
-              Planes para cada etapa de tu barberia
+              Gestiona tu suscripcion desde la cuenta
             </h1>
             <p className="mt-3 text-sm text-slate/80 dark:text-slate-300">
-              Compara Free, Pro y Business. Si tienes permisos admin, puedes iniciar el checkout
-              ahora mismo desde esta pantalla.
+              Compara Free, Pro y Business. La suscripcion vive en tu cuenta y, si tienes una
+              barberia administrable seleccionada, puedes iniciar el checkout desde esta pantalla.
             </p>
           </div>
 
@@ -144,7 +147,7 @@ export default async function SubscriptionPage({ searchParams }: SubscriptionPag
             })}
           </div>
         </div>
-      </div>
+      </Container>
 
       <div className="grid gap-3 md:grid-cols-3">
         {PUBLIC_MARKETPLACE_PLANS.map((planId) => {
@@ -191,7 +194,7 @@ export default async function SubscriptionPage({ searchParams }: SubscriptionPag
                 Inicia sesion para suscribirte
               </p>
               <p className="mt-1 text-sm text-slate/75 dark:text-slate-300">
-                Crea tu cuenta o ingresa para activar Pro o Business en tu barberia.
+                Crea tu cuenta o ingresa para activar Pro o Business desde tu espacio de cuenta.
               </p>
             </div>
             <Link
@@ -210,10 +213,11 @@ export default async function SubscriptionPage({ searchParams }: SubscriptionPag
             <div>
               <p className="hero-eyebrow">Checkout</p>
               <h2 className="mt-2 font-[family-name:var(--font-heading)] text-2xl font-semibold text-ink dark:text-slate-100">
-                Gestionar suscripcion de {ctx.shopName || 'tu barberia'}
+                Suscripcion de tu cuenta
               </h2>
               <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-                Cambia entre Pro y Business e inicia el pago en Mercado Pago.
+                Cambia entre Pro y Business e inicia el pago en Mercado Pago para{' '}
+                {ctx.shopName || 'la barberia seleccionada'}.
               </p>
             </div>
 
@@ -232,12 +236,12 @@ export default async function SubscriptionPage({ searchParams }: SubscriptionPag
           <CardBody className="flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between md:p-6">
             <div>
               <p className="text-lg font-semibold text-ink dark:text-slate-100">
-                Necesitas un workspace admin para suscribirte
+                Tu cuenta necesita una barberia administrable
               </p>
               <p className="mt-1 text-sm text-slate/75 dark:text-slate-300">
                 {canAdminAnyWorkspace
-                  ? 'Selecciona una barberia donde seas admin y luego activa el plan.'
-                  : 'Primero crea una barberia para poder activar un plan.'}
+                  ? 'Selecciona una barberia donde seas admin y luego activa el plan desde esta cuenta.'
+                  : 'Primero crea una barberia para poder activar un plan desde tu cuenta.'}
               </p>
             </div>
             <Link

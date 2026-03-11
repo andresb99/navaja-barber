@@ -20,6 +20,7 @@ export default async function AdminNotificationsPage({
       shopSlug={ctx.shopSlug}
       shopTimezone={ctx.shopTimezone}
       pendingMembershipNotifications={notifications.pendingMembershipNotifications}
+      pendingPaymentNotifications={notifications.pendingPaymentNotifications}
       pendingTimeOffRequests={notifications.pendingTimeOffRequests}
       pendingMembershipCount={notifications.pendingMembershipCount}
       pendingTimeOffCount={notifications.pendingTimeOffCount}

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { centsToCurrencyInput } from '@navaja/shared';
 import { Button } from '@heroui/button';
@@ -12,6 +12,7 @@ import { updateModelApplicationStatusAction } from '@/app/admin/actions';
 import { requireAdmin } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { buildAdminHref } from '@/lib/workspace-routes';
+import { Container } from '@/components/heroui/container';
 
 interface SessionModelosPageProps {
   params: Promise<{ sessionId: string }>;
@@ -68,7 +69,10 @@ export default async function SessionModelosPage({
     .eq('id', sessionId)
     .maybeSingle();
 
-  if (!session || String((session.courses as { shop_id?: string } | null)?.shop_id || '') !== ctx.shopId) {
+  if (
+    !session ||
+    String((session.courses as { shop_id?: string } | null)?.shop_id || '') !== ctx.shopId
+  ) {
     notFound();
   }
 
@@ -102,7 +106,7 @@ export default async function SessionModelosPage({
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="pageHeader" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="hero-eyebrow">Modelos por sesion</p>
@@ -122,7 +126,7 @@ export default async function SessionModelosPage({
             Volver a cursos
           </Link>
         </div>
-      </div>
+      </Container>
 
       {notices.ok ? <p className="status-banner success">{notices.ok}</p> : null}
       {notices.error ? <p className="status-banner error">{notices.error}</p> : null}

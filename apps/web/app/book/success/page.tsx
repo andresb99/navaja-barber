@@ -4,6 +4,7 @@ import { Button } from '@heroui/button';
 import { resolveBookingSuccessState, type BookingSuccessState } from '@/lib/booking-success-state';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
+import { Container } from '@/components/heroui/container';
 
 interface SuccessPageProps {
   searchParams: Promise<{
@@ -121,7 +122,7 @@ export default async function BookingSuccessPage({ searchParams }: SuccessPagePr
 
   return (
     <section className="mx-auto max-w-2xl">
-      <div className="section-hero px-6 py-8 md:px-8">
+      <Container variant="hero" className="px-6 py-8 md:px-8">
         <div className="relative z-10">
           <p className={eyebrowClassName}>
             <EyebrowIcon className="h-3.5 w-3.5" />
@@ -181,7 +182,7 @@ export default async function BookingSuccessPage({ searchParams }: SuccessPagePr
             </Button>
           </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }

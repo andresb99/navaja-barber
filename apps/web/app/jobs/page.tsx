@@ -5,6 +5,7 @@ import { PublicSectionEmptyState } from '@/components/public/public-section-empt
 import { buildShopHref } from '@/lib/shop-links';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
+import { Container } from '@/components/heroui/container';
 
 export const metadata: Metadata = buildSitePageMetadata({
   title: 'Trabajo en barberias',
@@ -28,7 +29,7 @@ export default async function JobsPage() {
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Empleo marketplace</p>
@@ -36,7 +37,8 @@ export default async function JobsPage() {
               Postulate a una barberia o deja tu CV en la bolsa general
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
-              El marketplace ya no te manda a una barberia arbitraria: puedes elegir destino o dejar tu perfil para toda la red.
+              El marketplace ya no te manda a una barberia arbitraria: puedes elegir destino o dejar
+              tu perfil para toda la red.
             </p>
           </div>
 
@@ -45,23 +47,29 @@ export default async function JobsPage() {
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Barberias
               </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">{shops.length}</p>
+              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                {shops.length}
+              </p>
             </div>
             <div className="stat-tile">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 Modalidad
               </p>
-              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">Directa o red</p>
+              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                Directa o red
+              </p>
             </div>
             <div className="stat-tile">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
                 CV
               </p>
-              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">Un solo upload</p>
+              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                Un solo upload
+              </p>
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <MarketplaceJobsForm
         shops={shops.map((shop) => ({

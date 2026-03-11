@@ -1,9 +1,10 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { Input } from '@heroui/input';
 import { formatCurrency } from '@navaja/shared';
 import { BarChart3, CalendarClock, Clock3, Store, type LucideIcon } from 'lucide-react';
+import { Container } from '@/components/heroui/container';
 
 interface ServiceWorkspaceItem {
   id: string;
@@ -33,8 +34,7 @@ interface AdminServicesWorkspaceProps {
 }
 
 const inputClassNames = {
-  label:
-    'text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400',
+  label: 'text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400',
   inputWrapper:
     'border border-white/65 bg-white/72 shadow-none transition data-[hover=true]:border-white/75 group-data-[focus=true]:border-sky-400 dark:border-white/10 dark:bg-white/[0.04]',
   input: 'text-sm text-ink dark:text-slate-100',
@@ -217,7 +217,7 @@ export function AdminServicesWorkspace({
 
   return (
     <section className="space-y-6">
-      <div className="section-hero px-6 py-7 md:px-8 md:py-9">
+      <Container variant="pageHeader" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 space-y-6">
           <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr] xl:items-end">
             <div>
@@ -267,7 +267,7 @@ export function AdminServicesWorkspace({
             </div>
           </div>
         </div>
-      </div>
+      </Container>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.88fr)]">
         <section
@@ -362,7 +362,7 @@ export function AdminServicesWorkspace({
 
         <aside className="order-1 space-y-5 xl:order-2">
           <div id="new-service">
-            <Card className="surface-card rounded-[1.9rem] border-0 shadow-none">
+            <Container as={Card} variant="section" className="rounded-[1.9rem]" shadow="none">
               <CardBody className="p-5 md:p-6">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
@@ -377,7 +377,10 @@ export function AdminServicesWorkspace({
                       siendo el protagonista.
                     </p>
                   </div>
-                  <span className="meta-chip" data-tone={activeServicesCount > 0 ? 'success' : 'warning'}>
+                  <span
+                    className="meta-chip"
+                    data-tone={activeServicesCount > 0 ? 'success' : 'warning'}
+                  >
                     {activeServicesCount > 0 ? 'Booking listo' : 'Falta publicar'}
                   </span>
                 </div>
@@ -450,7 +453,7 @@ export function AdminServicesWorkspace({
                   </Button>
                 </form>
               </CardBody>
-            </Card>
+            </Container>
           </div>
 
           <section className="surface-card rounded-[1.9rem] p-5 md:p-6">
