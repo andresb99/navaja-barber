@@ -50,8 +50,7 @@ function readFileAsDataUrl(file: File) {
 const MAX_AVATAR_SIZE_BYTES = 2 * 1024 * 1024;
 
 const inputClassNames = {
-  base:
-    'profile-inline-field w-full outline-none group-data-[focus-visible=true]:outline-none group-data-[focus-visible=true]:ring-0',
+  base: 'profile-inline-field w-full outline-none group-data-[focus-visible=true]:outline-none group-data-[focus-visible=true]:ring-0',
   mainWrapper: 'w-full',
   inputWrapper:
     'min-h-12 rounded-2xl border px-2 shadow-none data-[hover=true]:translate-x-0 group-data-[focus-visible=true]:ring-0 group-data-[focus-visible=true]:ring-transparent group-data-[focus-visible=true]:ring-offset-0',
@@ -269,7 +268,9 @@ export function AccountProfileForm({
         setMessage('Perfil actualizado.');
         window.dispatchEvent(new CustomEvent('profile-updated'));
       } catch (requestError) {
-        setError(requestError instanceof Error ? requestError.message : 'No se pudo guardar el perfil.');
+        setError(
+          requestError instanceof Error ? requestError.message : 'No se pudo guardar el perfil.',
+        );
       }
     });
   }
@@ -285,9 +286,12 @@ export function AccountProfileForm({
             className="hidden"
             onChange={handleAvatarFileChange}
           />
-          <button
+          <Button
             type="button"
-            className="relative block rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brass/55"
+            isIconOnly
+            radius="full"
+            variant="light"
+            className="relative block h-auto w-auto overflow-visible rounded-full p-0 focus-visible:ring-2 focus-visible:ring-brass/55"
             onClick={() => fileInputRef.current?.click()}
             aria-label="Cambiar foto de perfil"
             title="Cambiar foto de perfil"
@@ -301,7 +305,7 @@ export function AccountProfileForm({
             <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/0 opacity-0 transition-[background-color,opacity] duration-150 md:group-hover:bg-black/35 md:group-hover:opacity-100">
               <Pencil className="h-4 w-4 text-white/92" />
             </span>
-          </button>
+          </Button>
         </div>
 
         <div className="min-w-0 flex-1">
@@ -330,15 +334,17 @@ export function AccountProfileForm({
               classNames={isEditingName ? editableInputClassNames : disabledInputClassNames}
               placeholder="Tu nombre"
             />
-            <button
+            <Button
               type="button"
+              isIconOnly
+              variant="light"
               className={`${editButtonClassName} ${isEditingName ? editButtonActiveClassName : ''}`}
               onClick={() => handleEditToggle('name')}
               aria-label={isEditingName ? 'Bloquear edicion de nombre' : 'Editar nombre'}
               title={isEditingName ? 'Bloquear edicion de nombre' : 'Editar nombre'}
             >
               <Pencil className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -358,15 +364,17 @@ export function AccountProfileForm({
               classNames={isEditingPhone ? editableInputClassNames : disabledInputClassNames}
               placeholder="Tu telefono"
             />
-            <button
+            <Button
               type="button"
+              isIconOnly
+              variant="light"
               className={`${editButtonClassName} ${isEditingPhone ? editButtonActiveClassName : ''}`}
               onClick={() => handleEditToggle('phone')}
               aria-label={isEditingPhone ? 'Bloquear edicion de telefono' : 'Editar telefono'}
               title={isEditingPhone ? 'Bloquear edicion de telefono' : 'Editar telefono'}
             >
               <Pencil className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         </div>
       </div>

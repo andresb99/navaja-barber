@@ -3,6 +3,7 @@ import { cn } from '@/lib/cn';
 
 const containerVariantClassName = {
   hero: 'section-hero',
+  normal: 'surface-card',
   premium: 'admin-premium-hero rounded-[2rem]',
   pageHeader: 'admin-premium-hero rounded-[2rem]',
   section: 'surface-card',

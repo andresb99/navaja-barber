@@ -2,6 +2,7 @@
 
 import type { ApexOptions } from 'apexcharts';
 import dynamic from 'next/dynamic';
+import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { formatCurrency } from '@navaja/shared';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -657,16 +658,19 @@ export function MetricsApexOverview({
 
           <div className="flex flex-wrap gap-2">
             {areaViewOptions.map((option) => (
-              <button
+              <Button
                 key={option.key}
                 type="button"
+                size="sm"
+                radius="lg"
+                variant="light"
                 className={`rounded-2xl border px-4 py-2 text-xs font-semibold transition ${getPillClassName(
                   areaView === option.key,
                 )}`}
                 onClick={() => handleAreaViewChange(option.key)}
               >
                 {option.label}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -704,24 +708,30 @@ export function MetricsApexOverview({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
               type="button"
+              size="sm"
+              radius="lg"
+              variant="light"
               className={`rounded-2xl border px-4 py-2 text-xs font-semibold transition ${getPillClassName(
                 pieView === 'STATUS',
               )}`}
               onClick={() => handlePieViewChange('STATUS')}
             >
               Estados
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              size="sm"
+              radius="lg"
+              variant="light"
               className={`rounded-2xl border px-4 py-2 text-xs font-semibold transition ${getPillClassName(
                 pieView === 'CHANNEL',
               )}`}
               onClick={() => handlePieViewChange('CHANNEL')}
             >
               Canales
-            </button>
+            </Button>
           </div>
 
           <div className="grid gap-4 lg:grid-cols-[220px_1fr] lg:items-center">

@@ -12,6 +12,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@heroui/button';
 import { Star } from 'lucide-react';
 
 const FAVORITE_REQUEST_DEBOUNCE_MS = 1000;
@@ -120,27 +121,33 @@ export function WorkspaceFavoriteProvider({
     }, FAVORITE_REQUEST_DEBOUNCE_MS);
   }, [persistFavorite]);
 
-  const toggleFavorite = useCallback((shopId: string) => {
-    if (isSaving) {
-      return;
-    }
+  const toggleFavorite = useCallback(
+    (shopId: string) => {
+      if (isSaving) {
+        return;
+      }
 
-    setFavoriteShopId((currentFavoriteShopId) => {
-      const nextFavoriteShopId = currentFavoriteShopId === shopId ? null : shopId;
-      pendingPayloadRef.current = {
-        shopId,
-        isFavorite: nextFavoriteShopId === shopId,
-      };
-      schedulePersist();
-      return nextFavoriteShopId;
-    });
-  }, [isSaving, schedulePersist]);
+      setFavoriteShopId((currentFavoriteShopId) => {
+        const nextFavoriteShopId = currentFavoriteShopId === shopId ? null : shopId;
+        pendingPayloadRef.current = {
+          shopId,
+          isFavorite: nextFavoriteShopId === shopId,
+        };
+        schedulePersist();
+        return nextFavoriteShopId;
+      });
+    },
+    [isSaving, schedulePersist],
+  );
 
-  const contextValue = useMemo<WorkspaceFavoriteContextValue>(() => ({
-    favoriteShopId,
-    isSaving,
-    toggleFavorite,
-  }), [favoriteShopId, isSaving, toggleFavorite]);
+  const contextValue = useMemo<WorkspaceFavoriteContextValue>(
+    () => ({
+      favoriteShopId,
+      isSaving,
+      toggleFavorite,
+    }),
+    [favoriteShopId, isSaving, toggleFavorite],
+  );
 
   return (
     <WorkspaceFavoriteContext.Provider value={contextValue}>
@@ -161,18 +168,19 @@ function useWorkspaceFavorite() {
 export function WorkspaceFavoriteToggle({ shopId, shopName }: WorkspaceFavoriteToggleProps) {
   const { favoriteShopId, isSaving, toggleFavorite } = useWorkspaceFavorite();
   const favorite = favoriteShopId === shopId;
-  const label = favorite
-    ? `Quitar ${shopName} de favoritas`
-    : `Marcar ${shopName} como favorita`;
+  const label = favorite ? `Quitar ${shopName} de favoritas` : `Marcar ${shopName} como favorita`;
 
   return (
-    <button
+    <Button
       type="button"
       aria-label={label}
       aria-pressed={favorite}
       title={label}
-      disabled={isSaving}
-      onClick={() => toggleFavorite(shopId)}
+      isDisabled={isSaving}
+      isIconOnly
+      radius="full"
+      variant="light"
+      onPress={() => toggleFavorite(shopId)}
       className={`inline-flex h-8 w-8 items-center justify-center rounded-full border transition ${
         favorite
           ? 'border-amber-400/30 bg-amber-500/15 text-amber-500 dark:text-amber-300'
@@ -180,6 +188,6 @@ export function WorkspaceFavoriteToggle({ shopId, shopName }: WorkspaceFavoriteT
       } ${isSaving ? 'cursor-wait opacity-70' : ''}`}
     >
       <Star className={favorite ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
-    </button>
+    </Button>
   );
 }

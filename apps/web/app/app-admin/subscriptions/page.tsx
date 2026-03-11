@@ -1,6 +1,8 @@
 ﻿import { requirePlatformAdmin } from '@/lib/auth';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { setShopSubscriptionForTestingAction } from './actions';
+import { Button } from '@heroui/button';
+import { AdminSelect } from '@/components/heroui/admin-select';
 import { Container } from '@/components/heroui/container';
 
 interface ShopRow {
@@ -71,40 +73,42 @@ export default async function AppAdminSubscriptionsPage() {
                 className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
               >
                 <input type="hidden" name="shop_id" value={shop.id} />
-                <label className="grid gap-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate/70 dark:text-slate-400">
-                  Plan
-                  <select
-                    name="plan"
-                    defaultValue={currentPlan}
-                    className="rounded-xl border border-white/70 bg-white/70 px-3 py-2 text-sm text-ink dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-                  >
-                    <option value="free">Free</option>
-                    <option value="pro">Pro</option>
-                    <option value="business">Business</option>
-                    <option value="app_admin">App Admin</option>
-                  </select>
-                </label>
+                <AdminSelect
+                  name="plan"
+                  aria-label="Plan de suscripcion"
+                  label="Plan"
+                  labelPlacement="inside"
+                  defaultSelectedKeys={[currentPlan]}
+                  disallowEmptySelection
+                  options={[
+                    { key: 'free', label: 'Free' },
+                    { key: 'pro', label: 'Pro' },
+                    { key: 'business', label: 'Business' },
+                    { key: 'app_admin', label: 'App Admin' },
+                  ]}
+                />
 
-                <label className="grid gap-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate/70 dark:text-slate-400">
-                  Estado
-                  <select
-                    name="status"
-                    defaultValue={currentStatus}
-                    className="rounded-xl border border-white/70 bg-white/70 px-3 py-2 text-sm text-ink dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-                  >
-                    <option value="active">active</option>
-                    <option value="trialing">trialing</option>
-                    <option value="past_due">past_due</option>
-                    <option value="cancelled">cancelled</option>
-                  </select>
-                </label>
+                <AdminSelect
+                  name="status"
+                  aria-label="Estado de suscripcion"
+                  label="Estado"
+                  labelPlacement="inside"
+                  defaultSelectedKeys={[currentStatus]}
+                  disallowEmptySelection
+                  options={[
+                    { key: 'active', label: 'active' },
+                    { key: 'trialing', label: 'trialing' },
+                    { key: 'past_due', label: 'past_due' },
+                    { key: 'cancelled', label: 'cancelled' },
+                  ]}
+                />
 
-                <button
+                <Button
                   type="submit"
                   className="action-primary mt-[1.15rem] inline-flex h-10 items-center justify-center rounded-xl px-4 text-sm font-semibold"
                 >
                   Aplicar
-                </button>
+                </Button>
               </form>
             </article>
           );

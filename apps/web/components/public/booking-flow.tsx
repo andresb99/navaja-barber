@@ -3,7 +3,16 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { bookingInputSchema, formatCurrency } from '@navaja/shared';
-import { Button, Card, CardBody, Checkbox, Input, Select, SelectItem, Textarea } from '@heroui/react';
+import {
+  Button,
+  Card,
+  CardBody,
+  Checkbox,
+  Input,
+  Select,
+  SelectItem,
+  Textarea,
+} from '@heroui/react';
 
 interface ServiceOption {
   id: string;
@@ -426,19 +435,22 @@ export function BookingFlow({
             {renderedSlots.map((item) => {
               const { slot, isSelected } = item;
               return (
-                <button
+                <Button
                   type="button"
                   key={item.key}
+                  variant="light"
                   className={`rounded-2xl border border-transparent px-3 py-3 text-left text-xs transition ${
                     isSelected
                       ? 'border-sky-400/38 bg-sky-500/[0.1] dark:border-sky-300/22 dark:bg-sky-400/[0.08]'
                       : 'bg-white/58 md:hover:bg-white/78 dark:bg-white/[0.03] dark:md:hover:bg-white/[0.05]'
                   }`}
-                  onClick={() => handleSelectSlot(slot)}
+                  onPress={() => handleSelectSlot(slot)}
                 >
-                  <p className="font-semibold text-ink dark:text-slate-100">{item.startTimeLabel}</p>
+                  <p className="font-semibold text-ink dark:text-slate-100">
+                    {item.startTimeLabel}
+                  </p>
                   <p className="mt-1 text-slate/70 dark:text-slate-400">{slot.staff_name}</p>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -484,14 +496,12 @@ export function BookingFlow({
               onChange={(event) => setNotes(event.target.value)}
             />
             <div className="md:col-span-2">
-              <Checkbox
-                isSelected={payInStore}
-                onValueChange={setPayInStore}
-              >
+              <Checkbox isSelected={payInStore} onValueChange={setPayInStore}>
                 Pagar en el local
               </Checkbox>
               <p className="mt-1 text-[11px] text-slate/70 dark:text-slate-400">
-                Si no marcas esta opcion, te enviaremos al checkout online para completar la reserva.
+                Si no marcas esta opcion, te enviaremos al checkout online para completar la
+                reserva.
               </p>
             </div>
           </div>

@@ -1,15 +1,18 @@
 import { formatCurrency } from '@navaja/shared';
+import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import {
   createManualAppointmentAction,
   createStaffTimeOffRequestAction,
 } from '@/app/admin/actions';
+import { AdminSelect } from '@/components/heroui/admin-select';
 import { requireStaff } from '@/lib/auth';
 import { getStaffPerformanceDetail } from '@/lib/metrics';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { isPendingTimeOffReason, stripPendingTimeOffReason } from '@/lib/time-off-requests';
 import { Container } from '@/components/heroui/container';
+import { SurfaceInput } from '@/components/heroui/surface-field';
 
 const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 
@@ -329,33 +332,36 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
             <form action={createStaffTimeOffRequestAction} className="grid gap-3">
               <input type="hidden" name="shop_id" value={ctx.shopId} />
               <div className="grid gap-3 sm:grid-cols-2">
-                <input
+                <SurfaceInput
                   id="staff-time-off-start-at"
                   name="start_at"
                   type="datetime-local"
-                  required
-                  className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+                  label="Inicio"
+                  labelPlacement="inside"
+                  isRequired
                 />
-                <input
+                <SurfaceInput
                   id="staff-time-off-end-at"
                   name="end_at"
                   type="datetime-local"
-                  required
-                  className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+                  label="Fin"
+                  labelPlacement="inside"
+                  isRequired
                 />
               </div>
-              <input
+              <SurfaceInput
                 name="reason"
                 type="text"
+                label="Motivo"
+                labelPlacement="inside"
                 placeholder="Motivo de la ausencia"
-                className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
               />
-              <button
+              <Button
                 type="submit"
                 className="action-primary inline-flex w-fit rounded-full px-5 py-2.5 text-sm font-semibold"
               >
                 Enviar solicitud
-              </button>
+              </Button>
             </form>
           </CardBody>
         </Card>
@@ -382,95 +388,103 @@ export default async function StaffPage({ searchParams }: StaffPageProps) {
           >
             <input type="hidden" name="shop_id" value={ctx.shopId} />
 
-            <select
+            <AdminSelect
               name="source_channel"
-              required
-              defaultValue="WALK_IN"
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              <option value="WALK_IN">Presencial</option>
-              <option value="ADMIN_CREATED">Carga manual</option>
-            </select>
+              aria-label="Canal de reserva"
+              label="Canal"
+              labelPlacement="inside"
+              defaultSelectedKeys={['WALK_IN']}
+              isDisabled={!hasManualBookingOptions}
+              isRequired
+              disallowEmptySelection
+              options={[
+                { key: 'WALK_IN', label: 'Presencial' },
+                { key: 'ADMIN_CREATED', label: 'Carga manual' },
+              ]}
+            />
 
-            <select
+            <AdminSelect
               name="service_id"
-              required
-              defaultValue=""
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              <option value="" disabled>
-                Servicio
-              </option>
-              {serviceOptions.map((item) => (
-                <option key={String(item.id)} value={String(item.id)}>
-                  {String(item.name)}
-                </option>
-              ))}
-            </select>
+              aria-label="Servicio"
+              label="Servicio"
+              labelPlacement="inside"
+              placeholder="Servicio"
+              isDisabled={!hasManualBookingOptions}
+              isRequired
+              options={serviceOptions.map((item) => ({
+                key: String(item.id),
+                label: String(item.name),
+              }))}
+            />
 
-            <select
+            <AdminSelect
               name="staff_id"
-              required
-              defaultValue={ctx.staffId}
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              {staffOptions.map((item) => (
-                <option key={String(item.id)} value={String(item.id)}>
-                  {String(item.name)}
-                </option>
-              ))}
-            </select>
+              aria-label="Barbero"
+              label="Barbero"
+              labelPlacement="inside"
+              defaultSelectedKeys={[ctx.staffId]}
+              isDisabled={!hasManualBookingOptions}
+              isRequired
+              disallowEmptySelection
+              options={staffOptions.map((item) => ({
+                key: String(item.id),
+                label: String(item.name),
+              }))}
+            />
 
-            <input
+            <SurfaceInput
               name="start_at"
               type="datetime-local"
-              required
+              label="Inicio"
+              labelPlacement="inside"
               defaultValue={defaultManualStartAt}
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+              isDisabled={!hasManualBookingOptions}
+              isRequired
             />
-            <input
+            <SurfaceInput
               name="customer_name"
               type="text"
-              required
+              label="Cliente"
+              labelPlacement="inside"
               placeholder="Nombre del cliente"
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+              isDisabled={!hasManualBookingOptions}
+              isRequired
             />
-            <input
+            <SurfaceInput
               name="customer_phone"
               type="tel"
-              required
+              label="Telefono"
+              labelPlacement="inside"
               placeholder="Telefono"
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+              isDisabled={!hasManualBookingOptions}
+              isRequired
             />
-            <input
+            <SurfaceInput
               name="customer_email"
               type="email"
+              label="Email"
+              labelPlacement="inside"
               placeholder="Email (opcional)"
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
+              isDisabled={!hasManualBookingOptions}
             />
-            <input
+            <SurfaceInput
               name="notes"
               type="text"
+              label="Notas"
+              labelPlacement="inside"
               placeholder="Notas (opcional)"
-              disabled={!hasManualBookingOptions}
-              className="rounded-2xl border border-white/55 bg-white/55 px-4 py-3 text-sm text-ink outline-none transition focus:border-sky-400 disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 xl:col-span-2"
+              isDisabled={!hasManualBookingOptions}
+              className="xl:col-span-2"
             />
 
             <div className="md:col-span-2 xl:col-span-4">
-              <button
+              <Button
                 type="submit"
-                disabled={!hasManualBookingOptions}
+                isDisabled={!hasManualBookingOptions}
                 className="action-primary inline-flex w-fit rounded-full px-5 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Guardar reserva manual
-              </button>
+              </Button>
             </div>
           </form>
         </CardBody>

@@ -16,10 +16,7 @@ import {
   getGoogleMapThemeOptions,
   loadGoogleMapsPlacesApi,
 } from '@/lib/google-maps';
-import {
-  WORKSPACE_COOKIE_MAX_AGE_SECONDS,
-  WORKSPACE_COOKIE_NAME,
-} from '@/lib/workspace-cookie';
+import { WORKSPACE_COOKIE_MAX_AGE_SECONDS, WORKSPACE_COOKIE_NAME } from '@/lib/workspace-cookie';
 import { buildAdminHref } from '@/lib/workspace-routes';
 
 type GooglePrediction = {
@@ -53,7 +50,10 @@ function getLocalTimezone() {
   }
 }
 
-function pickAddressComponent(components: Array<{ long_name?: string; short_name?: string; types?: string[] }>, type: string) {
+function pickAddressComponent(
+  components: Array<{ long_name?: string; short_name?: string; types?: string[] }>,
+  type: string,
+) {
   return components.find((component) => component.types?.includes(type));
 }
 
@@ -141,57 +141,63 @@ export function BarbershopOnboardingForm() {
     setLocationStatus((current) => (current === nextStatus ? current : nextStatus));
   });
 
-  const applyGeocodedPlace = useEffectEvent((prediction: GooglePrediction, place: GoogleGeocoderResult) => {
-    const components = Array.isArray(place?.address_components) ? place.address_components : [];
-    const country = pickAddressComponent(components, 'country');
-    const nextCountryCode = typeof country?.short_name === 'string' ? country.short_name.toUpperCase() : 'UY';
+  const applyGeocodedPlace = useEffectEvent(
+    (prediction: GooglePrediction, place: GoogleGeocoderResult) => {
+      const components = Array.isArray(place?.address_components) ? place.address_components : [];
+      const country = pickAddressComponent(components, 'country');
+      const nextCountryCode =
+        typeof country?.short_name === 'string' ? country.short_name.toUpperCase() : 'UY';
 
-    if (nextCountryCode !== 'UY') {
-      resetSelectedLocation('La barbershop debe estar ubicada en Uruguay.');
-      return;
-    }
+      if (nextCountryCode !== 'UY') {
+        resetSelectedLocation('La barbershop debe estar ubicada en Uruguay.');
+        return;
+      }
 
-    const geometry = place?.geometry?.location;
-    const nextLatitude = typeof geometry?.lat === 'function' ? geometry.lat() : null;
-    const nextLongitude = typeof geometry?.lng === 'function' ? geometry.lng() : null;
+      const geometry = place?.geometry?.location;
+      const nextLatitude = typeof geometry?.lat === 'function' ? geometry.lat() : null;
+      const nextLongitude = typeof geometry?.lng === 'function' ? geometry.lng() : null;
 
-    if (typeof nextLatitude !== 'number' || typeof nextLongitude !== 'number') {
-      resetSelectedLocation('No pudimos fijar la ubicacion exacta. Elige otra sugerencia.');
-      return;
-    }
+      if (typeof nextLatitude !== 'number' || typeof nextLongitude !== 'number') {
+        resetSelectedLocation('No pudimos fijar la ubicacion exacta. Elige otra sugerencia.');
+        return;
+      }
 
-    const nextCity =
-      pickAddressComponent(components, 'locality')?.long_name ||
-      pickAddressComponent(components, 'postal_town')?.long_name ||
-      pickAddressComponent(components, 'administrative_area_level_2')?.long_name ||
-      pickAddressComponent(components, 'sublocality_level_1')?.long_name ||
-      '';
+      const nextCity =
+        pickAddressComponent(components, 'locality')?.long_name ||
+        pickAddressComponent(components, 'postal_town')?.long_name ||
+        pickAddressComponent(components, 'administrative_area_level_2')?.long_name ||
+        pickAddressComponent(components, 'sublocality_level_1')?.long_name ||
+        '';
 
-    const nextRegion =
-      pickAddressComponent(components, 'administrative_area_level_1')?.long_name ||
-      pickAddressComponent(components, 'administrative_area_level_2')?.long_name ||
-      '';
+      const nextRegion =
+        pickAddressComponent(components, 'administrative_area_level_1')?.long_name ||
+        pickAddressComponent(components, 'administrative_area_level_2')?.long_name ||
+        '';
 
-    const formattedAddress =
-      typeof place?.formatted_address === 'string' ? place.formatted_address.trim() : prediction.description?.trim() || '';
-    const inferredLabel = prediction.structured_formatting?.main_text?.trim() || shopName.trim() || formattedAddress;
+      const formattedAddress =
+        typeof place?.formatted_address === 'string'
+          ? place.formatted_address.trim()
+          : prediction.description?.trim() || '';
+      const inferredLabel =
+        prediction.structured_formatting?.main_text?.trim() || shopName.trim() || formattedAddress;
 
-    setLocationQuery(formattedAddress);
-    setLocationLabel(inferredLabel);
-    setCity(nextCity);
-    setRegion(nextRegion);
-    setCountryCode(nextCountryCode);
-    setLatitude(nextLatitude);
-    setLongitude(nextLongitude);
-    setPredictions([]);
-    setIsSearchOpen(false);
-    setLocationStatus('Ubicacion confirmada. El pin rojo marca donde aparecera tu barberia.');
+      setLocationQuery(formattedAddress);
+      setLocationLabel(inferredLabel);
+      setCity(nextCity);
+      setRegion(nextRegion);
+      setCountryCode(nextCountryCode);
+      setLatitude(nextLatitude);
+      setLongitude(nextLongitude);
+      setPredictions([]);
+      setIsSearchOpen(false);
+      setLocationStatus('Ubicacion confirmada. El pin rojo marca donde aparecera tu barberia.');
 
-    const google = googleMapsRef.current;
-    if (google?.maps?.places?.AutocompleteSessionToken) {
-      sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
-    }
-  });
+      const google = googleMapsRef.current;
+      if (google?.maps?.places?.AutocompleteSessionToken) {
+        sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
+      }
+    },
+  );
 
   const selectPrediction = useEffectEvent((prediction: GooglePrediction) => {
     const placeId = prediction.place_id?.trim();
@@ -206,22 +212,25 @@ export function BarbershopOnboardingForm() {
     setIsSearchingPlaces(true);
     setLocationStatus('Buscando coordenadas exactas...');
 
-    geocoderRef.current.geocode({ placeId }, (results: GoogleGeocoderResult[] | null, status: string) => {
-      setIsSearchingPlaces(false);
+    geocoderRef.current.geocode(
+      { placeId },
+      (results: GoogleGeocoderResult[] | null, status: string) => {
+        setIsSearchingPlaces(false);
 
-      if (status !== 'OK' || !Array.isArray(results) || results.length === 0) {
-        resetSelectedLocation('No se pudo fijar esa direccion. Selecciona otra sugerencia.');
-        return;
-      }
+        if (status !== 'OK' || !Array.isArray(results) || results.length === 0) {
+          resetSelectedLocation('No se pudo fijar esa direccion. Selecciona otra sugerencia.');
+          return;
+        }
 
-      const firstResult = results[0];
-      if (!firstResult) {
-        resetSelectedLocation('No se pudo fijar esa direccion. Selecciona otra sugerencia.');
-        return;
-      }
+        const firstResult = results[0];
+        if (!firstResult) {
+          resetSelectedLocation('No se pudo fijar esa direccion. Selecciona otra sugerencia.');
+          return;
+        }
 
-      applyGeocodedPlace(prediction, firstResult);
-    });
+        applyGeocodedPlace(prediction, firstResult);
+      },
+    );
   });
 
   const handlePhotosChange = useEffectEvent((files: FileList | null) => {
@@ -331,7 +340,12 @@ export function BarbershopOnboardingForm() {
   }, [googleMapsApiKey]);
 
   useEffect(() => {
-    if (placesMode === 'fallback' || !googleMapsApiKey || !locationMapRef.current || googleMapRef.current) {
+    if (
+      placesMode === 'fallback' ||
+      !googleMapsApiKey ||
+      !locationMapRef.current ||
+      googleMapRef.current
+    ) {
       return;
     }
 
@@ -481,7 +495,11 @@ export function BarbershopOnboardingForm() {
       return;
     }
 
-    if (googleMapsApiKey && placesMode !== 'fallback' && (latitude === null || longitude === null)) {
+    if (
+      googleMapsApiKey &&
+      placesMode !== 'fallback' &&
+      (latitude === null || longitude === null)
+    ) {
       setSubmitting(false);
       setError('Selecciona una ubicacion valida desde el buscador antes de crear la barbershop.');
       return;
@@ -541,7 +559,9 @@ export function BarbershopOnboardingForm() {
       router.refresh();
     } catch (requestError) {
       setSubmitting(false);
-      setError(requestError instanceof Error ? requestError.message : 'No se pudo crear la barbershop.');
+      setError(
+        requestError instanceof Error ? requestError.message : 'No se pudo crear la barbershop.',
+      );
       return;
     }
   }
@@ -554,7 +574,10 @@ export function BarbershopOnboardingForm() {
   const reachedRecommendedPhotos = shopPhotos.length >= RECOMMENDED_SHOP_IMAGES;
 
   const showSearchDropdown =
-    placesMode === 'ready' && isSearchOpen && locationQuery.trim().length >= 3 && (isSearchingPlaces || predictions.length > 0);
+    placesMode === 'ready' &&
+    isSearchOpen &&
+    locationQuery.trim().length >= 3 &&
+    (isSearchingPlaces || predictions.length > 0);
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit}>
@@ -615,20 +638,27 @@ export function BarbershopOnboardingForm() {
             <div>
               <p className="text-sm font-semibold text-ink dark:text-slate-100">Fotos del local</p>
               <p className="text-xs text-slate/80 dark:text-slate-400">
-                Sube al menos {MIN_REQUIRED_SHOP_IMAGES}. Recomendado: {RECOMMENDED_SHOP_IMAGES} para mostrar mejor tu barberia.
+                Sube al menos {MIN_REQUIRED_SHOP_IMAGES}. Recomendado: {RECOMMENDED_SHOP_IMAGES}{' '}
+                para mostrar mejor tu barberia.
               </p>
             </div>
-            <span className="meta-chip" data-tone={shopPhotos.length >= RECOMMENDED_SHOP_IMAGES ? 'success' : 'default'}>
+            <span
+              className="meta-chip"
+              data-tone={shopPhotos.length >= RECOMMENDED_SHOP_IMAGES ? 'success' : 'default'}
+            >
               {shopPhotos.length}/{RECOMMENDED_SHOP_IMAGES} recomendadas
             </span>
           </div>
           {reachedRecommendedPhotos ? (
             <p className="status-banner success">
-              Excelente: ya subiste al menos {RECOMMENDED_SHOP_IMAGES} fotos. Eso mejora la confianza de quienes visitan tu perfil.
+              Excelente: ya subiste al menos {RECOMMENDED_SHOP_IMAGES} fotos. Eso mejora la
+              confianza de quienes visitan tu perfil.
             </p>
           ) : (
             <p className="status-banner warning">
-              Te faltan {remainingRecommendedPhotos} foto{remainingRecommendedPhotos === 1 ? '' : 's'} para llegar al recomendado de {RECOMMENDED_SHOP_IMAGES}.
+              Te faltan {remainingRecommendedPhotos} foto
+              {remainingRecommendedPhotos === 1 ? '' : 's'} para llegar al recomendado de{' '}
+              {RECOMMENDED_SHOP_IMAGES}.
             </p>
           )}
 
@@ -648,7 +678,8 @@ export function BarbershopOnboardingForm() {
           </label>
 
           <p className="text-xs text-slate/70 dark:text-slate-400">
-            Puedes agregar fotos en varias tandas. La primera foto seleccionada se usara como portada publica de la barberia. Maximo: {MAX_SHOP_IMAGES}.
+            Puedes agregar fotos en varias tandas. La primera foto seleccionada se usara como
+            portada publica de la barberia. Maximo: {MAX_SHOP_IMAGES}.
           </p>
           {shopPhotos.length >= MAX_SHOP_IMAGES ? (
             <p className="text-xs font-medium text-sky-700 dark:text-sky-200">
@@ -660,13 +691,15 @@ export function BarbershopOnboardingForm() {
             <div className="space-y-2 pt-1">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-xs text-slate/70 dark:text-slate-400">Fotos seleccionadas</p>
-                <button
+                <Button
                   type="button"
+                  size="sm"
+                  variant="light"
                   className="text-xs font-semibold text-rose-600 underline-offset-2 hover:underline dark:text-rose-300"
                   onClick={clearPhotos}
                 >
                   Limpiar seleccion
-                </button>
+                </Button>
               </div>
               <div className="flex flex-wrap gap-2">
                 {shopPhotos.map((file, index) => {
@@ -676,14 +709,18 @@ export function BarbershopOnboardingForm() {
                       <span>
                         {index === 0 ? 'Portada:' : `Foto ${index + 1}:`} {file.name}
                       </span>
-                      <button
+                      <Button
                         type="button"
+                        isIconOnly
+                        size="sm"
+                        radius="full"
+                        variant="light"
                         aria-label={`Quitar ${file.name}`}
                         className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-500/15 text-rose-700 transition hover:bg-rose-500/25 dark:text-rose-200"
                         onClick={() => removePhoto(fingerprint)}
                       >
                         <X className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     </span>
                   );
                 })}
@@ -734,7 +771,10 @@ export function BarbershopOnboardingForm() {
         <div className="space-y-4">
           <div ref={searchShellRef} className="places-search-shell">
             <label htmlFor="shop-location-search">Ubicacion del local</label>
-            <div className="places-search-input-shell" data-open={showSearchDropdown ? 'true' : 'false'}>
+            <div
+              className="places-search-input-shell"
+              data-open={showSearchDropdown ? 'true' : 'false'}
+            >
               <Search size={18} className="places-search-icon" />
               <input
                 id="shop-location-search"
@@ -744,7 +784,9 @@ export function BarbershopOnboardingForm() {
                 onChange={(event) => {
                   setLocationQuery(event.target.value);
                   setIsSearchOpen(true);
-                  resetSelectedLocation('Escribe y selecciona una sugerencia valida de Google Maps.');
+                  resetSelectedLocation(
+                    'Escribe y selecciona una sugerencia valida de Google Maps.',
+                  );
                 }}
                 onKeyDown={(event) => {
                   if (event.key === 'Escape') {
@@ -766,27 +808,34 @@ export function BarbershopOnboardingForm() {
               />
               {showSearchDropdown ? (
                 <div className="places-search-dropdown">
-                  {isSearchingPlaces ? <p className="places-search-empty">Buscando resultados...</p> : null}
+                  {isSearchingPlaces ? (
+                    <p className="places-search-empty">Buscando resultados...</p>
+                  ) : null}
 
                   {!isSearchingPlaces
                     ? predictions.map((prediction) => {
                         const key = `${prediction.place_id || 'prediction'}-${prediction.description || ''}`;
                         return (
-                          <button
+                          <Button
                             key={key}
                             type="button"
+                            variant="light"
                             className="places-search-option"
                             onMouseDown={(event) => event.preventDefault()}
                             onClick={() => selectPrediction(prediction)}
                           >
                             <MapPin size={16} className="places-search-option-icon" />
                             <span className="places-search-option-copy">
-                              <span>{prediction.structured_formatting?.main_text || prediction.description || 'Ubicacion'}</span>
+                              <span>
+                                {prediction.structured_formatting?.main_text ||
+                                  prediction.description ||
+                                  'Ubicacion'}
+                              </span>
                               {prediction.structured_formatting?.secondary_text ? (
                                 <small>{prediction.structured_formatting?.secondary_text}</small>
                               ) : null}
                             </span>
-                          </button>
+                          </Button>
                         );
                       })
                     : null}
@@ -799,7 +848,9 @@ export function BarbershopOnboardingForm() {
               predictions.length === 0 &&
               locationQuery.trim().length >= 3 ? (
                 <div className="places-search-dropdown">
-                  <p className="places-search-empty">No encontramos sugerencias para esa busqueda en Uruguay.</p>
+                  <p className="places-search-empty">
+                    No encontramos sugerencias para esa busqueda en Uruguay.
+                  </p>
                 </div>
               ) : null}
             </div>
@@ -809,7 +860,9 @@ export function BarbershopOnboardingForm() {
           <div className="surface-card rounded-[1.75rem] p-3">
             <div className="flex flex-wrap items-center justify-between gap-2 px-2 pb-3">
               <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate/70">Ubicacion en el mapa</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate/70">
+                  Ubicacion en el mapa
+                </p>
                 <p className="text-sm text-slate/80">{selectedLocationSummary}</p>
               </div>
               {latitude !== null && longitude !== null ? (

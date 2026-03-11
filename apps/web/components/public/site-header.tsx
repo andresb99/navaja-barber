@@ -744,8 +744,10 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
           <NavbarItem className="overflow-visible">
             <Popover placement="bottom-end" offset={14}>
               <PopoverTrigger>
-                <button
+                <Button
                   type="button"
+                  isIconOnly
+                  variant="light"
                   aria-label="Abrir notificaciones"
                   title="Notificaciones"
                   className={notificationTriggerClassName}
@@ -756,7 +758,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
                       {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
                     </span>
                   ) : null}
-                </button>
+                </Button>
               </PopoverTrigger>
 
               <PopoverContent className={notificationDropdownContentClassName}>
@@ -861,8 +863,11 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
           <NavbarItem>
             <Dropdown placement="bottom-end">
               <DropdownTrigger>
-                <button
+                <Button
                   type="button"
+                  isIconOnly
+                  radius="full"
+                  variant="light"
                   className="relative flex items-center rounded-full outline-none ring-offset-0 transition data-[hover=true]:opacity-90"
                   aria-label="Abrir menu de perfil"
                 >
@@ -878,7 +883,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
                       {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
                     </span>
                   ) : null}
-                </button>
+                </Button>
               </DropdownTrigger>
               <DropdownMenu aria-label="Menu de perfil" onAction={handleAvatarAction}>
                 <DropdownItem

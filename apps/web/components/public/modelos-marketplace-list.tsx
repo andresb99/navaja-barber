@@ -3,6 +3,9 @@
 import Link from 'next/link';
 import { useCallback, useMemo, useState } from 'react';
 import { formatCurrency } from '@navaja/shared';
+import { Button } from '@heroui/button';
+import { SelectItem } from '@heroui/select';
+import { SurfaceSelect } from '@/components/heroui/surface-select';
 import type { MarketplaceOpenModelCall } from '@/lib/modelos';
 import { buildShopHref } from '@/lib/shop-links';
 
@@ -25,8 +28,14 @@ function getLocationLabel(call: MarketplaceOpenModelCall) {
 export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [locationFilter, setLocationFilter] = useState('all');
-  const normalizedCategoryFilter = useMemo(() => normalizeFilterValue(categoryFilter), [categoryFilter]);
-  const normalizedLocationFilter = useMemo(() => normalizeFilterValue(locationFilter), [locationFilter]);
+  const normalizedCategoryFilter = useMemo(
+    () => normalizeFilterValue(categoryFilter),
+    [categoryFilter],
+  );
+  const normalizedLocationFilter = useMemo(
+    () => normalizeFilterValue(locationFilter),
+    [locationFilter],
+  );
 
   const preparedCalls = useMemo(() => {
     return calls.map((call) => {
@@ -38,7 +47,9 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
       return {
         ...call,
         modelCategories,
-        normalizedModelCategories: modelCategories.map((category) => normalizeFilterValue(category)),
+        normalizedModelCategories: modelCategories.map((category) =>
+          normalizeFilterValue(category),
+        ),
         locationLabel,
         normalizedLocationLabel: normalizeFilterValue(locationLabel),
       };
@@ -175,47 +186,42 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
       <div className="soft-panel rounded-[1.8rem] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="hero-eyebrow">Filtros</p>
-          <button
+          <Button
             type="button"
             onClick={clearFilters}
-            className="meta-chip transition hover:bg-white/80 dark:hover:bg-white/[0.08]"
+            variant="light"
+            className="meta-chip min-h-0 px-3 py-1 transition hover:bg-white/80 dark:hover:bg-white/[0.08]"
           >
             Limpiar filtros
-          </button>
+          </Button>
         </div>
 
         <div className="mt-3 grid gap-3 md:grid-cols-2">
-          <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-            Categoria
-            <select
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2 text-sm font-medium text-ink dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              <option value="all">Todas</option>
-              {categoryOptions.map((category) => (
-                <option key={`model-category-${category}`} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SurfaceSelect
+            aria-label="Filtrar por categoria"
+            label="Categoria"
+            labelPlacement="inside"
+            selectedKeys={[categoryFilter]}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+            disallowEmptySelection
+          >
+            {['all', ...categoryOptions].map((category) => (
+              <SelectItem key={category}>{category === 'all' ? 'Todas' : category}</SelectItem>
+            ))}
+          </SurfaceSelect>
 
-          <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-            Ubicacion
-            <select
-              value={locationFilter}
-              onChange={(event) => setLocationFilter(event.target.value)}
-              className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2 text-sm font-medium text-ink dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              <option value="all">Todas</option>
-              {locationOptions.map((location) => (
-                <option key={`model-location-${location}`} value={location}>
-                  {location}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SurfaceSelect
+            aria-label="Filtrar por ubicacion"
+            label="Ubicacion"
+            labelPlacement="inside"
+            selectedKeys={[locationFilter]}
+            onChange={(event) => setLocationFilter(event.target.value)}
+            disallowEmptySelection
+          >
+            {['all', ...locationOptions].map((location) => (
+              <SelectItem key={location}>{location === 'all' ? 'Todas' : location}</SelectItem>
+            ))}
+          </SurfaceSelect>
         </div>
       </div>
 
@@ -227,9 +233,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {renderedCalls}
-      </div>
+      <div className="grid gap-4 md:grid-cols-2">{renderedCalls}</div>
     </>
   );
 }

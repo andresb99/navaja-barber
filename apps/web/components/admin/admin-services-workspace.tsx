@@ -5,6 +5,7 @@ import { Input } from '@heroui/input';
 import { formatCurrency } from '@navaja/shared';
 import { BarChart3, CalendarClock, Clock3, Store, type LucideIcon } from 'lucide-react';
 import { Container } from '@/components/heroui/container';
+import { SurfaceCheckbox } from '@/components/heroui/surface-field';
 
 interface ServiceWorkspaceItem {
   id: string;
@@ -428,22 +429,23 @@ export function AdminServicesWorkspace({
                     />
                   </div>
 
-                  <label className="flex items-center justify-between gap-4 rounded-[1.3rem] border border-white/65 bg-white/55 px-4 py-3 dark:border-white/10 dark:bg-white/[0.03]">
-                    <div>
-                      <p className="text-sm font-semibold text-ink dark:text-slate-100">
-                        Visible en reservas
-                      </p>
-                      <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
-                        Si lo dejas activo, aparece en el flujo publico inmediatamente.
-                      </p>
+                  <div className="rounded-[1.3rem] border border-white/65 bg-white/55 px-4 py-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-ink dark:text-slate-100">
+                          Visible en reservas
+                        </p>
+                        <p className="mt-1 text-xs text-slate/70 dark:text-slate-400">
+                          Si lo dejas activo, aparece en el flujo publico inmediatamente.
+                        </p>
+                      </div>
+                      <SurfaceCheckbox
+                        name="is_active"
+                        defaultSelected
+                        aria-label="Visible en reservas"
+                      />
                     </div>
-                    <input
-                      type="checkbox"
-                      name="is_active"
-                      defaultChecked
-                      className="h-4 w-4 rounded border-slate/30 accent-slate-900 dark:accent-slate-100"
-                    />
-                  </label>
+                  </div>
 
                   <Button
                     type="submit"

@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import { respondToStaffInvitationAction } from '@/app/admin/actions';
@@ -97,72 +98,78 @@ export function AccountNotificationsPanel({
     return `${pendingCount} pendiente${pendingCount === 1 ? '' : 's'}`;
   }, [pendingCount]);
 
-  const handleDecision = useCallback((membershipId: string, decision: 'accept' | 'decline') => {
-    startTransition(async () => {
-      setActiveInvitationId(membershipId);
-      setActiveSystemNotificationId(null);
-      setError(null);
-      setFeedback(null);
-
-      try {
-        const formData = new FormData();
-        formData.set('membership_id', membershipId);
-        formData.set('decision', decision);
-        await respondToStaffInvitationAction(formData);
-
-        setInvitationItems((current) => current.filter((item) => item.id !== membershipId));
-        setFeedback(
-          decision === 'accept'
-            ? 'Invitacion aceptada. Ya puedes entrar a Mis barberias y al panel de staff.'
-            : 'Invitacion rechazada.',
-        );
-        window.dispatchEvent(new Event('profile-updated'));
-        router.refresh();
-      } catch (actionError) {
-        const message =
-          actionError instanceof Error
-            ? actionError.message
-            : 'No se pudo actualizar la invitacion.';
-        setError(message);
-      } finally {
-        setActiveInvitationId(null);
-      }
-    });
-  }, [router, startTransition]);
-
-  const handleMarkNotificationRead = useCallback((notificationId: string) => {
-    startTransition(async () => {
-      setActiveSystemNotificationId(notificationId);
-      setActiveInvitationId(null);
-      setError(null);
-      setFeedback(null);
-
-      try {
-        await markAccountNotificationReadAction({ notificationId });
-
-        setSystemItems((current) =>
-          current.map((item) =>
-            item.id === notificationId
-              ? {
-                  ...item,
-                  isRead: true,
-                }
-              : item,
-          ),
-        );
-        window.dispatchEvent(new Event('profile-updated'));
-        router.refresh();
-      } catch (actionError) {
-        const message =
-          actionError instanceof Error
-            ? actionError.message
-            : 'No se pudo marcar la notificacion como leida.';
-        setError(message);
-      } finally {
+  const handleDecision = useCallback(
+    (membershipId: string, decision: 'accept' | 'decline') => {
+      startTransition(async () => {
+        setActiveInvitationId(membershipId);
         setActiveSystemNotificationId(null);
-      }
-    });
-  }, [router, startTransition]);
+        setError(null);
+        setFeedback(null);
+
+        try {
+          const formData = new FormData();
+          formData.set('membership_id', membershipId);
+          formData.set('decision', decision);
+          await respondToStaffInvitationAction(formData);
+
+          setInvitationItems((current) => current.filter((item) => item.id !== membershipId));
+          setFeedback(
+            decision === 'accept'
+              ? 'Invitacion aceptada. Ya puedes entrar a Mis barberias y al panel de staff.'
+              : 'Invitacion rechazada.',
+          );
+          window.dispatchEvent(new Event('profile-updated'));
+          router.refresh();
+        } catch (actionError) {
+          const message =
+            actionError instanceof Error
+              ? actionError.message
+              : 'No se pudo actualizar la invitacion.';
+          setError(message);
+        } finally {
+          setActiveInvitationId(null);
+        }
+      });
+    },
+    [router, startTransition],
+  );
+
+  const handleMarkNotificationRead = useCallback(
+    (notificationId: string) => {
+      startTransition(async () => {
+        setActiveSystemNotificationId(notificationId);
+        setActiveInvitationId(null);
+        setError(null);
+        setFeedback(null);
+
+        try {
+          await markAccountNotificationReadAction({ notificationId });
+
+          setSystemItems((current) =>
+            current.map((item) =>
+              item.id === notificationId
+                ? {
+                    ...item,
+                    isRead: true,
+                  }
+                : item,
+            ),
+          );
+          window.dispatchEvent(new Event('profile-updated'));
+          router.refresh();
+        } catch (actionError) {
+          const message =
+            actionError instanceof Error
+              ? actionError.message
+              : 'No se pudo marcar la notificacion como leida.';
+          setError(message);
+        } finally {
+          setActiveSystemNotificationId(null);
+        }
+      });
+    },
+    [router, startTransition],
+  );
 
   const handleMarkAllNotificationsRead = useCallback(() => {
     startTransition(async () => {
@@ -200,7 +207,8 @@ export function AccountNotificationsPanel({
           <div>
             <h3 className="text-xl font-semibold text-ink dark:text-slate-100">Notificaciones</h3>
             <p className="text-sm text-slate/80 dark:text-slate-300">
-              Revisa invitaciones y cambios importantes en tus citas (confirmacion, cancelacion, finalizacion y solicitud de resena).
+              Revisa invitaciones y cambios importantes en tus citas (confirmacion, cancelacion,
+              finalizacion y solicitud de resena).
             </p>
           </div>
           <Chip
@@ -240,16 +248,17 @@ export function AccountNotificationsPanel({
                 {unreadSystemCount} sin leer
               </Chip>
               {unreadSystemCount > 0 ? (
-                <button
+                <Button
                   type="button"
                   onClick={handleMarkAllNotificationsRead}
-                  disabled={isPending && activeSystemNotificationId === 'all'}
+                  isDisabled={isPending && activeSystemNotificationId === 'all'}
+                  variant="light"
                   className="text-xs font-semibold text-ink underline-offset-2 hover:underline disabled:cursor-not-allowed disabled:opacity-70 dark:text-slate-200"
                 >
                   {isPending && activeSystemNotificationId === 'all'
                     ? 'Actualizando...'
                     : 'Marcar todo como leido'}
-                </button>
+                </Button>
               ) : null}
             </div>
           </div>
@@ -262,8 +271,7 @@ export function AccountNotificationsPanel({
 
           <div className="grid gap-3">
             {systemItems.map((item) => {
-              const isUpdatingNotification =
-                isPending && activeSystemNotificationId === item.id;
+              const isUpdatingNotification = isPending && activeSystemNotificationId === item.id;
 
               return (
                 <div key={item.id} className="surface-card rounded-2xl p-4">
@@ -304,14 +312,14 @@ export function AccountNotificationsPanel({
                       </Link>
                     ) : null}
                     {!item.isRead ? (
-                      <button
+                      <Button
                         type="button"
                         onClick={() => handleMarkNotificationRead(item.id)}
-                        disabled={isUpdatingNotification}
+                        isDisabled={isUpdatingNotification}
                         className="action-primary inline-flex rounded-full px-5 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
                       >
                         {isUpdatingNotification ? 'Actualizando...' : 'Marcar como leida'}
-                      </button>
+                      </Button>
                     ) : null}
                   </div>
                 </div>
@@ -366,22 +374,23 @@ export function AccountNotificationsPanel({
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-3">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => handleDecision(item.id, 'accept')}
-                      disabled={currentActionPending}
+                      isDisabled={currentActionPending}
                       className="action-primary inline-flex rounded-full px-5 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       {currentActionPending ? 'Procesando...' : 'Aceptar invitacion'}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={() => handleDecision(item.id, 'decline')}
-                      disabled={currentActionPending}
+                      isDisabled={currentActionPending}
+                      variant="ghost"
                       className="action-secondary inline-flex rounded-full px-5 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
                     >
                       Rechazar
-                    </button>
+                    </Button>
                     {item.shopSlug ? (
                       <Link
                         href={`/shops/${item.shopSlug}`}

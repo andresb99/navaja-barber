@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Button } from '@heroui/button';
 import { Clock3, CreditCard, ShieldCheck } from 'lucide-react';
 import type { ShopPaymentAccountSummary } from '@/lib/shop-payment-accounts.server';
 
@@ -35,11 +36,7 @@ export function MercadoPagoSettingsPanel({
 
   return (
     <div className="space-y-5">
-      {message ? (
-        <div className={`status-banner ${message.tone}`}>
-          {message.text}
-        </div>
-      ) : null}
+      {message ? <div className={`status-banner ${message.tone}`}>{message.text}</div> : null}
 
       <div className="grid gap-3 md:grid-cols-3">
         <div className="surface-card rounded-[1.35rem] p-4">
@@ -98,7 +95,9 @@ export function MercadoPagoSettingsPanel({
                 )}
               </p>
               <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
-                {account?.lastError ? `Ultimo error: ${account.lastError}` : 'Sin alertas recientes.'}
+                {account?.lastError
+                  ? `Ultimo error: ${account.lastError}`
+                  : 'Sin alertas recientes.'}
               </p>
             </div>
           </div>
@@ -118,12 +117,13 @@ export function MercadoPagoSettingsPanel({
             method="post"
             action={`/api/admin/payments/mercadopago/disconnect?shop=${encodeURIComponent(shopSlug)}`}
           >
-            <button
+            <Button
               type="submit"
+              variant="ghost"
               className="action-secondary inline-flex rounded-full px-5 py-2.5 text-sm font-semibold"
             >
               Desconectar
-            </button>
+            </Button>
           </form>
         ) : null}
       </div>

@@ -8,6 +8,7 @@ import {
   upsertModelRequirementsAction,
 } from '@/app/admin/actions';
 import { AdminSelect } from '@/components/heroui/admin-select';
+import { SurfaceCheckbox } from '@/components/heroui/surface-field';
 
 interface AdminModelRequirementsFormProps {
   shopId: string;
@@ -103,10 +104,9 @@ export function AdminModelRequirementsForm({
         defaultValue={compensationValueCents}
       />
       <div className="flex items-end">
-        <label className="flex items-center gap-2">
-          <input type="checkbox" name="beard_required" defaultChecked={beardRequired} />
+        <SurfaceCheckbox name="beard_required" defaultSelected={beardRequired}>
           Requiere barba
-        </label>
+        </SurfaceCheckbox>
       </div>
       <Textarea
         id="notes_public"
@@ -119,10 +119,9 @@ export function AdminModelRequirementsForm({
         placeholder="Indicaciones para quienes se postulan."
       />
       <div className="md:col-span-2">
-        <label className="flex items-center gap-2">
-          <input type="checkbox" name="is_open" defaultChecked={isOpen} />
+        <SurfaceCheckbox name="is_open" defaultSelected={isOpen}>
           Convocatoria abierta
-        </label>
+        </SurfaceCheckbox>
       </div>
       <div className="md:col-span-2">
         <Button type="submit" className="action-primary px-5 text-sm font-semibold">

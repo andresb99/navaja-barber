@@ -530,42 +530,49 @@ export function LoginForm({
                   billingMode === 'monthly' ? 'translate-x-0' : 'translate-x-full'
                 }`}
               />
-              <button
+              <Button
                 type="button"
+                size="sm"
+                radius="full"
+                variant="light"
                 className={`relative z-10 rounded-full px-3 py-2 text-xs font-semibold transition ${
                   billingMode === 'monthly' ? 'text-slate-900' : 'text-white/78 dark:text-white/78'
                 }`}
                 aria-pressed={billingMode === 'monthly'}
-                onClick={() => {
+                onPress={() => {
                   setBillingMode('monthly');
                 }}
               >
                 Mensual
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                size="sm"
+                radius="full"
+                variant="light"
                 className={`relative z-10 rounded-full px-3 py-2 text-xs font-semibold transition ${
                   billingMode === 'annual_installments'
                     ? 'text-slate-900'
                     : 'text-white/78 dark:text-white/78'
                 }`}
                 aria-pressed={billingMode === 'annual_installments'}
-                onClick={() => {
+                onPress={() => {
                   setBillingMode('annual_installments');
                 }}
               >
                 Anual en cuotas
-              </button>
+              </Button>
             </div>
           </div>
 
           <div className="mt-3 grid grid-cols-3 gap-2">
             {planOptions.map((plan) => {
               return (
-                <button
+                <Button
                   key={`plan-option-${plan.id}`}
                   type="button"
-                  onClick={() => handleSelectPlanId(plan.id)}
+                  variant="light"
+                  onPress={() => handleSelectPlanId(plan.id)}
                   className={`rounded-[1rem] border px-3 py-2 text-left transition ${
                     plan.isSelected
                       ? 'border-sky-300/45 bg-sky-400/15 shadow-[0_16px_26px_-20px_rgba(56,189,248,0.4)] dark:border-white/14 dark:bg-[linear-gradient(135deg,rgba(86,124,178,0.12),rgba(140,38,74,0.09))] dark:shadow-[0_16px_26px_-20px_rgba(0,0,0,0.54)]'
@@ -584,7 +591,7 @@ export function LoginForm({
                   <p className="mt-1 text-[11px] text-white/62 dark:text-white/62">
                     {plan.optionPrice}
                   </p>
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -637,13 +644,14 @@ export function LoginForm({
               ))}
             </ul>
 
-            <button
+            <Button
               type="button"
+              variant="light"
               className="mt-4 w-full rounded-xl border border-sky-300/45 bg-sky-400/18 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-sky-100 transition hover:bg-sky-400/24 dark:border-white/12 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]"
-              onClick={handleSelectPlanCta}
+              onPress={handleSelectPlanCta}
             >
               Elegir {selectedPlan?.name}
-            </button>
+            </Button>
           </article>
         </div>
       </aside>
@@ -651,36 +659,39 @@ export function LoginForm({
       <div className="soft-panel rounded-[2rem] border-0 p-4 md:p-6">
         <div className="rounded-[1.6rem] border border-white/75 bg-white/66 p-3 dark:border-white/10 dark:bg-white/[0.03]">
           <div className="grid grid-cols-3 gap-1 rounded-[1.2rem] border border-white/80 bg-white/72 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:border-white/10 dark:bg-black/20 dark:shadow-none">
-            <button
+            <Button
               type="button"
+              variant="light"
               className={modeButtonClassName(mode === 'login')}
               data-testid="auth-mode-login"
               data-active={String(mode === 'login')}
-              onClick={() => handleModeChange('login')}
+              onPress={() => handleModeChange('login')}
             >
               <LogIn className="h-3.5 w-3.5 opacity-90" />
               Ingresar
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="light"
               className={modeButtonClassName(mode === 'register')}
               data-testid="auth-mode-register"
               data-active={String(mode === 'register')}
-              onClick={() => handleModeChange('register')}
+              onPress={() => handleModeChange('register')}
             >
               <UserPlus className="h-3.5 w-3.5 opacity-90" />
               Registro
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="light"
               className={modeButtonClassName(mode === 'recover')}
               data-testid="auth-mode-recover"
               data-active={String(mode === 'recover')}
-              onClick={() => handleModeChange('recover')}
+              onPress={() => handleModeChange('recover')}
             >
               <KeyRound className="h-3.5 w-3.5 opacity-90" />
               Recuperar
-            </button>
+            </Button>
           </div>
 
           <div className="mt-3 flex items-center justify-end">
@@ -900,10 +911,11 @@ export function LoginForm({
               </div>
 
               {mode === 'login' ? (
-                <button
+                <Button
                   type="button"
+                  variant="light"
                   className="inline-flex items-center gap-2 text-xs font-semibold text-slate/80 transition-colors md:hover:text-ink dark:text-slate-300 dark:md:hover:text-slate-100"
-                  onClick={() => {
+                  onPress={() => {
                     if (!isBusy) {
                       setMode('recover');
                       setPassword('');
@@ -912,7 +924,7 @@ export function LoginForm({
                 >
                   <LockKeyhole className="h-3.5 w-3.5" />
                   Olvide mi contrasena
-                </button>
+                </Button>
               ) : null}
             </form>
           ) : null}

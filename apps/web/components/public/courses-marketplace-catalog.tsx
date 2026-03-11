@@ -2,7 +2,10 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { formatCurrency } from '@navaja/shared';
+import { Button } from '@heroui/button';
+import { SelectItem } from '@heroui/select';
 import { LoaderCircle, LocateFixed } from 'lucide-react';
+import { SurfaceSelect } from '@/components/heroui/surface-select';
 import { CourseMediaCard } from '@/components/public/course-media-card';
 import { buildShopHref } from '@/lib/shop-links';
 import type { MarketplaceShop } from '@/lib/shops';
@@ -79,8 +82,14 @@ export function CoursesMarketplaceCatalog({ items }: CoursesMarketplaceCatalogPr
   } | null>(null);
   const [locationStatus, setLocationStatus] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
-  const normalizedCategoryFilter = useMemo(() => normalizeFilterValue(categoryFilter), [categoryFilter]);
-  const normalizedLocationFilter = useMemo(() => normalizeFilterValue(locationFilter), [locationFilter]);
+  const normalizedCategoryFilter = useMemo(
+    () => normalizeFilterValue(categoryFilter),
+    [categoryFilter],
+  );
+  const normalizedLocationFilter = useMemo(
+    () => normalizeFilterValue(locationFilter),
+    [locationFilter],
+  );
 
   const preparedItems = useMemo(() => {
     return items.map((item) => {
@@ -110,9 +119,7 @@ export function CoursesMarketplaceCatalog({ items }: CoursesMarketplaceCatalogPr
   const itemsWithDistance = useMemo(() => {
     return preparedItems.map((item) => {
       const distanceKm =
-        locationState &&
-        item.shop.latitude !== null &&
-        item.shop.longitude !== null
+        locationState && item.shop.latitude !== null && item.shop.longitude !== null
           ? getDistanceKm(
               locationState.latitude,
               locationState.longitude,
@@ -258,90 +265,91 @@ export function CoursesMarketplaceCatalog({ items }: CoursesMarketplaceCatalogPr
       <div className="soft-panel rounded-[1.8rem] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="hero-eyebrow">Filtros</p>
-          <button
+          <Button
             type="button"
             onClick={clearFilters}
-            className="meta-chip transition hover:bg-white/80 dark:hover:bg-white/[0.08]"
+            variant="light"
+            className="meta-chip min-h-0 px-3 py-1 transition hover:bg-white/80 dark:hover:bg-white/[0.08]"
           >
             Limpiar filtros
-          </button>
+          </Button>
         </div>
 
         <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-            Categoria
-            <select
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2 text-sm font-medium text-ink dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              <option value="all">Todas</option>
-              {categoryOptions.map((category) => (
-                <option key={`course-category-${category}`} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SurfaceSelect
+            aria-label="Filtrar por categoria"
+            label="Categoria"
+            labelPlacement="inside"
+            selectedKeys={[categoryFilter]}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+            disallowEmptySelection
+          >
+            {['all', ...categoryOptions].map((category) => (
+              <SelectItem key={category}>{category === 'all' ? 'Todas' : category}</SelectItem>
+            ))}
+          </SurfaceSelect>
 
-          <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-            Ubicacion
-            <select
-              value={locationFilter}
-              onChange={(event) => setLocationFilter(event.target.value)}
-              className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2 text-sm font-medium text-ink dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              <option value="all">Todas</option>
-              {locationOptions.map((location) => (
-                <option key={`course-location-${location}`} value={location}>
-                  {location}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SurfaceSelect
+            aria-label="Filtrar por ubicacion"
+            label="Ubicacion"
+            labelPlacement="inside"
+            selectedKeys={[locationFilter]}
+            onChange={(event) => setLocationFilter(event.target.value)}
+            disallowEmptySelection
+          >
+            {['all', ...locationOptions].map((location) => (
+              <SelectItem key={location}>{location === 'all' ? 'Todas' : location}</SelectItem>
+            ))}
+          </SurfaceSelect>
 
-          <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-            Calificacion minima
-            <select
-              value={ratingFilter}
-              onChange={(event) => setRatingFilter(event.target.value)}
-              className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2 text-sm font-medium text-ink dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-            >
-              <option value="all">Todas</option>
-              <option value="4.5">4.5 o mas</option>
-              <option value="4.0">4.0 o mas</option>
-              <option value="3.5">3.5 o mas</option>
-            </select>
-          </label>
+          <SurfaceSelect
+            aria-label="Filtrar por calificacion"
+            label="Calificacion minima"
+            labelPlacement="inside"
+            selectedKeys={[ratingFilter]}
+            onChange={(event) => setRatingFilter(event.target.value)}
+            disallowEmptySelection
+          >
+            <SelectItem key="all">Todas</SelectItem>
+            <SelectItem key="4.5">4.5 o mas</SelectItem>
+            <SelectItem key="4.0">4.0 o mas</SelectItem>
+            <SelectItem key="3.5">3.5 o mas</SelectItem>
+          </SurfaceSelect>
 
-          <label className="grid gap-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-            Proximidad
-            <select
-              value={distanceFilter}
-              onChange={(event) => setDistanceFilter(event.target.value)}
-              className="rounded-2xl border border-white/70 bg-white/70 px-3 py-2 text-sm font-medium text-ink disabled:opacity-60 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100"
-              disabled={!locationState}
-            >
-              <option value="all">Sin limite</option>
-              <option value="5">Hasta 5 km</option>
-              <option value="12">Hasta 12 km</option>
-              <option value="25">Hasta 25 km</option>
-            </select>
-          </label>
+          <SurfaceSelect
+            aria-label="Filtrar por proximidad"
+            label="Proximidad"
+            labelPlacement="inside"
+            selectedKeys={[distanceFilter]}
+            onChange={(event) => setDistanceFilter(event.target.value)}
+            disallowEmptySelection
+            isDisabled={!locationState}
+          >
+            <SelectItem key="all">Sin limite</SelectItem>
+            <SelectItem key="5">Hasta 5 km</SelectItem>
+            <SelectItem key="12">Hasta 12 km</SelectItem>
+            <SelectItem key="25">Hasta 25 km</SelectItem>
+          </SurfaceSelect>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-3">
-          <button
+          <Button
             type="button"
             onClick={() => void enableLocationFilter()}
             className="action-secondary inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-semibold"
-            disabled={isLocating}
+            isDisabled={isLocating}
           >
-            {isLocating ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <LocateFixed className="h-4 w-4" />}
+            {isLocating ? (
+              <LoaderCircle className="h-4 w-4 animate-spin" />
+            ) : (
+              <LocateFixed className="h-4 w-4" />
+            )}
             Usar mi ubicacion
-          </button>
+          </Button>
           {locationStatus ? (
-            <p className="text-xs font-medium text-slate/75 dark:text-slate-400">{locationStatus}</p>
+            <p className="text-xs font-medium text-slate/75 dark:text-slate-400">
+              {locationStatus}
+            </p>
           ) : null}
         </div>
       </div>
@@ -354,9 +362,7 @@ export function CoursesMarketplaceCatalog({ items }: CoursesMarketplaceCatalogPr
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {renderedCourseCards}
-      </div>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{renderedCourseCards}</div>
     </>
   );
 }

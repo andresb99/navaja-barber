@@ -8,6 +8,7 @@ import { Input, Textarea } from '@heroui/input';
 import { SelectItem } from '@heroui/select';
 import { upsertCourseAction } from '@/app/admin/actions';
 import { AdminSelect } from '@/components/heroui/admin-select';
+import { SurfaceCheckbox } from '@/components/heroui/surface-field';
 
 interface AdminCourseFormProps {
   shopId: string;
@@ -168,15 +169,15 @@ export function AdminCourseForm({
               Si este curso necesita modelos, se abrira automaticamente la ficha al crear sesiones.
             </p>
           </div>
-          <label className="inline-flex items-center gap-2 rounded-full border border-white/65 bg-white/78 px-3 py-1.5 text-sm font-semibold text-ink dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
-            <input
-              type="checkbox"
+          <div className="rounded-full border border-white/65 bg-white/78 px-3 py-1.5 dark:border-white/10 dark:bg-white/[0.06]">
+            <SurfaceCheckbox
               name="requires_model"
-              checked={requiresModel}
-              onChange={(event) => setRequiresModel(event.target.checked)}
-            />{' '}
-            Requiere modelo
-          </label>
+              isSelected={requiresModel}
+              onValueChange={setRequiresModel}
+            >
+              Requiere modelo
+            </SurfaceCheckbox>
+          </div>
         </div>
 
         {requiresModel ? (
@@ -185,10 +186,13 @@ export function AdminCourseForm({
               {defaultModelCategoryOptions.map((category) => {
                 const isActive = selectedCategories.includes(category.value);
                 return (
-                  <button
+                  <Button
                     key={category.value}
                     type="button"
-                    onClick={() => toggleCategory(category.value)}
+                    size="sm"
+                    radius="full"
+                    variant={isActive ? 'solid' : 'light'}
+                    onPress={() => toggleCategory(category.value)}
                     className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
                       isActive
                         ? 'border-cyan-400/65 bg-cyan-500/18 text-cyan-900 dark:border-cyan-300/55 dark:bg-cyan-400/20 dark:text-cyan-100'
@@ -196,7 +200,7 @@ export function AdminCourseForm({
                     }`}
                   >
                     {category.label}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -222,14 +226,17 @@ export function AdminCourseForm({
             {customSelectedCategories.length ? (
               <div className="flex flex-wrap gap-2">
                 {customSelectedCategories.map((category) => (
-                  <button
+                  <Button
                     key={category}
                     type="button"
-                    onClick={() => toggleCategory(category)}
+                    size="sm"
+                    radius="full"
+                    variant="light"
+                    onPress={() => toggleCategory(category)}
                     className="rounded-full border border-amber-400/50 bg-amber-500/18 px-3 py-1.5 text-xs font-semibold text-amber-900 transition hover:bg-amber-500/28 dark:border-amber-300/45 dark:bg-amber-400/16 dark:text-amber-100"
                   >
                     {category} x
-                  </button>
+                  </Button>
                 ))}
               </div>
             ) : null}
@@ -282,10 +289,9 @@ export function AdminCourseForm({
         </p>
       </div>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="is_active" defaultChecked={initialCourse?.isActive ?? true} />{' '}
+      <SurfaceCheckbox name="is_active" defaultSelected={initialCourse?.isActive ?? true}>
         Activo
-      </label>
+      </SurfaceCheckbox>
       <div className="flex flex-wrap items-center gap-3">
         <Button
           type="submit"

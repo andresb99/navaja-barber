@@ -1,6 +1,5 @@
 'use client';
-
-import { Select, type SelectProps } from '@heroui/select';
+import { Select, SelectItem, type SelectProps } from '@heroui/select';
 import { cn } from '@/lib/cn';
 
 type AdminSelectUiVariant = 'default' | 'compact';
@@ -9,8 +8,19 @@ type SelectListboxProps = NonNullable<SelectProps<object>['listboxProps']>;
 type SelectListboxClassNames = NonNullable<SelectListboxProps['classNames']>;
 type SelectItemClassNames = NonNullable<SelectListboxProps['itemClasses']>;
 
-export interface AdminSelectProps<T extends object = object> extends SelectProps<T> {
+export interface AdminSelectOption {
+  key: string;
+  label: string;
+  description?: string;
+}
+
+export interface AdminSelectProps<T extends object = object> extends Omit<
+  SelectProps<T>,
+  'children'
+> {
   uiVariant?: AdminSelectUiVariant;
+  options?: AdminSelectOption[];
+  children?: SelectProps<T>['children'];
 }
 
 const defaultSelectClassNames: SelectClassNames = {
@@ -78,10 +88,19 @@ export function AdminSelect<T extends object = object>({
   classNames,
   listboxProps,
   popoverProps,
+  options,
+  children,
   ...props
 }: AdminSelectProps<T>) {
   const selectClassNames =
     uiVariant === 'compact' ? compactSelectClassNames : defaultSelectClassNames;
+  const renderedChildren = options
+    ? (options.map((option) => (
+        <SelectItem key={option.key} description={option.description}>
+          {option.label}
+        </SelectItem>
+      )) as SelectProps<T>['children'])
+    : (children ?? ([] as unknown as SelectProps<T>['children']));
 
   return (
     <Select
@@ -96,6 +115,8 @@ export function AdminSelect<T extends object = object>({
         classNames: mergeSlotClasses(defaultListboxClassNames, listboxProps?.classNames),
         itemClasses: mergeSlotClasses(defaultItemClasses, listboxProps?.itemClasses),
       }}
-    />
+    >
+      {renderedChildren}
+    </Select>
   );
 }

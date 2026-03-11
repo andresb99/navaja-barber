@@ -13,6 +13,7 @@ import {
   upsertWorkingHoursRangeAction,
 } from '@/app/admin/actions';
 import { AdminSelect } from '@/components/heroui/admin-select';
+import { SurfaceCheckbox } from '@/components/heroui/surface-field';
 
 interface StaffOption {
   id: string;
@@ -266,11 +267,12 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
 
                     {!isSearching
                       ? visibleSearchResults.map((invitee) => (
-                          <button
+                          <Button
                             key={invitee.userId}
                             type="button"
                             onClick={() => handleAddInvitee(invitee)}
-                            className="w-full rounded-[1rem] px-3 py-3 text-left transition md:hover:bg-black/5 dark:md:hover:bg-white/[0.04]"
+                            variant="light"
+                            className="h-auto w-full justify-start rounded-[1rem] px-3 py-3 text-left transition md:hover:bg-black/5 dark:md:hover:bg-white/[0.04]"
                           >
                             <div className="flex items-start gap-3">
                               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-white/60 bg-white/72 text-sm font-semibold text-ink dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
@@ -286,7 +288,7 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
                               </div>
                               <span className="meta-chip">Agregar</span>
                             </div>
-                          </button>
+                          </Button>
                         ))
                       : null}
                   </div>
@@ -322,15 +324,18 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
                     >
                       <span>{invitee.fullName}</span>
                       <span className="text-slate/65 dark:text-slate-300/75">{invitee.email}</span>
-                      <button
+                      <Button
                         type="button"
+                        isIconOnly
+                        size="sm"
+                        variant="light"
                         onClick={() => handleRemoveInvitee(invitee.userId)}
-                        className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-transparent text-slate/70 transition md:hover:text-rose-600 dark:text-slate-300 dark:md:hover:text-rose-300"
+                        className="h-5 min-h-5 w-5 min-w-5 rounded-full bg-transparent text-slate/70 transition md:hover:text-rose-600 dark:text-slate-300 dark:md:hover:text-rose-300"
                         aria-label={`Remover a ${invitee.fullName}`}
                         title={`Remover a ${invitee.fullName}`}
                       >
                         <X className="h-3.5 w-3.5" />
-                      </button>
+                      </Button>
                     </span>
                   ))}
                 </div>
@@ -470,10 +475,11 @@ export function AdminStaffForms({ shopId, shopSlug, staff, weekdays }: AdminStaf
                 />
               </div>
 
-              <label className="inline-flex items-center gap-2 rounded-[1rem] border border-white/65 bg-white/72 px-3 py-2 text-xs font-semibold text-ink dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100">
-                <input type="checkbox" name="replace_existing" defaultChecked />
-                Reemplazar horarios existentes en ese rango
-              </label>
+              <div className="rounded-[1rem] border border-white/65 bg-white/72 px-3 py-2 dark:border-white/10 dark:bg-white/[0.05]">
+                <SurfaceCheckbox name="replace_existing" defaultSelected>
+                  Reemplazar horarios existentes en ese rango
+                </SurfaceCheckbox>
+              </div>
 
               <p className="text-xs leading-6 text-slate/70 dark:text-slate-400">
                 Puedes cargar un bloque de una sola vez. Si eliges un rango invertido, se toma con

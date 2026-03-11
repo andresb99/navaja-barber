@@ -1,4 +1,6 @@
-﻿import { Card, CardBody, Chip, Button } from '@heroui/react';
+﻿import { Button } from '@heroui/button';
+import { Card, CardBody } from '@heroui/card';
+import { Chip } from '@heroui/chip';
 import { BadgeCheck, CreditCard, Globe, MapPin, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { AdminBarbershopSettingsForm } from '@/components/admin/barbershop-settings-form';
 import { CustomDomainSettingsForm } from '@/components/admin/custom-domain-settings-form';
@@ -292,9 +294,6 @@ export default async function AdminBarbershopSettingsPage({
         variant="pageHeader"
         className="relative overflow-hidden rounded-[2.5rem] px-8 py-10 md:px-12 md:py-14"
       >
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-sky-400/18 blur-3xl pointer-events-none dark:bg-[hsl(var(--primary)/0.16)]" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-72 w-72 rounded-full bg-rose-400/16 blur-3xl pointer-events-none dark:bg-[hsl(var(--destructive)/0.14)]" />
-
         <div className="relative z-10 grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] xl:items-center">
           <div className="space-y-6">
             <div>

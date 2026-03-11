@@ -158,7 +158,9 @@ export function AdminAppointmentsTable({
         case 'appointment':
           return (
             <div className="flex flex-col">
-              <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{item.startAtLabel}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
+                {item.startAtLabel}
+              </p>
               <p className="text-xs text-slate-600 dark:text-zinc-400">Turno</p>
             </div>
           );
@@ -182,14 +184,18 @@ export function AdminAppointmentsTable({
         case 'service':
           return (
             <div className="flex flex-col">
-              <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{item.serviceName}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
+                {item.serviceName}
+              </p>
               <p className="text-xs text-slate-600 dark:text-zinc-400">Servicio</p>
             </div>
           );
         case 'staff':
           return (
             <div className="flex flex-col">
-              <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{item.staffName}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
+                {item.staffName}
+              </p>
               <p className="text-xs text-slate-600 dark:text-zinc-400">Asignado</p>
             </div>
           );
@@ -215,7 +221,9 @@ export function AdminAppointmentsTable({
             </Chip>
           );
         case 'payment': {
-          const normalizedPaymentStatus = String(item.paymentStatus || '').trim().toLowerCase();
+          const normalizedPaymentStatus = String(item.paymentStatus || '')
+            .trim()
+            .toLowerCase();
           const paymentLabel = normalizedPaymentStatus
             ? paymentStatusLabel[normalizedPaymentStatus] || normalizedPaymentStatus
             : 'Sin pago online';
@@ -230,7 +238,11 @@ export function AdminAppointmentsTable({
           );
         }
         case 'price':
-          return <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{item.priceLabel}</p>;
+          return (
+            <p className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
+              {item.priceLabel}
+            </p>
+          );
         case 'actions': {
           const phoneHref = getPhoneHref(item.customerPhone);
 
@@ -264,9 +276,7 @@ export function AdminAppointmentsTable({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className={ADMIN_DARK_TABLE_POPOVER_CONTENT}>
-                  <p className={ADMIN_DARK_TABLE_POPOVER_TITLE}>
-                    Actualizar estado
-                  </p>
+                  <p className={ADMIN_DARK_TABLE_POPOVER_TITLE}>Actualizar estado</p>
                   <AdminAppointmentStatusForm
                     appointmentId={item.id}
                     status={item.status}
@@ -300,92 +310,108 @@ export function AdminAppointmentsTable({
       >
         <TableHeader>
           <TableColumn key="appointment">
-            <button
+            <Button
               type="button"
               onClick={() => handleSortChange('start_at')}
-              className="inline-flex items-center gap-1"
+              size="sm"
+              variant="light"
+              className="inline-flex h-auto min-h-0 items-center gap-1 px-0"
               aria-label="Ordenar por cita"
             >
               CITA
               {renderSortIcon('start_at')}
-            </button>
+            </Button>
           </TableColumn>
           <TableColumn key="customer">
-            <button
+            <Button
               type="button"
               onClick={() => handleSortChange('customer')}
-              className="inline-flex items-center gap-1"
+              size="sm"
+              variant="light"
+              className="inline-flex h-auto min-h-0 items-center gap-1 px-0"
               aria-label="Ordenar por cliente"
             >
               CLIENTE
               {renderSortIcon('customer')}
-            </button>
+            </Button>
           </TableColumn>
           <TableColumn key="service">
-            <button
+            <Button
               type="button"
               onClick={() => handleSortChange('service')}
-              className="inline-flex items-center gap-1"
+              size="sm"
+              variant="light"
+              className="inline-flex h-auto min-h-0 items-center gap-1 px-0"
               aria-label="Ordenar por servicio"
             >
               SERVICIO
               {renderSortIcon('service')}
-            </button>
+            </Button>
           </TableColumn>
           <TableColumn key="staff">
-            <button
+            <Button
               type="button"
               onClick={() => handleSortChange('staff')}
-              className="inline-flex items-center gap-1"
+              size="sm"
+              variant="light"
+              className="inline-flex h-auto min-h-0 items-center gap-1 px-0"
               aria-label="Ordenar por barbero"
             >
               BARBERO
               {renderSortIcon('staff')}
-            </button>
+            </Button>
           </TableColumn>
           <TableColumn key="channel">
-            <button
+            <Button
               type="button"
               onClick={() => handleSortChange('channel')}
-              className="inline-flex items-center gap-1"
+              size="sm"
+              variant="light"
+              className="inline-flex h-auto min-h-0 items-center gap-1 px-0"
               aria-label="Ordenar por canal"
             >
               CANAL
               {renderSortIcon('channel')}
-            </button>
+            </Button>
           </TableColumn>
           <TableColumn key="status">
-            <button
+            <Button
               type="button"
               onClick={() => handleSortChange('status')}
-              className="inline-flex items-center gap-1"
+              size="sm"
+              variant="light"
+              className="inline-flex h-auto min-h-0 items-center gap-1 px-0"
               aria-label="Ordenar por estado"
             >
               ESTADO
               {renderSortIcon('status')}
-            </button>
+            </Button>
           </TableColumn>
           <TableColumn key="payment">
-            <button
+            <Button
               type="button"
               onClick={() => handleSortChange('payment')}
-              className="inline-flex items-center gap-1"
+              size="sm"
+              variant="light"
+              className="inline-flex h-auto min-h-0 items-center gap-1 px-0"
               aria-label="Ordenar por pago"
             >
               PAGO
               {renderSortIcon('payment')}
-            </button>
+            </Button>
           </TableColumn>
           <TableColumn key="price">
-            <button
+            <Button
               type="button"
               onClick={() => handleSortChange('price')}
-              className="inline-flex items-center gap-1"
+              size="sm"
+              variant="light"
+              className="inline-flex h-auto min-h-0 items-center gap-1 px-0"
               aria-label="Ordenar por precio"
             >
               PRECIO
               {renderSortIcon('price')}
-            </button>
+            </Button>
           </TableColumn>
           <TableColumn key="actions" align="end">
             ACCIONES

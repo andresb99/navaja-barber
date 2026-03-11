@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Button } from '@heroui/button';
 import { LoaderCircle } from 'lucide-react';
 import {
   getSubscriptionPlanDescriptor,
@@ -68,7 +69,9 @@ export function SubscriptionBillingPanel({
   const [submittingPlan, setSubmittingPlan] = useState<SubscriptionTier | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function startSubscriptionCheckout(targetPlan: Extract<SubscriptionTier, 'pro' | 'business'>) {
+  async function startSubscriptionCheckout(
+    targetPlan: Extract<SubscriptionTier, 'pro' | 'business'>,
+  ) {
     setSubmittingPlan(targetPlan);
     setError(null);
 
@@ -128,7 +131,9 @@ export function SubscriptionBillingPanel({
   return (
     <div className="space-y-4">
       {billingMessage === 'success' ? (
-        <p className="status-banner success">Pago recibido. En breve se actualiza tu suscripcion.</p>
+        <p className="status-banner success">
+          Pago recibido. En breve se actualiza tu suscripcion.
+        </p>
       ) : null}
       {billingMessage === 'pending' ? (
         <p className="status-banner warning">
@@ -143,9 +148,7 @@ export function SubscriptionBillingPanel({
       <div className="rounded-[1.45rem] border border-white/65 bg-white/55 p-4 dark:border-white/10 dark:bg-white/[0.04]">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-ink dark:text-slate-100">
-              Suscripcion actual
-            </p>
+            <p className="text-sm font-semibold text-ink dark:text-slate-100">Suscripcion actual</p>
             <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">
               {getSubscriptionPlanDescriptor(currentPlan).name}
             </p>
@@ -156,8 +159,11 @@ export function SubscriptionBillingPanel({
         </div>
 
         <div className="mt-4 inline-flex rounded-full border border-white/65 bg-white/65 p-1 dark:border-white/10 dark:bg-black/20">
-          <button
+          <Button
             type="button"
+            size="sm"
+            radius="full"
+            variant="light"
             className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
               billingMode === 'monthly'
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
@@ -166,9 +172,12 @@ export function SubscriptionBillingPanel({
             onClick={() => setBillingMode('monthly')}
           >
             Mensual
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="sm"
+            radius="full"
+            variant="light"
             className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
               billingMode === 'annual_installments'
                 ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
@@ -177,7 +186,7 @@ export function SubscriptionBillingPanel({
             onClick={() => setBillingMode('annual_installments')}
           >
             Anual en cuotas
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -210,7 +219,9 @@ export function SubscriptionBillingPanel({
                 ) : null}
               </div>
 
-              <p className="mt-3 text-sm font-semibold text-ink dark:text-slate-100">{priceLabel}</p>
+              <p className="mt-3 text-sm font-semibold text-ink dark:text-slate-100">
+                {priceLabel}
+              </p>
 
               <div className="mt-3 space-y-2">
                 {descriptor.features.slice(0, 3).map((feature) => (
@@ -223,15 +234,15 @@ export function SubscriptionBillingPanel({
                 ))}
               </div>
 
-              <button
+              <Button
                 type="button"
-                disabled={isCurrent || isLoading || submittingPlan !== null}
+                isDisabled={isCurrent || isLoading || submittingPlan !== null}
                 className="action-primary mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold disabled:opacity-60"
                 onClick={() => void startSubscriptionCheckout(option.tier)}
               >
                 {isLoading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}
                 {isCurrent ? 'Plan activo' : `Pagar ${descriptor.name}`}
-              </button>
+              </Button>
             </article>
           );
         })}

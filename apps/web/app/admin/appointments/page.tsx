@@ -1,10 +1,12 @@
 ﻿import Link from 'next/link';
 import { formatCurrency } from '@navaja/shared';
+import { Button } from '@heroui/button';
 import { CalendarClock, CircleAlert, NotebookPen, type LucideIcon } from 'lucide-react';
 import { AdminAppointmentsFilters } from '@/components/admin/appointments-filters';
 import { AdminAppointmentsPagination } from '@/components/admin/appointments-pagination';
 import { AdminAppointmentsViewSwitcher } from '@/components/admin/appointments-view-switcher';
 import { createManualAppointmentAction } from '@/app/admin/actions';
+import { AdminSelect } from '@/components/heroui/admin-select';
 import {
   ADMIN_APPOINTMENTS_DEFAULT_PAGE_SIZE,
   ADMIN_APPOINTMENTS_DEFAULT_SORT_BY,
@@ -21,6 +23,7 @@ import {
 import { requireAdmin } from '@/lib/auth';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Container } from '@/components/heroui/container';
+import { SurfaceInput, SurfaceTextarea } from '@/components/heroui/surface-field';
 
 interface AppointmentsPageProps {
   searchParams: Promise<{
@@ -79,12 +82,6 @@ interface OverviewCardProps {
   value: string;
   detail: string;
 }
-
-const MANUAL_FIELD_CLASS =
-  'w-full rounded-[1.15rem] border border-white/65 bg-white/70 px-4 py-3 text-sm text-ink outline-none transition placeholder:text-slate/45 focus:border-sky-400 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100 dark:placeholder:text-slate-500';
-
-const MANUAL_FIELD_LABEL_CLASS =
-  'text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400';
 
 const appointmentStatusLabel: Record<string, string> = {
   pending: 'Pendiente',
@@ -749,130 +746,109 @@ export default async function AppointmentsPage({ searchParams }: AppointmentsPag
               <input type="hidden" name="shop_id" value={ctx.shopId} />
 
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-                <label className="grid gap-2">
-                  <span className={MANUAL_FIELD_LABEL_CLASS}>Canal</span>
-                  <select
-                    name="source_channel"
-                    required
-                    defaultValue="WALK_IN"
-                    disabled={!hasManualBookingOptions}
-                    className={MANUAL_FIELD_CLASS}
-                  >
-                    <option value="WALK_IN">Presencial</option>
-                    <option value="ADMIN_CREATED">Carga manual</option>
-                  </select>
-                </label>
+                <AdminSelect
+                  name="source_channel"
+                  aria-label="Canal de reserva"
+                  label="Canal"
+                  labelPlacement="inside"
+                  defaultSelectedKeys={['WALK_IN']}
+                  isDisabled={!hasManualBookingOptions}
+                  isRequired
+                  disallowEmptySelection
+                  options={[
+                    { key: 'WALK_IN', label: 'Presencial' },
+                    { key: 'ADMIN_CREATED', label: 'Carga manual' },
+                  ]}
+                />
 
-                <label className="grid gap-2">
-                  <span className={MANUAL_FIELD_LABEL_CLASS}>Inicio</span>
-                  <input
-                    name="start_at"
-                    type="datetime-local"
-                    required
-                    defaultValue={defaultManualStartAt}
-                    disabled={!hasManualBookingOptions}
-                    className={MANUAL_FIELD_CLASS}
-                  />
-                </label>
+                <SurfaceInput
+                  name="start_at"
+                  type="datetime-local"
+                  label="Inicio"
+                  labelPlacement="inside"
+                  defaultValue={defaultManualStartAt}
+                  isDisabled={!hasManualBookingOptions}
+                  isRequired
+                />
               </div>
 
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-                <label className="grid gap-2">
-                  <span className={MANUAL_FIELD_LABEL_CLASS}>Servicio</span>
-                  <select
-                    name="service_id"
-                    required
-                    disabled={!hasManualBookingOptions}
-                    defaultValue=""
-                    className={MANUAL_FIELD_CLASS}
-                  >
-                    <option value="" disabled>
-                      Selecciona un servicio
-                    </option>
-                    {(services || []).map((item) => (
-                      <option key={String(item.id)} value={String(item.id)}>
-                        {String(item.name)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <AdminSelect
+                  name="service_id"
+                  aria-label="Servicio"
+                  label="Servicio"
+                  labelPlacement="inside"
+                  placeholder="Selecciona un servicio"
+                  isDisabled={!hasManualBookingOptions}
+                  isRequired
+                  options={(services || []).map((item) => ({
+                    key: String(item.id),
+                    label: String(item.name),
+                  }))}
+                />
 
-                <label className="grid gap-2">
-                  <span className={MANUAL_FIELD_LABEL_CLASS}>Barbero</span>
-                  <select
-                    name="staff_id"
-                    required
-                    disabled={!hasManualBookingOptions}
-                    defaultValue=""
-                    className={MANUAL_FIELD_CLASS}
-                  >
-                    <option value="" disabled>
-                      Selecciona un barbero
-                    </option>
-                    {(staff || []).map((item) => (
-                      <option key={String(item.id)} value={String(item.id)}>
-                        {String(item.name)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <AdminSelect
+                  name="staff_id"
+                  aria-label="Barbero"
+                  label="Barbero"
+                  labelPlacement="inside"
+                  placeholder="Selecciona un barbero"
+                  isDisabled={!hasManualBookingOptions}
+                  isRequired
+                  options={(staff || []).map((item) => ({
+                    key: String(item.id),
+                    label: String(item.name),
+                  }))}
+                />
               </div>
 
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
-                <label className="grid gap-2">
-                  <span className={MANUAL_FIELD_LABEL_CLASS}>Cliente</span>
-                  <input
-                    name="customer_name"
-                    type="text"
-                    required
-                    placeholder="Nombre del cliente"
-                    disabled={!hasManualBookingOptions}
-                    className={MANUAL_FIELD_CLASS}
-                  />
-                </label>
+                <SurfaceInput
+                  name="customer_name"
+                  type="text"
+                  label="Cliente"
+                  labelPlacement="inside"
+                  placeholder="Nombre del cliente"
+                  isDisabled={!hasManualBookingOptions}
+                  isRequired
+                />
 
-                <label className="grid gap-2">
-                  <span className={MANUAL_FIELD_LABEL_CLASS}>Telefono</span>
-                  <input
-                    name="customer_phone"
-                    type="tel"
-                    required
-                    placeholder="Telefono"
-                    disabled={!hasManualBookingOptions}
-                    className={MANUAL_FIELD_CLASS}
-                  />
-                </label>
+                <SurfaceInput
+                  name="customer_phone"
+                  type="tel"
+                  label="Telefono"
+                  labelPlacement="inside"
+                  placeholder="Telefono"
+                  isDisabled={!hasManualBookingOptions}
+                  isRequired
+                />
               </div>
 
-              <label className="grid gap-2">
-                <span className={MANUAL_FIELD_LABEL_CLASS}>Email</span>
-                <input
-                  name="customer_email"
-                  type="email"
-                  placeholder="Email opcional"
-                  disabled={!hasManualBookingOptions}
-                  className={MANUAL_FIELD_CLASS}
-                />
-              </label>
+              <SurfaceInput
+                name="customer_email"
+                type="email"
+                label="Email"
+                labelPlacement="inside"
+                placeholder="Email opcional"
+                isDisabled={!hasManualBookingOptions}
+              />
 
-              <label className="grid gap-2">
-                <span className={MANUAL_FIELD_LABEL_CLASS}>Notas</span>
-                <textarea
-                  name="notes"
-                  rows={3}
-                  placeholder="Notas internas u observaciones para el equipo"
-                  disabled={!hasManualBookingOptions}
-                  className={`${MANUAL_FIELD_CLASS} min-h-[108px] resize-y`}
-                />
-              </label>
+              <SurfaceTextarea
+                name="notes"
+                rows={3}
+                label="Notas"
+                labelPlacement="inside"
+                placeholder="Notas internas u observaciones para el equipo"
+                isDisabled={!hasManualBookingOptions}
+              />
 
-              <button
+              <Button
                 type="submit"
-                disabled={!hasManualBookingOptions}
+                isDisabled={!hasManualBookingOptions}
                 className="action-primary inline-flex h-12 items-center justify-center rounded-full px-5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Guardar reserva manual
-              </button>
+              </Button>
             </form>
           </section>
 

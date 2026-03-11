@@ -1,4 +1,5 @@
 ﻿import Link from 'next/link';
+import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
 import { BellRing, CalendarClock, CreditCard, Users } from 'lucide-react';
@@ -236,23 +237,24 @@ export function AdminNotificationsWorkspace({
                       <input type="hidden" name="shop_id" value={shopId} />
                       <input type="hidden" name="time_off_id" value={item.id} />
                       <input type="hidden" name="decision" value="approve" />
-                      <button
+                      <Button
                         type="submit"
                         className="action-primary inline-flex rounded-full px-5 py-2.5 text-sm font-semibold"
                       >
                         Aprobar ausencia
-                      </button>
+                      </Button>
                     </form>
                     <form action={reviewStaffTimeOffRequestAction}>
                       <input type="hidden" name="shop_id" value={shopId} />
                       <input type="hidden" name="time_off_id" value={item.id} />
                       <input type="hidden" name="decision" value="reject" />
-                      <button
+                      <Button
                         type="submit"
+                        variant="ghost"
                         className="action-secondary inline-flex rounded-full px-5 py-2.5 text-sm font-semibold"
                       >
                         Rechazar
-                      </button>
+                      </Button>
                     </form>
                   </div>
                 </div>

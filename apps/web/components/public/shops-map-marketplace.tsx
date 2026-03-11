@@ -14,7 +14,7 @@ import {
   type FormEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import { Card, CardBody, CardFooter, CardHeader, Skeleton } from '@heroui/react';
+import { Button, Card, CardBody, CardFooter, CardHeader, Skeleton } from '@heroui/react';
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -84,11 +84,18 @@ function getDistanceKm(
 }
 
 function getLocationSummary(shop: MarketplaceShop) {
-  return [shop.locationLabel, shop.city, shop.region].filter(Boolean).join(' - ') || 'Ubicacion por confirmar';
+  return (
+    [shop.locationLabel, shop.city, shop.region].filter(Boolean).join(' - ') ||
+    'Ubicacion por confirmar'
+  );
 }
 
 function getInitialSelectedShop(shops: MarketplaceShop[]) {
-  return shops.find((shop) => shop.latitude !== null && shop.longitude !== null)?.id || shops[0]?.id || null;
+  return (
+    shops.find((shop) => shop.latitude !== null && shop.longitude !== null)?.id ||
+    shops[0]?.id ||
+    null
+  );
 }
 
 function getMarkerLabel(shop: MarketplaceShop) {
@@ -627,7 +634,9 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   const isMobileViewportRef = useRef(false);
   const mappableShopsByIdRef = useRef<Map<string, MarketplaceShop>>(new Map());
 
-  const [selectedShopId, setSelectedShopId] = useState<string | null>(() => getInitialSelectedShop(initialShops));
+  const [selectedShopId, setSelectedShopId] = useState<string | null>(() =>
+    getInitialSelectedShop(initialShops),
+  );
   const [mapPreviewShopId, setMapPreviewShopId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewportShops, setViewportShops] = useState<MarketplaceShop[]>(initialShops);
@@ -653,13 +662,18 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   const [mobileSheetDragOffset, setMobileSheetDragOffset] = useState(0);
   const [isMobileSheetDragging, setIsMobileSheetDragging] = useState(false);
   const deferredSearchQuery = useDeferredValue(searchQuery);
-  const displayedShops = activeSearchMode === 'name' ? searchResults ?? [] : viewportShops;
+  const displayedShops = activeSearchMode === 'name' ? (searchResults ?? []) : viewportShops;
 
   const filteredShops = useMemo<MarketplaceShopDistanceEntry[]>(() => {
     const withDistance = displayedShops.map((shop) => {
       const distanceKm =
         userLocation && shop.latitude !== null && shop.longitude !== null
-          ? getDistanceKm(userLocation.latitude, userLocation.longitude, shop.latitude, shop.longitude)
+          ? getDistanceKm(
+              userLocation.latitude,
+              userLocation.longitude,
+              shop.latitude,
+              shop.longitude,
+            )
           : null;
 
       return {
@@ -688,7 +702,8 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   }, [displayedShops, userLocation]);
 
   const selectedShopEntry = useMemo(
-    () => filteredShops.find((entry) => entry.shop.id === selectedShopId) || filteredShops[0] || null,
+    () =>
+      filteredShops.find((entry) => entry.shop.id === selectedShopId) || filteredShops[0] || null,
     [filteredShops, selectedShopId],
   );
   const selectedShop = selectedShopEntry?.shop || null;
@@ -728,7 +743,9 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
     const syncTheme = () => {
       const nextIsDark = root.classList.contains('dark');
-      setIsDarkTheme((currentIsDark) => (currentIsDark === nextIsDark ? currentIsDark : nextIsDark));
+      setIsDarkTheme((currentIsDark) =>
+        currentIsDark === nextIsDark ? currentIsDark : nextIsDark,
+      );
     };
 
     syncTheme();
@@ -783,10 +800,14 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
     const syncViewportHeight = () => {
       const nextViewportHeight = Math.round(
-        window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight || 0,
+        window.visualViewport?.height ||
+          window.innerHeight ||
+          document.documentElement.clientHeight ||
+          0,
       );
       const stageTop = Math.round(
-        mobileStageRef.current?.getBoundingClientRect().top ?? MOBILE_MARKETPLACE_FALLBACK_TOP_OFFSET_PX,
+        mobileStageRef.current?.getBoundingClientRect().top ??
+          MOBILE_MARKETPLACE_FALLBACK_TOP_OFFSET_PX,
       );
       const nextContentHeight = Math.max(nextViewportHeight - Math.max(stageTop, 0), 0);
 
@@ -965,7 +986,12 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   }, [deferredSearchQuery]);
 
   useEffect(() => {
-    if (isMobileViewport === null || !googleMapsApiKey || !mapElementRef.current || mapRef.current) {
+    if (
+      isMobileViewport === null ||
+      !googleMapsApiKey ||
+      !mapElementRef.current ||
+      mapRef.current
+    ) {
       return;
     }
 
@@ -978,7 +1004,9 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
         }
 
         googleMapsRef.current = google;
-        autocompleteServiceRef.current = google.maps.places ? new google.maps.places.AutocompleteService() : null;
+        autocompleteServiceRef.current = google.maps.places
+          ? new google.maps.places.AutocompleteService()
+          : null;
         geocoderRef.current = new google.maps.Geocoder();
         mapRef.current = new google.maps.Map(mapElementRef.current, {
           center: DEFAULT_MARKETPLACE_CENTER,
@@ -1031,7 +1059,9 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
           return;
         }
 
-        setMapError(loadError instanceof Error ? loadError.message : 'No se pudo cargar Google Maps.');
+        setMapError(
+          loadError instanceof Error ? loadError.message : 'No se pudo cargar Google Maps.',
+        );
         setIsMapReady(false);
       });
 
@@ -1256,17 +1286,20 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     };
   }, []);
 
-  const centerMapOnCoordinates = useCallback((latitude: number, longitude: number, zoom: number) => {
-    if (!mapRef.current) {
-      return;
-    }
+  const centerMapOnCoordinates = useCallback(
+    (latitude: number, longitude: number, zoom: number) => {
+      if (!mapRef.current) {
+        return;
+      }
 
-    mapRef.current.setCenter({
-      lat: latitude,
-      lng: longitude,
-    });
-    mapRef.current.setZoom(zoom);
-  }, []);
+      mapRef.current.setCenter({
+        lat: latitude,
+        lng: longitude,
+      });
+      mapRef.current.setZoom(zoom);
+    },
+    [],
+  );
 
   const setMobileSheetSnap = useCallback((nextStage: MobileSheetStage) => {
     setMobileSheetStage(nextStage);
@@ -1275,14 +1308,17 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   }, []);
 
   function getClosestMobileSheetStage(translatePercent: number, sheetHeight: number) {
-    return (Object.entries(MOBILE_SHEET_STAGE_TRANSLATE) as Array<[MobileSheetStage, number]>).reduce(
-      (closestStage, [stage]) => {
-        const currentDistance = Math.abs(getMobileSheetStageTranslate(closestStage, sheetHeight) - translatePercent);
-        const nextDistance = Math.abs(getMobileSheetStageTranslate(stage, sheetHeight) - translatePercent);
-        return nextDistance < currentDistance ? stage : closestStage;
-      },
-      'mid' as MobileSheetStage,
-    );
+    return (
+      Object.entries(MOBILE_SHEET_STAGE_TRANSLATE) as Array<[MobileSheetStage, number]>
+    ).reduce((closestStage, [stage]) => {
+      const currentDistance = Math.abs(
+        getMobileSheetStageTranslate(closestStage, sheetHeight) - translatePercent,
+      );
+      const nextDistance = Math.abs(
+        getMobileSheetStageTranslate(stage, sheetHeight) - translatePercent,
+      );
+      return nextDistance < currentDistance ? stage : closestStage;
+    }, 'mid' as MobileSheetStage);
   }
 
   function handleMobileSheetDragStart(event: ReactPointerEvent<HTMLDivElement>) {
@@ -1376,31 +1412,34 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     return requestId === areaFocusRequestIdRef.current;
   }
 
-  const focusShop = useCallback((
-    shop: MarketplaceShop,
-    options?: {
-      openPreview?: boolean;
-    },
-  ) => {
-    setSelectedShopId(shop.id);
-    setMapPreviewShopId((currentPreviewShopId) => {
-      if (!options?.openPreview) {
-        return null;
+  const focusShop = useCallback(
+    (
+      shop: MarketplaceShop,
+      options?: {
+        openPreview?: boolean;
+      },
+    ) => {
+      setSelectedShopId(shop.id);
+      setMapPreviewShopId((currentPreviewShopId) => {
+        if (!options?.openPreview) {
+          return null;
+        }
+
+        return currentPreviewShopId === shop.id ? null : shop.id;
+      });
+
+      if (options?.openPreview && isMobileViewport) {
+        setMobileSheetSnap('collapsed');
       }
 
-      return currentPreviewShopId === shop.id ? null : shop.id;
-    });
+      if (shop.latitude === null || shop.longitude === null || !mapRef.current) {
+        return;
+      }
 
-    if (options?.openPreview && isMobileViewport) {
-      setMobileSheetSnap('collapsed');
-    }
-
-    if (shop.latitude === null || shop.longitude === null || !mapRef.current) {
-      return;
-    }
-
-    centerMapOnCoordinates(Number(shop.latitude), Number(shop.longitude), 15);
-  }, [centerMapOnCoordinates, isMobileViewport, setMobileSheetSnap]);
+      centerMapOnCoordinates(Number(shop.latitude), Number(shop.longitude), 15);
+    },
+    [centerMapOnCoordinates, isMobileViewport, setMobileSheetSnap],
+  );
 
   async function fetchSearchResults(params: Record<string, string>, signal?: AbortSignal) {
     const requestInit: RequestInit = {
@@ -1436,7 +1475,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     return (await response.json()) as ViewportResponsePayload;
   }
 
-  function getViewportCacheKey(bounds: { north: number; south: number; east: number; west: number }, zoom: number) {
+  function getViewportCacheKey(
+    bounds: { north: number; south: number; east: number; west: number },
+    zoom: number,
+  ) {
     const precision = zoom >= 15 ? 4 : zoom >= 13 ? 3 : 2;
     const limit = getViewportFetchLimit(zoom);
 
@@ -1450,11 +1492,14 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   }
 
   async function fetchShopSuggestions(query: string, signal?: AbortSignal) {
-    const response = await fetchSearchResults({
-      q: query,
-      intent: 'name',
-      limit: '4',
-    }, signal);
+    const response = await fetchSearchResults(
+      {
+        q: query,
+        intent: 'name',
+        limit: '4',
+      },
+      signal,
+    );
 
     return response.items.map<SearchSuggestion>((shop) => ({
       key: `shop:${shop.id}`,
@@ -1470,30 +1515,32 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       return [];
     }
 
-    const predictions = await new Promise<Array<{ description: string; placeId: string }>>((resolve) => {
-      autocompleteServiceRef.current?.getPlacePredictions(
-        {
-          input: query,
-          componentRestrictions: { country: 'uy' },
-        },
-        (results, status) => {
-          if (status !== 'OK' || !results?.length) {
-            resolve([]);
-            return;
-          }
+    const predictions = await new Promise<Array<{ description: string; placeId: string }>>(
+      (resolve) => {
+        autocompleteServiceRef.current?.getPlacePredictions(
+          {
+            input: query,
+            componentRestrictions: { country: 'uy' },
+          },
+          (results, status) => {
+            if (status !== 'OK' || !results?.length) {
+              resolve([]);
+              return;
+            }
 
-          resolve(
-            results
-              .map((item) => ({
-                description: String(item.description || ''),
-                placeId: String(item.place_id || ''),
-              }))
-              .filter((item) => item.description && item.placeId)
-              .slice(0, 4),
-          );
-        },
-      );
-    });
+            resolve(
+              results
+                .map((item) => ({
+                  description: String(item.description || ''),
+                  placeId: String(item.place_id || ''),
+                }))
+                .filter((item) => item.description && item.placeId)
+                .slice(0, 4),
+            );
+          },
+        );
+      },
+    );
 
     return predictions.map<SearchSuggestion>((item) => ({
       key: `area:${item.placeId}`,
@@ -1557,7 +1604,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
               : cachedItems,
           );
           setSelectedShopId((currentSelectedShopId) => {
-            if (currentSelectedShopId && cachedItems.some((shop) => shop.id === currentSelectedShopId)) {
+            if (
+              currentSelectedShopId &&
+              cachedItems.some((shop) => shop.id === currentSelectedShopId)
+            ) {
               return currentSelectedShopId;
             }
 
@@ -1601,7 +1651,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
               : response.items,
           );
           setSelectedShopId((currentSelectedShopId) => {
-            if (currentSelectedShopId && response.items.some((shop) => shop.id === currentSelectedShopId)) {
+            if (
+              currentSelectedShopId &&
+              response.items.some((shop) => shop.id === currentSelectedShopId)
+            ) {
               return currentSelectedShopId;
             }
 
@@ -1776,7 +1829,11 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     }
   }
 
-  async function applyAreaSearch(query: string, label?: string, placeId?: string): Promise<boolean> {
+  async function applyAreaSearch(
+    query: string,
+    label?: string,
+    placeId?: string,
+  ): Promise<boolean> {
     const trimmedQuery = query.trim();
 
     if (!trimmedQuery) {
@@ -1826,7 +1883,9 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       });
 
       if (!hasResults) {
-        setSearchError('No encontramos barberias visibles en esta zona todavia. Mueve el mapa para seguir explorando.');
+        setSearchError(
+          'No encontramos barberias visibles en esta zona todavia. Mueve el mapa para seguir explorando.',
+        );
       }
       return true;
     } catch (error) {
@@ -1849,7 +1908,11 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       return;
     }
 
-    await applyAreaSearch(searchQuery.trim() || suggestion.label, suggestion.label, suggestion.placeId);
+    await applyAreaSearch(
+      searchQuery.trim() || suggestion.label,
+      suggestion.label,
+      suggestion.placeId,
+    );
   }
 
   async function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
@@ -1886,19 +1949,16 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     await applyNamedSearch(trimmedQuery, trimmedQuery);
   }
 
-  const handleSearchInputChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const nextValue = event.target.value;
-      const hasValue = nextValue.trim().length > 0;
+  const handleSearchInputChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    const nextValue = event.target.value;
+    const hasValue = nextValue.trim().length > 0;
 
-      suggestionsRequestIdRef.current += 1;
-      setIsSearchFocused(true);
-      setSearchQuery(nextValue);
-      setSuggestions([]);
-      setIsSearching(hasValue);
-    },
-    [],
-  );
+    suggestionsRequestIdRef.current += 1;
+    setIsSearchFocused(true);
+    setSearchQuery(nextValue);
+    setSuggestions([]);
+    setIsSearching(hasValue);
+  }, []);
 
   const handleSearchInputFocus = useCallback(() => {
     setIsSearchFocused(true);
@@ -1927,8 +1987,11 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     filteredShops.length === 1 ? 'barberia' : 'barberias'
   } en esta zona`;
   const isMobileViewportActive = isMobileViewport === true;
-  const mobileViewportContentHeight = isMobileViewportActive && mobileViewportHeight ? mobileViewportHeight : null;
-  const mobileSheetHeight = mobileViewportContentHeight ? Math.max(mobileViewportContentHeight - 16, 0) : null;
+  const mobileViewportContentHeight =
+    isMobileViewportActive && mobileViewportHeight ? mobileViewportHeight : null;
+  const mobileSheetHeight = mobileViewportContentHeight
+    ? Math.max(mobileViewportContentHeight - 16, 0)
+    : null;
   const shouldHideMobileSheetForMapPreview = isMobileViewportActive && Boolean(mapPreviewShop);
   const mobileSheetStyle = isMobileViewportActive
     ? {
@@ -1962,7 +2025,9 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       : 'relative z-10 rounded-[2.25rem] border border-white/70 bg-white/95 p-4 shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/94 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none xl:backdrop-blur-0',
     !isMobileViewportActive && '-mt-14 xl:mt-0',
     shouldHideMobileSheetForMapPreview && 'pointer-events-none opacity-0',
-    !isMobileSheetDragging && isMobileViewportActive && 'transition-transform duration-300 ease-out',
+    !isMobileSheetDragging &&
+      isMobileViewportActive &&
+      'transition-transform duration-300 ease-out',
   );
 
   if (isMobileViewport === null) {
@@ -2016,26 +2081,33 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
             <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">{resultDescription}</p>
           </div>
 
-          <form className="soft-panel relative z-30 rounded-[1.8rem] p-4" onSubmit={handleSearchSubmit}>
+          <form
+            className="soft-panel relative z-30 rounded-[1.8rem] p-4"
+            onSubmit={handleSearchSubmit}
+          >
             <div className="flex flex-wrap items-center gap-3">
               <div className="hero-eyebrow">
                 <Sparkles className="h-3.5 w-3.5" />
                 Busca como en un mapa
               </div>
               {showResetSearch ? (
-                <button
+                <Button
                   type="button"
                   onClick={clearSearchResults}
+                  variant="light"
                   className="meta-chip transition hover:bg-white/80 dark:hover:bg-white/[0.08]"
                 >
                   Limpiar busqueda
-                </button>
+                </Button>
               ) : null}
             </div>
 
             <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
               <div className="places-search-shell relative z-40">
-                <div className="places-search-input-shell" data-open={showSuggestions ? 'true' : 'false'}>
+                <div
+                  className="places-search-input-shell"
+                  data-open={showSuggestions ? 'true' : 'false'}
+                >
                   <Search className="places-search-icon h-4 w-4" />
                   <input
                     type="search"
@@ -2054,9 +2126,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                       <p className="places-search-empty">Buscando sugerencias...</p>
                     ) : suggestions.length > 0 ? (
                       suggestions.map((suggestion) => (
-                        <button
+                        <Button
                           key={suggestion.key}
                           type="button"
+                          variant="light"
                           onMouseDown={(event) => event.preventDefault()}
                           onClick={() => void handleSuggestionSelect(suggestion)}
                           className="places-search-option"
@@ -2068,23 +2141,29 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                           <span className="ml-auto shrink-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate/60 dark:text-slate-400">
                             {suggestion.type === 'shop' ? 'Barberia' : 'Zona'}
                           </span>
-                        </button>
+                        </Button>
                       ))
                     ) : (
-                      <p className="places-search-empty">No encontramos sugerencias. Presiona Buscar para intentar igual.</p>
+                      <p className="places-search-empty">
+                        No encontramos sugerencias. Presiona Buscar para intentar igual.
+                      </p>
                     )}
                   </div>
                 ) : null}
               </div>
 
-              <button
+              <Button
                 type="submit"
+                isDisabled={isApplyingSearch}
                 className="action-primary inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold"
-                disabled={isApplyingSearch}
               >
-                {isApplyingSearch ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                {isApplyingSearch ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
                 Buscar
-              </button>
+              </Button>
             </div>
 
             {searchError ? <p className="status-banner warning mt-3">{searchError}</p> : null}
@@ -2128,20 +2207,25 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                     {activePins}
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">{resultDescription}</p>
+                <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
+                  {resultDescription}
+                </p>
               </div>
             )}
             {mobileSheetStage !== 'collapsed' && showResetSearch ? (
-              <button
+              <Button
                 type="button"
                 onClick={clearSearchResults}
                 onPointerDown={(event) => event.stopPropagation()}
+                variant="light"
                 className="meta-chip mt-3 transition hover:bg-white/80 dark:hover:bg-white/[0.08]"
               >
                 Limpiar busqueda
-              </button>
+              </Button>
             ) : null}
-            {mobileSheetStage !== 'collapsed' && searchError ? <p className="status-banner warning mt-3">{searchError}</p> : null}
+            {mobileSheetStage !== 'collapsed' && searchError ? (
+              <p className="status-banner warning mt-3">{searchError}</p>
+            ) : null}
           </div>
 
           <div
@@ -2149,7 +2233,9 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
               isMobileViewport
                 ? 'mobile-sheet-surface mt-0 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-24 pt-5'
                 : 'mt-5',
-              isMobileViewport && mobileSheetStage === 'collapsed' && 'pointer-events-none opacity-0',
+              isMobileViewport &&
+                mobileSheetStage === 'collapsed' &&
+                'pointer-events-none opacity-0',
             )}
           >
             <MarketplaceCardsSection
@@ -2159,8 +2245,8 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
               activeSearchMode={activeSearchMode}
               onFocus={focusShop}
             />
-      </div>
-      </div>
+          </div>
+        </div>
       </div>
 
       <div className="order-1 h-full min-h-0 xl:order-2 xl:h-auto xl:sticky xl:top-[6.25rem] xl:self-start xl:w-full">
@@ -2172,7 +2258,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
             >
               <div className="flex items-center gap-2">
                 <div className="places-search-shell relative z-40 min-w-0 flex-1">
-                  <div className="places-search-input-shell" data-open={showSuggestions ? 'true' : 'false'}>
+                  <div
+                    className="places-search-input-shell"
+                    data-open={showSuggestions ? 'true' : 'false'}
+                  >
                     <Search className="places-search-icon h-4 w-4" />
                     <input
                       type="search"
@@ -2191,9 +2280,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                         <p className="places-search-empty">Buscando sugerencias...</p>
                       ) : suggestions.length > 0 ? (
                         suggestions.map((suggestion) => (
-                          <button
+                          <Button
                             key={suggestion.key}
                             type="button"
+                            variant="light"
                             onMouseDown={(event) => event.preventDefault()}
                             onClick={() => void handleSuggestionSelect(suggestion)}
                             className="places-search-option"
@@ -2205,7 +2295,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                             <span className="ml-auto shrink-0 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate/60 dark:text-slate-400">
                               {suggestion.type === 'shop' ? 'Barberia' : 'Zona'}
                             </span>
-                          </button>
+                          </Button>
                         ))
                       ) : (
                         <p className="places-search-empty">
@@ -2216,14 +2306,19 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                   ) : null}
                 </div>
 
-                <button
+                <Button
                   type="submit"
+                  isIconOnly
+                  isDisabled={isApplyingSearch}
                   className="action-primary inline-flex h-11 w-11 items-center justify-center rounded-2xl"
-                  disabled={isApplyingSearch}
                   aria-label="Buscar"
                 >
-                  {isApplyingSearch ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                </button>
+                  {isApplyingSearch ? (
+                    <LoaderCircle className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
             </form>
           </div>
@@ -2247,9 +2342,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
               >
                 <div className="flex items-center gap-2">
                   <LoaderCircle className="h-4 w-4 animate-spin" />
-                  <span className="font-semibold">
-                  Cargando mapa...
-                  </span>
+                  <span className="font-semibold">Cargando mapa...</span>
                 </div>
               </div>
             </div>
@@ -2288,8 +2381,11 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                     </span>
 
                     <div className="flex items-center gap-2">
-                      <button
+                      <Button
                         type="button"
+                        isIconOnly
+                        radius="full"
+                        variant="light"
                         onClick={() => {
                           setMapPreviewShopId(null);
                           if (isMobileViewport) {
@@ -2300,7 +2396,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                         className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-slate-900 shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)] transition hover:bg-white dark:bg-slate-950/95 dark:text-slate-100 dark:hover:bg-slate-900"
                       >
                         <X className="h-4 w-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -2317,7 +2413,8 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                     </div>
                     <p className="shrink-0 whitespace-nowrap text-sm font-semibold text-ink dark:text-slate-100">
                       <Star className="mr-1 inline h-3.5 w-3.5 fill-current text-amber-500" />
-                      {formatRating(mapPreviewShop.averageRating)} ({mapPreviewShop.reviewCount || 0})
+                      {formatRating(mapPreviewShop.averageRating)} (
+                      {mapPreviewShop.reviewCount || 0})
                     </p>
                   </div>
 

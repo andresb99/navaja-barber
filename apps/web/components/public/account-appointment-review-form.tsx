@@ -46,10 +46,13 @@ export function AccountAppointmentReviewForm({ appointmentId }: AccountAppointme
         <p className="text-sm font-medium text-slate/80">Calificación</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {[1, 2, 3, 4, 5].map((value) => (
-            <button
+            <Button
               key={value}
               type="button"
-              onClick={() => setRating(value)}
+              size="sm"
+              radius="full"
+              variant={value <= rating ? 'solid' : 'bordered'}
+              onPress={() => setRating(value)}
               className={`rounded-full border px-3 py-2 text-sm font-semibold ${
                 value <= rating
                   ? 'border-brass/35 bg-brass/[0.08] text-amber-700 dark:border-brass/25 dark:bg-brass/[0.12] dark:text-amber-200'
@@ -57,7 +60,7 @@ export function AccountAppointmentReviewForm({ appointmentId }: AccountAppointme
               }`}
             >
               {value} estrella{value === 1 ? '' : 's'}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

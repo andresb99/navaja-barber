@@ -39,7 +39,7 @@ function getRangePillClassName(isActive: boolean) {
 }
 
 const filterPanelSectionClassName =
-  'rounded-[1.45rem] border border-white/58 bg-white/42 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] dark:border-white/8 dark:bg-white/[0.02] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]';
+  'rounded-[1.45rem] border border-white/58 bg-white/42 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] dark:border-white/10 dark:bg-[rgb(22,19,36)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]';
 
 function coerceStaffId(value: string | undefined) {
   const normalized = String(value || '').trim();
@@ -307,8 +307,6 @@ export default async function MetricsPage({ searchParams }: MetricsPageProps) {
         variant="pageHeader"
         className="relative overflow-hidden rounded-[2.5rem] px-6 py-7 md:px-8 md:py-9"
       >
-        <div className="pointer-events-none absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-400/18 blur-3xl dark:bg-[hsl(var(--primary)/0.16)]" />
-        <div className="pointer-events-none absolute bottom-0 left-0 -mb-20 -ml-20 h-72 w-72 rounded-full bg-rose-400/16 blur-3xl dark:bg-[hsl(var(--destructive)/0.14)]" />
         <div className="relative z-10 grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <div>
             <p className="hero-eyebrow">Metricas</p>

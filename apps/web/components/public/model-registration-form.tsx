@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { modelRegistrationInputSchema } from '@navaja/shared';
 import { Button, Input, Select, SelectItem } from '@heroui/react';
+import { SurfaceCheckbox } from '@/components/heroui/surface-field';
 
 interface SessionOption {
   session_id: string;
@@ -68,10 +69,7 @@ export function ModelRegistrationForm({
 
     return sessions.filter((session) => !session.shop_id || session.shop_id === selectedShopId);
   }, [selectedShopId, sessions, shopId]);
-  const canSubmit = useMemo(
-    () => !!fullName && !!phone && !loading,
-    [fullName, phone, loading],
-  );
+  const canSubmit = useMemo(() => !!fullName && !!phone && !loading, [fullName, phone, loading]);
 
   useEffect(() => {
     if (shopId) {
@@ -163,7 +161,8 @@ export function ModelRegistrationForm({
           Listo, recibimos tu registro
         </h2>
         <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
-          Tu perfil ya quedo disponible y te vamos a contactar por WhatsApp cuando encaje con una convocatoria.
+          Tu perfil ya quedo disponible y te vamos a contactar por WhatsApp cuando encaje con una
+          convocatoria.
         </p>
       </div>
     );
@@ -267,17 +266,17 @@ export function ModelRegistrationForm({
         <p className="mb-2 text-sm font-medium text-slate/90">Preferencias (opcional)</p>
         <div className="list-check grid gap-2 sm:grid-cols-2">
           {preferenceOptions.map((option) => (
-            <label
+            <SurfaceCheckbox
               key={option.value}
-              className="flex items-center gap-2 rounded-lg border border-slate/20 bg-white/85 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900/70"
+              isSelected={preferences.includes(option.value)}
+              onValueChange={() => togglePreference(option.value)}
+              classNames={{
+                base: 'max-w-full rounded-lg border border-slate/20 bg-white/85 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/70',
+                label: 'text-sm text-slate/90 dark:text-slate-100',
+              }}
             >
-              <input
-                type="checkbox"
-                checked={preferences.includes(option.value)}
-                onChange={() => togglePreference(option.value)}
-              />
               {option.label}
-            </label>
+            </SurfaceCheckbox>
           ))}
         </div>
       </div>
@@ -292,22 +291,12 @@ export function ModelRegistrationForm({
       </div>
 
       <div className="space-y-2">
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={consentPhotos}
-            onChange={(event) => setConsentPhotos(event.target.checked)}
-          />
+        <SurfaceCheckbox isSelected={consentPhotos} onValueChange={setConsentPhotos}>
           Acepto que me saquen fotos o videos durante la practica.
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={marketingOptIn}
-            onChange={(event) => setMarketingOptIn(event.target.checked)}
-          />
+        </SurfaceCheckbox>
+        <SurfaceCheckbox isSelected={marketingOptIn} onValueChange={setMarketingOptIn}>
           Quiero recibir novedades de cursos y convocatorias.
-        </label>
+        </SurfaceCheckbox>
       </div>
 
       {error ? <p className="status-banner error">{error}</p> : null}

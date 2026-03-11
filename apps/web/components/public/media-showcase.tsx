@@ -10,7 +10,7 @@ import {
   type ReactNode,
   type UIEvent,
 } from 'react';
-import { Image } from '@heroui/react';
+import { Button, Image } from '@heroui/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
@@ -33,7 +33,10 @@ function clampIndex(index: number, length: number) {
   return Math.min(Math.max(index, 0), length - 1);
 }
 
-function arraysEqualByStringValue(left: Array<string | null | undefined>, right: Array<string | null | undefined>) {
+function arraysEqualByStringValue(
+  left: Array<string | null | undefined>,
+  right: Array<string | null | undefined>,
+) {
   if (left.length !== right.length) {
     return false;
   }
@@ -63,51 +66,53 @@ function MediaShowcaseComponent({
   const scrollFrameRef = useRef<number | null>(null);
 
   const normalizedImages = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          images
-            .map((value) => String(value || '').trim())
-            .filter(Boolean),
-        ),
-      ),
+    () => Array.from(new Set(images.map((value) => String(value || '').trim()).filter(Boolean))),
     [images],
   );
   const imagesFingerprint = useMemo(() => normalizedImages.join('||'), [normalizedImages]);
   const hasMultipleImages = normalizedImages.length > 1;
 
-  const scrollToIndex = useCallback((nextIndex: number, behavior: ScrollBehavior = 'smooth') => {
-    const viewport = viewportRef.current;
-    if (!viewport || normalizedImages.length === 0) {
-      return;
-    }
+  const scrollToIndex = useCallback(
+    (nextIndex: number, behavior: ScrollBehavior = 'smooth') => {
+      const viewport = viewportRef.current;
+      if (!viewport || normalizedImages.length === 0) {
+        return;
+      }
 
-    const safeIndex = clampIndex(nextIndex, normalizedImages.length);
-    const targetLeft = safeIndex * viewport.clientWidth;
-    viewport.scrollTo({
-      left: targetLeft,
-      behavior,
-    });
-    setActiveIndex((currentIndex) => (currentIndex === safeIndex ? currentIndex : safeIndex));
-  }, [normalizedImages.length]);
+      const safeIndex = clampIndex(nextIndex, normalizedImages.length);
+      const targetLeft = safeIndex * viewport.clientWidth;
+      viewport.scrollTo({
+        left: targetLeft,
+        behavior,
+      });
+      setActiveIndex((currentIndex) => (currentIndex === safeIndex ? currentIndex : safeIndex));
+    },
+    [normalizedImages.length],
+  );
 
-  const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
-    if (normalizedImages.length <= 1) {
-      return;
-    }
+  const handleScroll = useCallback(
+    (event: UIEvent<HTMLDivElement>) => {
+      if (normalizedImages.length <= 1) {
+        return;
+      }
 
-    const viewport = event.currentTarget;
-    if (scrollFrameRef.current !== null) {
-      return;
-    }
+      const viewport = event.currentTarget;
+      if (scrollFrameRef.current !== null) {
+        return;
+      }
 
-    scrollFrameRef.current = window.requestAnimationFrame(() => {
-      scrollFrameRef.current = null;
-      const width = viewport.clientWidth || 1;
-      const nextIndex = clampIndex(Math.round(viewport.scrollLeft / width), normalizedImages.length);
-      setActiveIndex((currentIndex) => (currentIndex === nextIndex ? currentIndex : nextIndex));
-    });
-  }, [normalizedImages.length]);
+      scrollFrameRef.current = window.requestAnimationFrame(() => {
+        scrollFrameRef.current = null;
+        const width = viewport.clientWidth || 1;
+        const nextIndex = clampIndex(
+          Math.round(viewport.scrollLeft / width),
+          normalizedImages.length,
+        );
+        setActiveIndex((currentIndex) => (currentIndex === nextIndex ? currentIndex : nextIndex));
+      });
+    },
+    [normalizedImages.length],
+  );
 
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -197,8 +202,12 @@ function MediaShowcaseComponent({
 
       {hasMultipleImages ? (
         <>
-          <button
+          <Button
             type="button"
+            isIconOnly
+            size="sm"
+            radius="full"
+            variant="light"
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -208,9 +217,13 @@ function MediaShowcaseComponent({
             className="absolute left-3 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-slate-950/55 text-white backdrop-blur-sm transition hover:bg-slate-950/75 md:inline-flex"
           >
             <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            isIconOnly
+            size="sm"
+            radius="full"
+            variant="light"
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -220,16 +233,25 @@ function MediaShowcaseComponent({
             className="absolute right-3 top-1/2 z-20 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/60 bg-slate-950/55 text-white backdrop-blur-sm transition hover:bg-slate-950/75 md:inline-flex"
           >
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </Button>
         </>
       ) : null}
 
       {hasMultipleImages ? (
-        <div className={cn('absolute inset-x-0 bottom-3 z-20 flex justify-center gap-1.5', dotsClassName)}>
+        <div
+          className={cn(
+            'absolute inset-x-0 bottom-3 z-20 flex justify-center gap-1.5',
+            dotsClassName,
+          )}
+        >
           {normalizedImages.map((imageUrl, index) => (
-            <button
+            <Button
               key={`${imageUrl}-dot-${index}`}
               type="button"
+              isIconOnly
+              size="sm"
+              radius="full"
+              variant="light"
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();

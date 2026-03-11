@@ -678,8 +678,11 @@ export function AdminBarbershopSettingsForm({
                           className="h-40 w-full object-cover transition duration-500 group-hover:scale-[1.02]"
                         />
                         <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-slate-950/72 px-3 py-3 text-white backdrop-blur">
-                          <button
+                          <Button
                             type="button"
+                            size="sm"
+                            radius="full"
+                            variant="light"
                             onClick={() => setCoverImageRef(ref)}
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                               isCover ? 'bg-amber-400/20 text-amber-100' : 'bg-white/12 text-white'
@@ -691,15 +694,19 @@ export function AdminBarbershopSettingsForm({
                               }`}
                             />
                             {isCover ? 'Portada activa' : 'Usar de portada'}
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            isIconOnly
+                            size="sm"
+                            radius="full"
+                            variant="light"
                             onClick={() => removeExistingImage(image.id)}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/20 text-rose-100"
                             aria-label="Eliminar foto actual"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     );
@@ -719,8 +726,11 @@ export function AdminBarbershopSettingsForm({
                           className="h-40 w-full object-cover transition duration-500 group-hover:scale-[1.02]"
                         />
                         <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-slate-950/72 px-3 py-3 text-white backdrop-blur">
-                          <button
+                          <Button
                             type="button"
+                            size="sm"
+                            radius="full"
+                            variant="light"
                             onClick={() => setCoverImageRef(ref)}
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                               isCover ? 'bg-amber-400/20 text-amber-100' : 'bg-white/12 text-white'
@@ -732,15 +742,19 @@ export function AdminBarbershopSettingsForm({
                               }`}
                             />
                             {isCover ? 'Portada activa' : 'Usar de portada'}
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            isIconOnly
+                            size="sm"
+                            radius="full"
+                            variant="light"
                             onClick={() => removeNewImage(image.id)}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/20 text-rose-100"
                             aria-label="Eliminar foto nueva"
                           >
                             <X className="h-3.5 w-3.5" />
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     );
@@ -787,8 +801,9 @@ export function AdminBarbershopSettingsForm({
               </div>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
-              <button
+              <Button
                 type="button"
+                variant="light"
                 className={`rounded-[1.4rem] border p-4 text-left transition ${
                   bookingRefundMode === 'automatic_full'
                     ? selectedSecondaryPanelClassName
@@ -802,9 +817,10 @@ export function AdminBarbershopSettingsForm({
                 <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
                   Reduce soporte manual y deja claro el criterio cuando cancela el local.
                 </p>
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="light"
                 className={`rounded-[1.4rem] border p-4 text-left transition ${
                   bookingRefundMode === 'manual_review'
                     ? selectedSecondaryPanelClassName
@@ -818,7 +834,7 @@ export function AdminBarbershopSettingsForm({
                 <p className="mt-1 text-xs leading-6 text-slate/75 dark:text-slate-400">
                   Sirve si el caso depende del staff o de una excepcion del negocio.
                 </p>
-              </button>
+              </Button>
             </div>
 
             <Textarea

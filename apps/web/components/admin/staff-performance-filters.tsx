@@ -7,6 +7,7 @@ import type {
   StaffPerformanceMetric,
 } from '@/lib/metrics';
 import { buildAdminHref } from '@/lib/workspace-routes';
+import { SurfaceCheckbox } from '@/components/heroui/surface-field';
 
 interface StaffPerformanceFiltersProps {
   shopSlug: string;
@@ -185,28 +186,28 @@ export function StaffPerformanceFilters({
                 const isSelected = compareSelection.includes(item.staffId);
 
                 return (
-                  <label
+                  <SurfaceCheckbox
                     key={item.staffId}
-                    className={`cursor-pointer rounded-2xl border px-3 py-3 transition ${
-                      isSelected
-                        ? 'border-white/75 bg-white/76 shadow-[0_14px_24px_-22px_rgba(56,189,248,0.34)] dark:border-transparent dark:bg-white/[0.06]'
-                        : 'border-white/55 bg-white/42 hover:bg-white/58 dark:border-transparent dark:bg-white/[0.03] dark:hover:bg-white/[0.045]'
-                    }`}
+                    name="compare"
+                    value={item.staffId}
+                    defaultSelected={isSelected}
+                    classNames={{
+                      base: `group max-w-full cursor-pointer rounded-2xl border px-3 py-3 transition ${
+                        isSelected
+                          ? 'border-white/75 bg-white/76 shadow-[0_14px_24px_-22px_rgba(56,189,248,0.34)] dark:border-transparent dark:bg-white/[0.06]'
+                          : 'border-white/55 bg-white/42 hover:bg-white/58 dark:border-transparent dark:bg-white/[0.03] dark:hover:bg-white/[0.045]'
+                      } group-data-[selected=true]:border-white/75 group-data-[selected=true]:bg-white/76 group-data-[selected=true]:shadow-[0_14px_24px_-22px_rgba(56,189,248,0.34)] dark:group-data-[selected=true]:border-transparent dark:group-data-[selected=true]:bg-white/[0.06]`,
+                      wrapper: 'sr-only absolute opacity-0',
+                      label: 'w-full',
+                    }}
                   >
-                    <input
-                      type="checkbox"
-                      name="compare"
-                      value={item.staffId}
-                      defaultChecked={isSelected}
-                      className="sr-only"
-                    />
                     <span className="block text-sm font-semibold text-ink dark:text-slate-100">
                       {item.staffName}
                     </span>
                     <span className="mt-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/55 dark:text-slate-400">
                       {isSelected ? 'Incluido' : 'Disponible'}
                     </span>
-                  </label>
+                  </SurfaceCheckbox>
                 );
               })}
             </div>
