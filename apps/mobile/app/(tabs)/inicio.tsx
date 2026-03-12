@@ -18,7 +18,9 @@ import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ActionButton, Chip, MutedText } from '../../components/ui/primitives';
+import { AppMenuButton } from '../../components/navigation/app-menu';
+import { ActionButton, Chip, MutedText, ThemeToggle } from '../../components/ui/primitives';
+import { PlatformQuickLinks } from '../../components/marketing/platform-quick-links';
 import {
   hasExternalApi,
   listMarketplaceShopsInViewportViaApi,
@@ -46,7 +48,13 @@ import {
   type MarketplaceShop,
 } from '../../lib/marketplace';
 import { env } from '../../lib/env';
-import { useNavajaTheme } from '../../lib/theme';
+import {
+  getMapPinColor,
+  getMarketplaceCoverGradient,
+  getStatusSurface,
+  useNavajaTheme,
+  withOpacity,
+} from '../../lib/theme';
 
 type MobileSheetStage = 'collapsed' | 'mid' | 'expanded';
 type MarketplaceSearchMode = 'all' | 'name' | 'area' | 'nearby';
@@ -366,15 +374,11 @@ function getShopReviewSummary(shop: MarketplaceShop) {
   return `${shop.reviewCount} resenas verificadas publicadas en su perfil.`;
 }
 
-function getFallbackCoverGradient(shop: MarketplaceShop) {
-  const palettes = [
-    ['rgba(14,165,233,0.92)', 'rgba(15,23,42,0.96)'],
-    ['rgba(244,63,94,0.88)', 'rgba(30,41,59,0.96)'],
-    ['rgba(236,72,153,0.86)', 'rgba(17,24,39,0.96)'],
-    ['rgba(234,176,72,0.90)', 'rgba(22,28,45,0.96)'],
-  ] as const;
-  const paletteIndex = shop.name.length % palettes.length;
-  return palettes[paletteIndex] || palettes[0];
+function getFallbackCoverGradient(
+  shop: MarketplaceShop,
+  colors: ReturnType<typeof useNavajaTheme>['colors'],
+) {
+  return getMarketplaceCoverGradient(colors, shop.name);
 }
 
 function haveSameShopOrder(left: MarketplaceShop[], right: MarketplaceShop[]) {
@@ -407,6 +411,7 @@ function getViewportContext(region: Region) {
 
 export default function InicioScreen() {
   const { colors } = useNavajaTheme();
+  const successTone = getStatusSurface(colors, 'success');
   const insets = useSafeAreaInsets();
   const { height: viewportHeight } = useWindowDimensions();
   const mapRef = useRef<MapView | null>(null);
@@ -1313,8 +1318,8 @@ export default function InicioScreen() {
     [mobileSheetHeight, sheetMaxOffset, sheetMinOffset, sheetStageTranslatePercent],
   );
 
-  const topSearchOffset = insets.top + 8;
-  const mapChipTop = topSearchOffset + 76;
+  const topOverlayOffset = insets.top + 8;
+  const mapChipTop = topOverlayOffset + 138;
   const sheetBodyBottomPadding = 24;
 
   return (
@@ -1357,7 +1362,7 @@ export default function InicioScreen() {
                 title={shop.name}
                 description={formatMarketplaceLocation(shop)}
                 anchor={{ x: 0.5, y: 1 }}
-                pinColor={isActive ? '#0ea5e9' : colors.mode === 'dark' ? '#334155' : '#1f2937'}
+              pinColor={getMapPinColor(colors, isActive)}
                 onPress={() => {
                   focusShop(shop, {
                     openPreview: true,
@@ -1373,7 +1378,7 @@ export default function InicioScreen() {
                 longitude: userLocation.longitude,
               }}
               title="Tu ubicacion"
-              pinColor="#38bdf8"
+              pinColor={colors.focus}
             />
           ) : null}
         </MapView>
@@ -1384,9 +1389,7 @@ export default function InicioScreen() {
               styles.mapLoadingOverlay,
               {
                 backgroundColor:
-                  colors.mode === 'dark'
-                    ? `rgba(2, 6, 23, ${MAP_LOADING_OVERLAY_OPACITY})`
-                    : `rgba(255, 255, 255, ${MAP_LOADING_OVERLAY_OPACITY})`,
+                  withOpacity(colors.background, MAP_LOADING_OVERLAY_OPACITY),
               },
             ]}
           >
@@ -1421,7 +1424,43 @@ export default function InicioScreen() {
         </View>
       </View>
 
-      <View style={[styles.searchOverlay, { top: topSearchOffset }]}>
+      <View style={[styles.searchOverlay, { top: topOverlayOffset }]}>
+        <View style={styles.chromeRow}>
+          <View
+            style={[
+              styles.chromeBrand,
+              {
+                borderColor: colors.border,
+                backgroundColor: colors.panelStrong,
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.chromeLogo,
+                {
+                  borderColor: colors.borderActive,
+                  backgroundColor: colors.pillActive,
+                },
+              ]}
+            >
+              <Ionicons name="cut-outline" size={16} color={colors.textAccent} />
+            </View>
+
+            <View style={styles.chromeCopy}>
+              <Text style={[styles.chromeEyebrow, { color: colors.textMuted }]}>Navaja</Text>
+              <Text style={[styles.chromeTitle, { color: colors.text }]}>
+                Marketplace barber
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.chromeActions}>
+            <ThemeToggle />
+            <AppMenuButton />
+          </View>
+        </View>
+
         <View
           style={[
             styles.searchCard,
@@ -1470,14 +1509,14 @@ export default function InicioScreen() {
                 styles.searchSubmitButton,
                 {
                   borderColor: colors.borderMuted,
-                  backgroundColor: colors.mode === 'dark' ? '#f8fafc' : '#0f172a',
+                  backgroundColor: colors.inverseSurface,
                 },
               ]}
             >
               {isApplyingSearch ? (
-                <ActivityIndicator color={colors.mode === 'dark' ? '#0f172a' : '#f8fafc'} size="small" />
+                <ActivityIndicator color={colors.inverseForeground} size="small" />
               ) : (
-                <Ionicons name="search-outline" size={17} color={colors.mode === 'dark' ? '#0f172a' : '#f8fafc'} />
+                <Ionicons name="search-outline" size={17} color={colors.inverseForeground} />
               )}
             </Pressable>
           </View>
@@ -1545,7 +1584,7 @@ export default function InicioScreen() {
                 />
               ) : (
                 <LinearGradient
-                  colors={getFallbackCoverGradient(mapPreviewShop)}
+                  colors={getFallbackCoverGradient(mapPreviewShop, colors)}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.mapPreviewMedia}
@@ -1666,7 +1705,7 @@ export default function InicioScreen() {
           <View
             style={[
               styles.sheetHandle,
-              { backgroundColor: colors.mode === 'dark' ? 'rgba(248,250,252,0.2)' : 'rgba(15,23,42,0.2)' },
+              { backgroundColor: withOpacity(colors.text, colors.mode === 'dark' ? 0.2 : 0.16) },
             ]}
           />
         </View>
@@ -1695,17 +1734,13 @@ export default function InicioScreen() {
                   style={[
                     styles.sheetPinsBadge,
                     {
-                      borderColor: colors.mode === 'dark' ? 'rgba(167,243,208,0.22)' : 'rgba(52,211,153,0.24)',
-                      backgroundColor: colors.mode === 'dark' ? 'rgba(16,185,129,0.16)' : 'rgba(16,185,129,0.1)',
+                      borderColor: successTone.borderColor,
+                      backgroundColor: successTone.backgroundColor,
                     },
                   ]}
                 >
-                  <Ionicons
-                    name="location-outline"
-                    size={14}
-                    color={colors.mode === 'dark' ? '#a7f3d0' : '#047857'}
-                  />
-                  <Text style={[styles.sheetPinsBadgeText, { color: colors.mode === 'dark' ? '#a7f3d0' : '#047857' }]}>
+                  <Ionicons name="location-outline" size={14} color={successTone.textColor} />
+                  <Text style={[styles.sheetPinsBadgeText, { color: successTone.textColor }]}>
                     {activePins}
                   </Text>
                 </View>
@@ -1721,7 +1756,7 @@ export default function InicioScreen() {
                 styles.clearSearchButton,
                 {
                   borderColor: colors.border,
-                  backgroundColor: colors.mode === 'dark' ? 'rgba(15,23,42,0.86)' : 'rgba(255,255,255,0.92)',
+                  backgroundColor: colors.panelRaised,
                 },
               ]}
             >
@@ -1752,6 +1787,11 @@ export default function InicioScreen() {
               contentContainerStyle={[styles.sheetBodyContent, { paddingBottom: sheetBodyBottomPadding }]}
               keyboardShouldPersistTaps="handled"
             >
+              <PlatformQuickLinks
+                title="Plataforma Navaja"
+                description="Software, agenda, marketplace y planes tambien viven en la app con la misma narrativa principal de web."
+              />
+
               {loading ? (
                 <View style={styles.sheetStatusState}>
                   <MutedText>Cargando barberias...</MutedText>
@@ -1767,11 +1807,7 @@ export default function InicioScreen() {
                       style={[
                         styles.shopCard,
                         {
-                          borderColor: isActive
-                            ? colors.mode === 'dark'
-                              ? 'rgba(56,189,248,0.35)'
-                              : 'rgba(14,165,233,0.34)'
-                            : colors.border,
+                          borderColor: isActive ? colors.borderActive : colors.border,
                           backgroundColor: colors.panelStrong,
                         },
                       ]}
@@ -1786,7 +1822,7 @@ export default function InicioScreen() {
                           />
                         ) : (
                           <LinearGradient
-                            colors={getFallbackCoverGradient(shop)}
+                            colors={getFallbackCoverGradient(shop, colors)}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
                             style={styles.shopCardMedia}
@@ -1794,27 +1830,51 @@ export default function InicioScreen() {
                         )}
 
                         <LinearGradient
-                          colors={['rgba(2,6,23,0.08)', 'rgba(2,6,23,0.72)']}
+                          colors={[
+                            withOpacity(colors.backgroundBase, 0.08),
+                            withOpacity(colors.backgroundBase, 0.72),
+                          ]}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 0, y: 1 }}
                           style={StyleSheet.absoluteFillObject}
                         />
 
                         <View style={styles.shopCardTopRow}>
-                          <Text style={styles.shopCardHighlight}>{getShopHighlight(shop, distanceKm)}</Text>
-                          <View style={styles.shopCardRatingBadge}>
-                            <Ionicons name="star" size={12} color="#f59e0b" />
-                            <Text style={styles.shopCardRatingText}>{formatRating(shop.averageRating)}</Text>
+                          <Text style={[styles.shopCardHighlight, { color: colors.textStrong }]}>
+                            {getShopHighlight(shop, distanceKm)}
+                          </Text>
+                          <View style={[styles.shopCardRatingBadge, { backgroundColor: colors.accent }]}>
+                            <Ionicons name="star" size={12} color={colors.accentForeground} />
+                            <Text style={[styles.shopCardRatingText, { color: colors.accentForeground }]}>
+                              {formatRating(shop.averageRating)}
+                            </Text>
                           </View>
                         </View>
 
                         <View style={styles.shopCardBottomRow}>
                           <View style={styles.shopCardTitleBlock}>
-                            <Text style={styles.shopCardTitle}>{shop.name}</Text>
-                            <Text style={styles.shopCardLocation}>{shop.locationLabel || shop.city || 'Uruguay'}</Text>
+                            <Text style={[styles.shopCardTitle, { color: colors.textStrong }]}>
+                              {shop.name}
+                            </Text>
+                            <Text style={[styles.shopCardLocation, { color: colors.textOnDark }]}>
+                              {shop.locationLabel || shop.city || 'Uruguay'}
+                            </Text>
                           </View>
                           {distanceKm !== null ? (
-                            <Text style={styles.shopCardDistance}>{distanceKm.toFixed(1)} km</Text>
+                            <Text
+                              style={[
+                                styles.shopCardDistance,
+                                {
+                                  color: colors.textStrong,
+                                  backgroundColor: withOpacity(
+                                    colors.accent,
+                                    colors.mode === 'dark' ? 0.24 : 0.18,
+                                  ),
+                                },
+                              ]}
+                            >
+                              {distanceKm.toFixed(1)} km
+                            </Text>
                           ) : null}
                         </View>
                       </View>
@@ -1945,6 +2005,51 @@ const styles = StyleSheet.create({
     left: 12,
     right: 12,
     zIndex: 24,
+    gap: 10,
+  },
+  chromeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  chromeBrand: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 22,
+    minHeight: 52,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  chromeLogo: {
+    width: 34,
+    height: 34,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chromeCopy: {
+    flex: 1,
+    gap: 1,
+  },
+  chromeEyebrow: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+  },
+  chromeTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  chromeActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   searchCard: {
     borderRadius: 28,
@@ -2217,7 +2322,6 @@ const styles = StyleSheet.create({
   shopCardHighlight: {
     fontSize: 11,
     fontWeight: '700',
-    color: 'rgba(255,255,255,0.88)',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     flex: 1,
@@ -2227,14 +2331,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.92)',
     paddingHorizontal: 9,
     paddingVertical: 5,
   },
   shopCardRatingText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#0f172a',
   },
   shopCardBottomRow: {
     flexDirection: 'row',
@@ -2252,18 +2354,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 24,
     fontWeight: '800',
-    color: '#ffffff',
   },
   shopCardLocation: {
     fontSize: 12,
-    color: 'rgba(255,255,255,0.78)',
   },
   shopCardDistance: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#ffffff',
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.2)',
     paddingHorizontal: 10,
     paddingVertical: 5,
   },

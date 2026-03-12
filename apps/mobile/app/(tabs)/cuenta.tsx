@@ -13,7 +13,9 @@ import {
   Screen,
   SurfaceCard,
 } from '../../components/ui/primitives';
+import { PlatformQuickLinks } from '../../components/marketing/platform-quick-links';
 import {
+  getAppAdminStatusViaApi,
   hasExternalApi,
   listAccountAppointmentsViaApi,
   respondToInvitationViaApi,
@@ -136,6 +138,7 @@ export default function CuentaScreen() {
   const [saving, setSaving] = useState(false);
   const [processingInvitationId, setProcessingInvitationId] = useState<string | null>(null);
   const [processingNotificationId, setProcessingNotificationId] = useState<string | null>(null);
+  const [canAccessAppAdmin, setCanAccessAppAdmin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -241,6 +244,17 @@ export default function CuentaScreen() {
         } = await supabase.auth.getSession();
         const accessToken = session?.access_token || '';
 
+        if (hasExternalApi && accessToken) {
+          try {
+            const statusResponse = await getAppAdminStatusViaApi({ accessToken });
+            setCanAccessAppAdmin(Boolean(statusResponse?.is_platform_admin));
+          } catch {
+            setCanAccessAppAdmin(false);
+          }
+        } else {
+          setCanAccessAppAdmin(false);
+        }
+
         let loaded = false;
         if (hasExternalApi && accessToken) {
           try {
@@ -309,6 +323,7 @@ export default function CuentaScreen() {
           }
         }
       } else {
+        setCanAccessAppAdmin(false);
         setAppointments([]);
       }
     } else {
@@ -317,6 +332,7 @@ export default function CuentaScreen() {
       setAvatarUrl('');
       setInvitations([]);
       setAccountNotifications([]);
+      setCanAccessAppAdmin(false);
       setAppointments([]);
     }
 
@@ -484,6 +500,11 @@ export default function CuentaScreen() {
         <Chip label={roleLabel[role]} tone={toneByRole[role]} />
       </HeroPanel>
 
+      <PlatformQuickLinks
+        title="Plataforma y planes"
+        description="Desde mobile ya puedes abrir las mismas superficies publicas principales que existen en web, incluidos software, agenda y planes."
+      />
+
       <Card elevated>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Mi perfil</Text>
         {canEditProfile ? (
@@ -523,6 +544,12 @@ export default function CuentaScreen() {
             <ActionButton label="Cerrar sesion" variant="danger" onPress={signOut} />
           )}
 
+          <ActionButton
+            label={role === 'guest' ? 'Ver planes' : 'Gestionar suscripcion'}
+            variant="secondary"
+            onPress={() => router.push('/suscripcion')}
+          />
+
           {role === 'staff' || role === 'admin' ? (
             <ActionButton
               label="Ir a panel staff"
@@ -535,7 +562,15 @@ export default function CuentaScreen() {
             <ActionButton
               label="Ir a panel admin"
               variant="secondary"
-              onPress={() => router.push('/admin/index')}
+              onPress={() => router.push('/admin')}
+            />
+          ) : null}
+
+          {canAccessAppAdmin ? (
+            <ActionButton
+              label="Ir a app admin"
+              variant="secondary"
+              onPress={() => router.push('/app-admin')}
             />
           ) : null}
         </View>
@@ -711,7 +746,9 @@ export default function CuentaScreen() {
                 </Text>
               ) : null}
               {item.status === 'done' && !item.has_review ? (
-                <Text style={[styles.infoHint, { color: '#92400e' }]}>Pendiente de calificar</Text>
+                <Text style={[styles.infoHint, { color: colors.warning }]}>
+                  Pendiente de calificar
+                </Text>
               ) : null}
               {item.has_review ? (
                 <Text style={[styles.infoHint, { color: colors.textMuted }]}>

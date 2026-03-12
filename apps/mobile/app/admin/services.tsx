@@ -2,7 +2,16 @@ import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { parseCurrencyInputToCents, serviceUpsertSchema } from '@navaja/shared';
-import { ActionButton, Card, ErrorText, Field, Label, MutedText, Screen } from '../../components/ui/primitives';
+import {
+  ActionButton,
+  Card,
+  ErrorText,
+  Field,
+  Label,
+  MutedText,
+  Screen,
+  SurfaceCard,
+} from '../../components/ui/primitives';
 import {
   createAdminServiceViaApi,
   hasExternalApi,
@@ -11,7 +20,7 @@ import {
 import { getAccessToken, getAuthContext } from '../../lib/auth';
 import { formatCurrency } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
-import { palette } from '../../lib/theme';
+import { useNavajaTheme } from '../../lib/theme';
 
 interface ServiceItem {
   id: string;
@@ -22,6 +31,7 @@ interface ServiceItem {
 }
 
 export default function AdminServicesScreen() {
+  const { colors } = useNavajaTheme();
   const [allowed, setAllowed] = useState(false);
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,30 +129,22 @@ export default function AdminServicesScreen() {
     setError(null);
 
     const accessToken = await getAccessToken();
-    if (hasExternalApi && accessToken) {
-      try {
-        await createAdminServiceViaApi({
-          accessToken,
-          payload: parsed.data,
-        });
-      } catch (cause) {
-        setSaving(false);
-        setError(cause instanceof Error ? cause.message : 'No se pudo guardar el servicio.');
-        return;
-      }
-
+    if (!hasExternalApi || !accessToken) {
       setSaving(false);
-      setName('');
-      setPriceUy('');
-      setDurationMinutes('');
-      await loadServices();
+      setError(
+        'Configura EXPO_PUBLIC_API_BASE_URL e inicia sesion para gestionar servicios con la misma logica de la web.',
+      );
       return;
     }
 
-    const { error: insertError } = await supabase.from('services').insert(parsed.data);
-    if (insertError) {
+    try {
+      await createAdminServiceViaApi({
+        accessToken,
+        payload: parsed.data,
+      });
+    } catch (cause) {
       setSaving(false);
-      setError(insertError.message);
+      setError(cause instanceof Error ? cause.message : 'No se pudo guardar el servicio.');
       return;
     }
 
@@ -169,7 +171,7 @@ export default function AdminServicesScreen() {
       subtitle={workspaceName ? `Alta y gestion de catalogo · ${workspaceName}` : 'Alta y gestion de catalogo'}
     >
       <Card>
-        <Text style={styles.section}>Agregar servicio</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Agregar servicio</Text>
         <Label>Nombre</Label>
         <Field value={name} onChangeText={setName} />
         <Label>Precio (pesos UYU)</Label>
@@ -186,17 +188,17 @@ export default function AdminServicesScreen() {
       </Card>
 
       <Card>
-        <Text style={styles.section}>Servicios actuales</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Servicios actuales</Text>
         {loading ? <MutedText>Cargando servicios...</MutedText> : null}
         {!loading && services.length === 0 ? <MutedText>No hay servicios.</MutedText> : null}
         <View style={styles.list}>
           {services.map((item) => (
-            <View key={item.id} style={styles.item}>
-              <Text style={styles.itemTitle}>{item.name}</Text>
-              <Text style={styles.itemMeta}>
+            <SurfaceCard key={item.id} style={styles.itemCard} contentStyle={styles.itemCardContent}>
+              <Text style={[styles.itemTitle, { color: colors.text }]}>{item.name}</Text>
+              <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
                 {formatCurrency(item.price_cents)} - {item.duration_minutes} min - {item.is_active ? 'Activo' : 'Inactivo'}
               </Text>
-            </View>
+            </SurfaceCard>
           ))}
         </View>
       </Card>
@@ -206,31 +208,26 @@ export default function AdminServicesScreen() {
 
 const styles = StyleSheet.create({
   section: {
-    color: palette.text,
     fontSize: 16,
     fontWeight: '700',
   },
   list: {
     gap: 8,
   },
-  item: {
-    borderWidth: 1,
-    borderColor: '#dbe4ee',
-    borderRadius: 12,
-    padding: 10,
-    backgroundColor: '#f8fafc',
+  itemCard: {
+    padding: 0,
+  },
+  itemCardContent: {
+    gap: 3,
   },
   itemTitle: {
-    color: palette.text,
     fontWeight: '700',
     fontSize: 14,
   },
   itemMeta: {
-    color: '#64748b',
     fontSize: 12,
   },
   error: {
-    color: '#b91c1c',
     fontSize: 13,
   },
 });

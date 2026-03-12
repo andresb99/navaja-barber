@@ -1,8 +1,18 @@
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { staffUpsertSchema, timeOffUpsertSchema, workingHoursUpsertSchema } from '@navaja/shared';
-import { ActionButton, Card, ErrorText, Field, Label, MutedText, Screen } from '../../components/ui/primitives';
+import {
+  ActionButton,
+  Card,
+  ErrorText,
+  Field,
+  Label,
+  MutedText,
+  Screen,
+  SelectionChip,
+  SurfaceCard,
+} from '../../components/ui/primitives';
 import {
   createAdminStaffResourceViaApi,
   hasExternalApi,
@@ -11,7 +21,7 @@ import {
 import { getAccessToken, getAuthContext } from '../../lib/auth';
 import { formatDateTime } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
-import { palette } from '../../lib/theme';
+import { useNavajaTheme } from '../../lib/theme';
 
 interface StaffItem {
   id: string;
@@ -42,6 +52,7 @@ interface TimeOffItem {
 const weekdays = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 export default function AdminStaffScreen() {
+  const { colors } = useNavajaTheme();
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -213,34 +224,25 @@ export default function AdminStaffScreen() {
 
     setSaving(true);
     const accessToken = await getAccessToken();
-    if (hasExternalApi && accessToken) {
-      try {
-        await createAdminStaffResourceViaApi({
-          accessToken,
-          payload: {
-            action: 'staff',
-            payload: parsed.data,
-          },
-        });
-      } catch (cause) {
-        setSaving(false);
-        setError(cause instanceof Error ? cause.message : 'No se pudo crear el staff.');
-        return;
-      }
-
+    if (!hasExternalApi || !accessToken) {
       setSaving(false);
-      setStaffName('');
-      setStaffPhone('');
-      setStaffRole('staff');
-      setAuthUserId('');
-      await loadData();
+      setError(
+        'Configura EXPO_PUBLIC_API_BASE_URL e inicia sesion para gestionar el equipo con la misma logica de la web.',
+      );
       return;
     }
 
-    const { error: insertError } = await supabase.from('staff').insert(parsed.data);
-    if (insertError) {
+    try {
+      await createAdminStaffResourceViaApi({
+        accessToken,
+        payload: {
+          action: 'staff',
+          payload: parsed.data,
+        },
+      });
+    } catch (cause) {
       setSaving(false);
-      setError(insertError.message);
+      setError(cause instanceof Error ? cause.message : 'No se pudo crear el staff.');
       return;
     }
 
@@ -274,30 +276,25 @@ export default function AdminStaffScreen() {
 
     setSaving(true);
     const accessToken = await getAccessToken();
-    if (hasExternalApi && accessToken) {
-      try {
-        await createAdminStaffResourceViaApi({
-          accessToken,
-          payload: {
-            action: 'working_hours',
-            payload: parsed.data,
-          },
-        });
-      } catch (cause) {
-        setSaving(false);
-        setError(cause instanceof Error ? cause.message : 'No se pudo guardar el horario.');
-        return;
-      }
-
+    if (!hasExternalApi || !accessToken) {
       setSaving(false);
-      await loadData();
+      setError(
+        'Configura EXPO_PUBLIC_API_BASE_URL e inicia sesion para gestionar horarios con la misma logica de la web.',
+      );
       return;
     }
 
-    const { error: insertError } = await supabase.from('working_hours').insert(parsed.data);
-    if (insertError) {
+    try {
+      await createAdminStaffResourceViaApi({
+        accessToken,
+        payload: {
+          action: 'working_hours',
+          payload: parsed.data,
+        },
+      });
+    } catch (cause) {
       setSaving(false);
-      setError(insertError.message);
+      setError(cause instanceof Error ? cause.message : 'No se pudo guardar el horario.');
       return;
     }
 
@@ -327,31 +324,25 @@ export default function AdminStaffScreen() {
 
     setSaving(true);
     const accessToken = await getAccessToken();
-    if (hasExternalApi && accessToken) {
-      try {
-        await createAdminStaffResourceViaApi({
-          accessToken,
-          payload: {
-            action: 'time_off',
-            payload: parsed.data,
-          },
-        });
-      } catch (cause) {
-        setSaving(false);
-        setError(cause instanceof Error ? cause.message : 'No se pudo guardar el bloqueo.');
-        return;
-      }
-
+    if (!hasExternalApi || !accessToken) {
       setSaving(false);
-      setTimeOffReason('');
-      await loadData();
+      setError(
+        'Configura EXPO_PUBLIC_API_BASE_URL e inicia sesion para gestionar bloqueos con la misma logica de la web.',
+      );
       return;
     }
 
-    const { error: insertError } = await supabase.from('time_off').insert(parsed.data);
-    if (insertError) {
+    try {
+      await createAdminStaffResourceViaApi({
+        accessToken,
+        payload: {
+          action: 'time_off',
+          payload: parsed.data,
+        },
+      });
+    } catch (cause) {
       setSaving(false);
-      setError(insertError.message);
+      setError(cause instanceof Error ? cause.message : 'No se pudo guardar el bloqueo.');
       return;
     }
 
@@ -375,7 +366,7 @@ export default function AdminStaffScreen() {
       <ErrorText message={error} />
 
       <Card>
-        <Text style={styles.section}>Alta de personal</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Alta de personal</Text>
         <Label>Nombre</Label>
         <Field value={staffName} onChangeText={setStaffName} />
         <Label>Teléfono</Label>
@@ -396,7 +387,7 @@ export default function AdminStaffScreen() {
       </Card>
 
       <Card>
-        <Text style={styles.section}>Horarios laborales</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Horarios laborales</Text>
         <Label>Staff ID</Label>
         <Field value={workingStaffId} onChangeText={setWorkingStaffId} placeholder="Pega el staff_id" />
         <Label>Día de semana (0-6)</Label>
@@ -413,7 +404,7 @@ export default function AdminStaffScreen() {
       </Card>
 
       <Card>
-        <Text style={styles.section}>Bloqueos de agenda</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Bloqueos de agenda</Text>
         <Label>Staff ID</Label>
         <Field value={timeOffStaffId} onChangeText={setTimeOffStaffId} />
         <Label>Inicio (ISO)</Label>
@@ -430,44 +421,50 @@ export default function AdminStaffScreen() {
       </Card>
 
       <Card>
-        <Text style={styles.section}>Staff actual</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Staff actual</Text>
         {loading ? <MutedText>Cargando...</MutedText> : null}
         <View style={styles.list}>
           {staff.map((item) => (
-            <View key={item.id} style={styles.item}>
-              <Text style={styles.itemTitle}>{item.name} ({item.role})</Text>
-              <Text style={styles.itemMeta}>{item.phone} - {item.is_active ? 'Activo' : 'Inactivo'}</Text>
-              <Text style={styles.itemMeta}>ID: {item.id}</Text>
-            </View>
+            <SurfaceCard key={item.id} style={styles.itemCard} contentStyle={styles.itemCardContent}>
+              <Text style={[styles.itemTitle, { color: colors.text }]}>
+                {item.name} ({item.role})
+              </Text>
+              <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
+                {item.phone} - {item.is_active ? 'Activo' : 'Inactivo'}
+              </Text>
+              <Text style={[styles.itemMeta, { color: colors.textMuted }]}>ID: {item.id}</Text>
+            </SurfaceCard>
           ))}
         </View>
       </Card>
 
       <Card>
-        <Text style={styles.section}>Horarios configurados</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Horarios configurados</Text>
         <View style={styles.list}>
           {workingHours.map((item) => (
-            <View key={item.id} style={styles.item}>
-              <Text style={styles.itemTitle}>{item.staff_name}</Text>
-              <Text style={styles.itemMeta}>
+            <SurfaceCard key={item.id} style={styles.itemCard} contentStyle={styles.itemCardContent}>
+              <Text style={[styles.itemTitle, { color: colors.text }]}>{item.staff_name}</Text>
+              <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
                 {weekdays[item.day_of_week] || item.day_of_week} - {item.start_time} a {item.end_time}
               </Text>
-            </View>
+            </SurfaceCard>
           ))}
         </View>
       </Card>
 
       <Card>
-        <Text style={styles.section}>Bloqueos recientes</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Bloqueos recientes</Text>
         <View style={styles.list}>
           {timeOff.map((item) => (
-            <View key={item.id} style={styles.item}>
-              <Text style={styles.itemTitle}>{item.staff_name}</Text>
-              <Text style={styles.itemMeta}>
+            <SurfaceCard key={item.id} style={styles.itemCard} contentStyle={styles.itemCardContent}>
+              <Text style={[styles.itemTitle, { color: colors.text }]}>{item.staff_name}</Text>
+              <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
                 {formatDateTime(item.start_at)} - {formatDateTime(item.end_at)}
               </Text>
-              <Text style={styles.itemMeta}>{item.reason || 'Sin motivo'}</Text>
-            </View>
+              <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
+                {item.reason || 'Sin motivo'}
+              </Text>
+            </SurfaceCard>
           ))}
         </View>
       </Card>
@@ -476,16 +473,11 @@ export default function AdminStaffScreen() {
 }
 
 function RoleChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable style={[styles.roleChip, active ? styles.roleChipActive : null]} onPress={onPress}>
-      <Text style={[styles.roleChipText, active ? styles.roleChipTextActive : null]}>{label}</Text>
-    </Pressable>
-  );
+  return <SelectionChip label={label} active={active} onPress={onPress} />;
 }
 
 const styles = StyleSheet.create({
   section: {
-    color: palette.text,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -493,47 +485,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  roleChip: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#fff',
-  },
-  roleChipActive: {
-    backgroundColor: palette.text,
-    borderColor: palette.text,
-  },
-  roleChipText: {
-    color: '#334155',
-    fontWeight: '700',
-    fontSize: 12,
-  },
-  roleChipTextActive: {
-    color: '#fff',
-  },
   list: {
     gap: 8,
   },
-  item: {
-    borderWidth: 1,
-    borderColor: '#dbe4ee',
-    borderRadius: 12,
-    padding: 10,
-    backgroundColor: '#f8fafc',
+  itemCard: {
+    padding: 0,
+  },
+  itemCardContent: {
+    gap: 2,
   },
   itemTitle: {
-    color: palette.text,
     fontSize: 14,
     fontWeight: '700',
   },
   itemMeta: {
-    color: '#64748b',
     fontSize: 12,
   },
   error: {
-    color: '#b91c1c',
     fontSize: 13,
   },
 });

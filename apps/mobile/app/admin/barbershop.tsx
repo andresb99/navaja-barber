@@ -1,9 +1,20 @@
 import { useCallback, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { ActionButton, Card, ErrorText, Field, Label, MutedText, MultilineField, Screen } from '../../components/ui/primitives';
-import { getAuthContext } from '../../lib/auth';
+import {
+  ActionButton,
+  Card,
+  ErrorText,
+  Field,
+  Label,
+  MutedText,
+  MultilineField,
+  Screen,
+} from '../../components/ui/primitives';
+import { hasExternalApi, updateAdminBarbershopViaApi } from '../../lib/api';
+import { getAccessToken, getAuthContext } from '../../lib/auth';
 import { supabase } from '../../lib/supabase';
+import { useNavajaTheme } from '../../lib/theme';
 
 function slugify(value: string) {
   return value
@@ -14,6 +25,7 @@ function slugify(value: string) {
 }
 
 export default function AdminBarbershopScreen() {
+  const { colors } = useNavajaTheme();
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -114,6 +126,21 @@ export default function AdminBarbershopScreen() {
       return;
     }
 
+    if (!hasExternalApi) {
+      setSaving(false);
+      setError(
+        'Configura EXPO_PUBLIC_API_BASE_URL para editar la barberia con la misma logica de la web.',
+      );
+      return;
+    }
+
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
+      setSaving(false);
+      setError('Debes iniciar sesion para editar la barberia.');
+      return;
+    }
+
     const parsedLatitude = latitude.trim() ? Number(latitude.replace(',', '.')) : null;
     const parsedLongitude = longitude.trim() ? Number(longitude.replace(',', '.')) : null;
 
@@ -139,64 +166,55 @@ export default function AdminBarbershopScreen() {
       return;
     }
 
-    const { error: shopError } = await supabase
-      .from('shops')
-      .update({
-        name: name.trim(),
-        slug: resolvedSlug,
-        timezone: timezone.trim() || 'UTC',
-        phone: phone.trim() || null,
-        description: description.trim() || null,
-      })
-      .eq('id', activeShopId);
-
-    if (shopError) {
+    try {
+      await updateAdminBarbershopViaApi({
+        accessToken,
+        payload: {
+          shop_id: activeShopId,
+          shop_name: name.trim(),
+          shop_slug: resolvedSlug,
+          timezone: timezone.trim() || 'UTC',
+          phone: phone.trim() || null,
+          description: description.trim() || null,
+          location_label: locationLabel.trim() || name.trim() || null,
+          city: city.trim() || null,
+          region: region.trim() || null,
+          country_code: countryCode.trim().toUpperCase() || null,
+          latitude: parsedLatitude,
+          longitude: parsedLongitude,
+        },
+      });
+    } catch (cause) {
       setSaving(false);
-      setError(shopError.message);
-      return;
-    }
-
-    const { error: locationError } = await supabase.from('shop_locations').upsert(
-      {
-        shop_id: activeShopId,
-        label: locationLabel.trim() || null,
-        city: city.trim() || null,
-        region: region.trim() || null,
-        country_code: countryCode.trim().toUpperCase() || null,
-        latitude: parsedLatitude,
-        longitude: parsedLongitude,
-        is_public: true,
-      },
-      {
-        onConflict: 'shop_id',
-      },
-    );
-
-    if (locationError) {
-      setSaving(false);
-      setError(locationError.message);
+      setError(
+        cause instanceof Error ? cause.message : 'No se pudo actualizar la barberia.',
+      );
       return;
     }
 
     setSaving(false);
     setSlug(resolvedSlug);
     setMessage('Barberia actualizada correctamente.');
+    await loadData();
   }
 
   if (!allowed && !loading) {
     return (
       <Screen title="Barberia" subtitle="Acceso restringido">
         <Card>
-          <Text style={styles.error}>No tienes permisos de admin.</Text>
+          <Text style={[styles.feedback, { color: colors.danger }]}>No tienes permisos de admin.</Text>
         </Card>
       </Screen>
     );
   }
 
   return (
-    <Screen title="Barberia" subtitle="Configuracion de perfil publico y ubicacion">
+    <Screen
+      title="Barberia"
+      subtitle="Configuracion basica del perfil publico y la ubicacion, usando la misma API de negocio que web."
+    >
       <ErrorText message={error} />
-      {message ? <Text style={styles.success}>{message}</Text> : null}
+      {message ? <Text style={[styles.feedback, { color: colors.success }]}>{message}</Text> : null}
       {loading ? <MutedText>Cargando configuracion...</MutedText> : null}
 
       <Card>
@@ -240,13 +258,8 @@ export default function AdminBarbershopScreen() {
 }
 
 const styles = StyleSheet.create({
-  success: {
-    color: '#047857',
+  feedback: {
     fontSize: 13,
     fontWeight: '600',
-  },
-  error: {
-    color: '#b91c1c',
-    fontSize: 13,
   },
 });

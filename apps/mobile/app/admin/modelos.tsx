@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
-import { ActionButton, Card, ErrorText, Field, Label, MultilineField, MutedText, Screen } from '../../components/ui/primitives';
+import {
+  ActionButton,
+  Card,
+  ErrorText,
+  Field,
+  Label,
+  MultilineField,
+  MutedText,
+  Screen,
+  SurfaceCard,
+} from '../../components/ui/primitives';
 import { getAuthContext } from '../../lib/auth';
 import { formatDateTime } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
-import { palette } from '../../lib/theme';
+import { useNavajaTheme } from '../../lib/theme';
 
 interface ModelItem {
   id: string;
@@ -32,6 +42,7 @@ function parsePreferences(attributes: Record<string, unknown> | null): string[] 
 }
 
 export default function AdminModelosScreen() {
+  const { colors } = useNavajaTheme();
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -164,52 +175,58 @@ export default function AdminModelosScreen() {
       </Card>
 
       <ErrorText message={error} />
-      {success ? <Text style={styles.success}>{success}</Text> : null}
+      {success ? <Text style={[styles.success, { color: colors.success }]}>{success}</Text> : null}
       {loading ? <MutedText>Cargando modelos...</MutedText> : null}
       {!loading && models.length === 0 ? <MutedText>No hay modelos registrados.</MutedText> : null}
 
       <Card>
-        <Text style={styles.section}>Listado</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Listado</Text>
         <View style={styles.list}>
           {models.map((item) => {
             const active = item.id === selectedModelId;
             return (
-              <Pressable
+              <SurfaceCard
                 key={item.id}
-                style={[styles.modelRow, active ? styles.modelRowActive : null]}
+                active={active}
+                style={styles.modelRow}
+                contentStyle={styles.modelRowContent}
                 onPress={() => setSelectedModelId(item.id)}
               >
-                <Text style={styles.modelName}>{item.full_name}</Text>
-                <Text style={styles.modelMeta}>{item.phone}</Text>
-              </Pressable>
+                <Text style={[styles.modelName, { color: colors.text }]}>{item.full_name}</Text>
+                <Text style={[styles.modelMeta, { color: colors.textMuted }]}>{item.phone}</Text>
+              </SurfaceCard>
             );
           })}
         </View>
       </Card>
 
       <Card>
-        <Text style={styles.section}>Detalle</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Detalle</Text>
         {!selectedModel ? (
           <MutedText>Selecciona un modelo para ver su ficha.</MutedText>
         ) : (
           <View style={styles.detail}>
-            <Text style={styles.detailName}>{selectedModel.full_name}</Text>
-            <Text style={styles.detailMeta}>Telefono: {selectedModel.phone}</Text>
-            <Text style={styles.detailMeta}>Email: {selectedModel.email || 'No informado'}</Text>
-            <Text style={styles.detailMeta}>
+            <Text style={[styles.detailName, { color: colors.text }]}>{selectedModel.full_name}</Text>
+            <Text style={[styles.detailMeta, { color: colors.textSoft }]}>
+              Telefono: {selectedModel.phone}
+            </Text>
+            <Text style={[styles.detailMeta, { color: colors.textSoft }]}>
+              Email: {selectedModel.email || 'No informado'}
+            </Text>
+            <Text style={[styles.detailMeta, { color: colors.textSoft }]}>
               Instagram: {selectedModel.instagram || 'No informado'}
             </Text>
-            <Text style={styles.detailMeta}>
+            <Text style={[styles.detailMeta, { color: colors.textSoft }]}>
               Preferencias:{' '}
               {parsePreferences(selectedModel.attributes).join(', ') || 'Sin preferencias'}
             </Text>
-            <Text style={styles.detailMeta}>
+            <Text style={[styles.detailMeta, { color: colors.textSoft }]}>
               Fotos cargadas: {selectedModel.photo_paths?.length || 0}
             </Text>
-            <Text style={styles.detailMeta}>
+            <Text style={[styles.detailMeta, { color: colors.textSoft }]}>
               Marketing: {selectedModel.marketing_opt_in ? 'Acepta' : 'No acepta'}
             </Text>
-            <Text style={styles.detailMeta}>
+            <Text style={[styles.detailMeta, { color: colors.textSoft }]}>
               Alta: {formatDateTime(selectedModel.created_at)}
             </Text>
 
@@ -230,7 +247,6 @@ export default function AdminModelosScreen() {
 
 const styles = StyleSheet.create({
   section: {
-    color: palette.text,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -238,44 +254,32 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   modelRow: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#dbe4ee',
-    backgroundColor: '#f8fafc',
-    padding: 10,
+    padding: 0,
+  },
+  modelRowContent: {
     gap: 2,
   },
-  modelRowActive: {
-    borderColor: palette.accent,
-    backgroundColor: '#fff7e6',
-  },
   modelName: {
-    color: palette.text,
     fontWeight: '700',
     fontSize: 14,
   },
   modelMeta: {
-    color: '#64748b',
     fontSize: 12,
   },
   detail: {
     gap: 6,
   },
   detailName: {
-    color: palette.text,
     fontWeight: '800',
     fontSize: 18,
   },
   detailMeta: {
-    color: '#334155',
     fontSize: 13,
   },
   error: {
-    color: '#b91c1c',
     fontSize: 13,
   },
   success: {
-    color: '#0f766e',
     fontSize: 13,
   },
 });

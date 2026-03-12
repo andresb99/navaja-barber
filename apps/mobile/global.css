@@ -1,0 +1,128 @@
+@import "tailwindcss";
+@import "uniwind";
+@import "heroui-native/styles";
+
+@source "./app";
+@source "./components";
+@source "./lib";
+@source "./node_modules/heroui-native/lib";
+
+@theme {
+  --radius: 0.55rem;
+  --field-radius: 1rem;
+  --field-border-width: 1px;
+  --opacity-disabled: 0.55;
+}
+
+@layer theme {
+  :root {
+    --background: #f4f7fc;
+    --foreground: #111f33;
+
+    --surface: rgba(255, 255, 255, 0.98);
+    --surface-foreground: #111f33;
+    --surface-secondary: rgba(248, 250, 252, 0.92);
+    --surface-secondary-foreground: #111f33;
+    --surface-tertiary: rgba(243, 246, 251, 0.86);
+    --surface-tertiary-foreground: #111f33;
+
+    --overlay: rgba(255, 255, 255, 0.98);
+    --overlay-foreground: #111f33;
+
+    --muted: #64748b;
+
+    --default: rgba(255, 255, 255, 0.72);
+    --default-foreground: #111f33;
+
+    --accent: #111f33;
+    --accent-foreground: #ffffff;
+
+    --field-background: rgba(17, 31, 51, 0.045);
+    --field-foreground: #111f33;
+    --field-placeholder: #64748b;
+    --field-border: rgba(17, 31, 51, 0.12);
+
+    --success: #0f766e;
+    --success-foreground: #f8fafc;
+
+    --warning: #eab048;
+    --warning-foreground: #111f33;
+
+    --danger: #991b1b;
+    --danger-foreground: #ffffff;
+
+    --segment: rgba(255, 255, 255, 0.64);
+    --segment-foreground: #334155;
+
+    --border: rgba(255, 255, 255, 0.9);
+    --separator: rgba(17, 31, 51, 0.08);
+    --focus: #0e7490;
+    --link: #0e7490;
+
+    --surface-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.95) inset,
+      0 24px 40px -30px rgba(15, 23, 42, 0.16),
+      0 10px 18px -16px rgba(56, 189, 248, 0.08);
+    --overlay-shadow:
+      0 24px 48px -34px rgba(15, 23, 42, 0.24),
+      0 12px 22px -18px rgba(56, 189, 248, 0.08);
+    --field-shadow:
+      0 12px 24px -22px rgba(15, 23, 42, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.42);
+
+    @variant dark {
+      --background: #07111d;
+      --foreground: #ecf3ff;
+
+      --surface: rgba(11, 19, 33, 0.96);
+      --surface-foreground: #ecf3ff;
+      --surface-secondary: rgba(14, 24, 40, 0.92);
+      --surface-secondary-foreground: #ecf3ff;
+      --surface-tertiary: rgba(9, 15, 27, 0.88);
+      --surface-tertiary-foreground: #ecf3ff;
+
+      --overlay: rgba(8, 14, 26, 0.98);
+      --overlay-foreground: #ecf3ff;
+
+      --muted: rgba(203, 213, 225, 0.78);
+
+      --default: rgba(255, 255, 255, 0.07);
+      --default-foreground: #ecf3ff;
+
+      --accent: #f4c76a;
+      --accent-foreground: #0f172a;
+
+      --field-background: rgba(255, 255, 255, 0.05);
+      --field-foreground: #ecf3ff;
+      --field-placeholder: rgba(203, 213, 225, 0.72);
+      --field-border: rgba(148, 163, 184, 0.18);
+
+      --success: #14b8a6;
+      --success-foreground: #052e2b;
+
+      --warning: #f4c76a;
+      --warning-foreground: #1f2937;
+
+      --danger: #ef4444;
+      --danger-foreground: #ffffff;
+
+      --segment: rgba(255, 255, 255, 0.08);
+      --segment-foreground: rgba(226, 232, 240, 0.82);
+
+      --border: rgba(148, 163, 184, 0.14);
+      --separator: rgba(255, 255, 255, 0.14);
+      --focus: #38bdf8;
+      --link: #f3c96e;
+
+      --surface-shadow:
+        0 24px 42px -34px rgba(0, 0, 0, 0.54),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      --overlay-shadow:
+        0 28px 52px -34px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      --field-shadow:
+        0 0 0 0 transparent,
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+  }
+}

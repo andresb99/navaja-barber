@@ -27,13 +27,10 @@ import { createSignedReviewToken } from '@/lib/review-links';
 import { createAppointmentFromBookingIntent } from '@/lib/booking-payments.server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import {
-  isPendingTimeOffReason,
-  markPendingTimeOffReason,
-  stripPendingTimeOffReason,
-} from '@/lib/time-off-requests';
+import { markPendingTimeOffReason } from '@/lib/time-off-requests';
 import { buildAdminHref } from '@/lib/workspace-routes';
 import { sanitizeText } from '@/lib/sanitize';
+import { reviewPendingTimeOffRequest } from '@/lib/admin-time-off';
 
 const PUBLIC_ASSETS_BUCKET = 'public-assets';
 const MAX_COURSE_IMAGE_SIZE = 8 * 1024 * 1024;
@@ -1200,49 +1197,11 @@ export async function reviewStaffTimeOffRequestAction(formData: FormData) {
     throw new Error('No se pudo revisar la solicitud de ausencia.');
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data: timeOff } = await supabase
-    .from('time_off')
-    .select('id, shop_id, reason')
-    .eq('id', parsed.data.time_off_id)
-    .eq('shop_id', parsed.data.shop_id)
-    .maybeSingle();
-
-  if (!timeOff?.id) {
-    throw new Error('La solicitud ya no esta disponible.');
-  }
-
-  const currentReason = typeof timeOff.reason === 'string' ? timeOff.reason : null;
-  if (!isPendingTimeOffReason(currentReason)) {
-    revalidatePath('/admin');
-    revalidatePath('/admin/notifications');
-    revalidatePath('/admin/staff');
-    return;
-  }
-
-  if (parsed.data.decision === 'reject') {
-    const { error } = await supabase
-      .from('time_off')
-      .delete()
-      .eq('id', parsed.data.time_off_id)
-      .eq('shop_id', parsed.data.shop_id);
-
-    if (error) {
-      throw new Error(error.message);
-    }
-  } else {
-    const { error } = await supabase
-      .from('time_off')
-      .update({
-        reason: stripPendingTimeOffReason(currentReason),
-      })
-      .eq('id', parsed.data.time_off_id)
-      .eq('shop_id', parsed.data.shop_id);
-
-    if (error) {
-      throw new Error(error.message);
-    }
-  }
+  await reviewPendingTimeOffRequest({
+    shopId: parsed.data.shop_id,
+    timeOffId: parsed.data.time_off_id,
+    decision: parsed.data.decision,
+  });
 
   revalidatePath('/admin');
   revalidatePath('/admin/notifications');

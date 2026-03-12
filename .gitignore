@@ -10,6 +10,14 @@ coverage
 .vscode/
 .expo/
 apps/mobile/.expo/
+.codex-responsive-dev*.log
+apps/mobile/.expo-export-test/
+home-menu-mobile-*.png
+home-mobile-*.png
+home-tablet-*.png
+jobs-mobile-*.png
+shops-mobile-*.png
+suscripcion-mobile-*.png
 .vercel
 .DS_Store
 AGENTS.md

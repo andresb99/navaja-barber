@@ -1,37 +1,13 @@
-﻿import { requirePlatformAdmin } from '@/lib/auth';
-import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { requirePlatformAdmin } from '@/lib/auth';
+import { listAppAdminSubscriptions } from '@/lib/app-admin-subscriptions';
 import { setShopSubscriptionForTestingAction } from './actions';
 import { Button } from '@heroui/button';
 import { AdminSelect } from '@/components/heroui/admin-select';
 import { Container } from '@/components/heroui/container';
 
-interface ShopRow {
-  id: string;
-  name: string;
-  slug: string;
-  status: string;
-}
-
-interface SubscriptionRow {
-  shop_id: string;
-  plan: string;
-  status: string;
-  current_period_end: string | null;
-}
-
 export default async function AppAdminSubscriptionsPage() {
   await requirePlatformAdmin('/app-admin/subscriptions');
-
-  const admin = createSupabaseAdminClient();
-  const [{ data: shops }, { data: subscriptions }] = await Promise.all([
-    admin.from('shops').select('id, name, slug, status').order('created_at', { ascending: false }),
-    admin.from('subscriptions').select('shop_id, plan, status, current_period_end'),
-  ]);
-
-  const subscriptionsByShopId = new Map<string, SubscriptionRow>();
-  for (const item of (subscriptions || []) as SubscriptionRow[]) {
-    subscriptionsByShopId.set(String(item.shop_id), item);
-  }
+  const items = await listAppAdminSubscriptions();
 
   return (
     <section className="space-y-6">
@@ -48,19 +24,20 @@ export default async function AppAdminSubscriptionsPage() {
       </Container>
 
       <div className="grid gap-4">
-        {((shops || []) as ShopRow[]).map((shop) => {
-          const subscription = subscriptionsByShopId.get(String(shop.id));
-          const currentPlan = String(subscription?.plan || 'free');
-          const currentStatus = String(subscription?.status || 'active');
-          const periodEnd = subscription?.current_period_end || null;
+        {items.map((item) => {
+          const currentPlan = String(item.plan || 'free');
+          const currentStatus = String(item.status || 'active');
+          const periodEnd = item.currentPeriodEnd || null;
 
           return (
-            <article key={shop.id} className="soft-panel rounded-[1.8rem] border-0 p-4">
+            <article key={item.shopId} className="soft-panel rounded-[1.8rem] border-0 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-lg font-semibold text-ink dark:text-slate-100">{shop.name}</p>
+                  <p className="text-lg font-semibold text-ink dark:text-slate-100">
+                    {item.shopName}
+                  </p>
                   <p className="text-xs text-slate/70 dark:text-slate-400">
-                    {shop.slug} - estado tienda: {shop.status}
+                    {item.shopSlug} - estado tienda: {item.shopStatus}
                   </p>
                 </div>
                 <p className="text-xs text-slate/70 dark:text-slate-400">
@@ -72,7 +49,7 @@ export default async function AppAdminSubscriptionsPage() {
                 action={setShopSubscriptionForTestingAction}
                 className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
               >
-                <input type="hidden" name="shop_id" value={shop.id} />
+                <input type="hidden" name="shop_id" value={item.shopId} />
                 <AdminSelect
                   name="plan"
                   aria-label="Plan de suscripcion"

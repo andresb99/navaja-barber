@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { Appearance, useColorScheme } from 'react-native';
 import { navajaTheme, navajaUiModes, type NavajaUiModeTokens } from '@navaja/shared';
+import { Uniwind } from 'uniwind';
 
 const THEME_STORAGE_KEY = '@navaja/theme-preference';
 
@@ -20,14 +21,89 @@ export type MobilePalette = NavajaUiModeTokens & {
   mode: ResolvedThemeMode;
   primary: string;
   accent: string;
+  accentForeground: string;
   success: string;
   warning: string;
   danger: string;
   focus: string;
+  inverseSurface: string;
+  inverseForeground: string;
+  overlayBackdrop: string;
   radiusSm: number;
   radiusMd: number;
   radiusLg: number;
 };
+
+export type StatusTone = 'success' | 'warning' | 'danger';
+
+function normalizeHex(value: string) {
+  const trimmed = value.trim().replace('#', '');
+
+  if (trimmed.length === 3) {
+    return trimmed
+      .split('')
+      .map((char) => `${char}${char}`)
+      .join('');
+  }
+
+  return trimmed.slice(0, 6);
+}
+
+export function withOpacity(hex: string, opacity: number) {
+  const normalized = normalizeHex(hex);
+  const red = parseInt(normalized.slice(0, 2), 16);
+  const green = parseInt(normalized.slice(2, 4), 16);
+  const blue = parseInt(normalized.slice(4, 6), 16);
+
+  if ([red, green, blue].some((value) => Number.isNaN(value))) {
+    return hex;
+  }
+
+  return `rgba(${red}, ${green}, ${blue}, ${opacity})`;
+}
+
+export function getStatusSurface(colors: MobilePalette, tone: StatusTone) {
+  if (tone === 'success') {
+    return {
+      backgroundColor: withOpacity(colors.success, colors.mode === 'dark' ? 0.18 : 0.12),
+      borderColor: withOpacity(colors.success, colors.mode === 'dark' ? 0.3 : 0.18),
+      textColor: colors.mode === 'dark' ? '#99f6e4' : '#065f46',
+    };
+  }
+
+  if (tone === 'warning') {
+    return {
+      backgroundColor: withOpacity(colors.warning, colors.mode === 'dark' ? 0.2 : 0.12),
+      borderColor: withOpacity(colors.warning, colors.mode === 'dark' ? 0.32 : 0.18),
+      textColor: colors.mode === 'dark' ? '#f8e2a4' : '#92400e',
+    };
+  }
+
+  return {
+    backgroundColor: withOpacity(colors.danger, colors.mode === 'dark' ? 0.2 : 0.12),
+    borderColor: withOpacity(colors.danger, colors.mode === 'dark' ? 0.3 : 0.18),
+    textColor: colors.mode === 'dark' ? '#fecaca' : '#991b1b',
+  };
+}
+
+export function getMarketplaceCoverGradient(colors: MobilePalette, seed: string) {
+  const palettes = [
+    [withOpacity(colors.focus, 0.88), withOpacity(navajaTheme.hex.ink, 0.96)],
+    [withOpacity(colors.accent, 0.9), withOpacity(navajaTheme.hex.ink, 0.96)],
+    [withOpacity(colors.success, 0.86), withOpacity(navajaTheme.hex.ink, 0.96)],
+    [withOpacity(colors.warning, 0.9), withOpacity('#172033', 0.96)],
+  ] as const;
+  const paletteIndex = seed.length % palettes.length;
+  return palettes[paletteIndex] || palettes[0];
+}
+
+export function getMapPinColor(colors: MobilePalette, active: boolean) {
+  if (active) {
+    return colors.focus;
+  }
+
+  return colors.mode === 'dark' ? '#475569' : '#1f2937';
+}
 
 function resolveSystemMode(systemScheme: 'light' | 'dark' | null | undefined): ResolvedThemeMode {
   return systemScheme === 'dark' ? 'dark' : 'light';
@@ -41,10 +117,15 @@ function createPalette(mode: ResolvedThemeMode): MobilePalette {
     mode,
     primary: mode === 'dark' ? '#f8fafc' : navajaTheme.hex.ink,
     accent: navajaTheme.hex.brass,
+    accentForeground: navajaTheme.hex.ink,
     success: navajaTheme.hex.success,
     warning: navajaTheme.hex.warning,
     danger: navajaTheme.hex.danger,
     focus: mode === 'dark' ? navajaTheme.hex.focusDark : navajaTheme.hex.focusLight,
+    inverseSurface: mode === 'dark' ? '#f8fafc' : navajaTheme.hex.ink,
+    inverseForeground: mode === 'dark' ? navajaTheme.hex.ink : '#f8fafc',
+    overlayBackdrop:
+      mode === 'dark' ? 'rgba(4, 11, 21, 0.74)' : 'rgba(15, 23, 42, 0.18)',
     radiusSm: navajaTheme.radius.sm,
     radiusMd: navajaTheme.radius.md,
     radiusLg: navajaTheme.radius.lg,
@@ -127,6 +208,10 @@ export function NavajaThemeProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     syncLegacyPalette(mode);
   }, [mode]);
+
+  useEffect(() => {
+    Uniwind.setTheme(preference === 'system' ? 'system' : preference);
+  }, [preference]);
 
   async function setPreference(next: ThemePreference) {
     setPreferenceState(next);

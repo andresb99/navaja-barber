@@ -11,8 +11,8 @@ import {
   SurfaceCard,
 } from '../../components/ui/primitives';
 import { getAuthContext, type AppRole } from '../../lib/auth';
-import { saveActiveWorkspaceStaffId, type StaffWorkspace } from '../../lib/workspace';
-import { palette } from '../../lib/theme';
+import { saveActiveWorkspaceShopId, type StaffWorkspace } from '../../lib/workspace';
+import { useNavajaTheme } from '../../lib/theme';
 
 function roleLabel(role: AppRole | 'admin' | 'staff') {
   if (role === 'admin') {
@@ -28,13 +28,14 @@ function roleLabel(role: AppRole | 'admin' | 'staff') {
 }
 
 export default function MisBarberiasScreen() {
+  const { colors } = useNavajaTheme();
   const [loading, setLoading] = useState(true);
   const [switchingId, setSwitchingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [role, setRole] = useState<AppRole>('guest');
   const [userId, setUserId] = useState('');
-  const [activeStaffId, setActiveStaffId] = useState('');
+  const [activeShopId, setActiveShopId] = useState('');
   const [workspaces, setWorkspaces] = useState<StaffWorkspace[]>([]);
 
   const loadData = useCallback(async () => {
@@ -44,7 +45,7 @@ export default function MisBarberiasScreen() {
     const auth = await getAuthContext();
     setRole(auth.role);
     setUserId(auth.userId || '');
-    setActiveStaffId(auth.staffId || '');
+    setActiveShopId(auth.shopId || '');
     setWorkspaces(auth.workspaces);
     setLoading(false);
   }, []);
@@ -61,13 +62,13 @@ export default function MisBarberiasScreen() {
       return;
     }
 
-    setSwitchingId(workspace.staffId);
+    setSwitchingId(workspace.shopId);
     setError(null);
     setMessage(null);
 
     try {
-      await saveActiveWorkspaceStaffId(userId, workspace.staffId);
-      setActiveStaffId(workspace.staffId);
+      await saveActiveWorkspaceShopId(userId, workspace.shopId);
+      setActiveShopId(workspace.shopId);
       setRole(workspace.role);
       setMessage(`Workspace activo: ${workspace.shopName}`);
     } catch (cause) {
@@ -94,14 +95,14 @@ export default function MisBarberiasScreen() {
   return (
     <Screen
       title="Mis barberias"
-      subtitle="Selecciona con que barberia quieres operar en mobile. El panel admin/staff usa este contexto."
+      subtitle="Selecciona con que barberia quieres operar en mobile. El panel admin y staff usa este contexto."
     >
       <ErrorText message={error} />
-      {message ? <Text style={styles.success}>{message}</Text> : null}
+      {message ? <Text style={[styles.success, { color: colors.success }]}>{message}</Text> : null}
 
       <Card>
-        <Text style={styles.section}>Contexto actual</Text>
-        <Text style={styles.meta}>Rol activo: {roleLabel(role)}</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Contexto actual</Text>
+        <Text style={[styles.meta, { color: colors.textMuted }]}>Rol activo: {roleLabel(role)}</Text>
         {loading ? <MutedText>Cargando barberias...</MutedText> : null}
         {!loading && workspaces.length === 0 ? (
           <MutedText>No tienes barberias activas asociadas a tu usuario.</MutedText>
@@ -113,11 +114,11 @@ export default function MisBarberiasScreen() {
 
       <View style={styles.list}>
         {workspaces.map((workspace) => {
-          const active = workspace.staffId === activeStaffId;
+          const active = workspace.shopId === activeShopId;
 
           return (
             <SurfaceCard
-              key={workspace.staffId}
+              key={workspace.shopId}
               active={active}
               onPress={() => {
                 void activateWorkspace(workspace);
@@ -125,19 +126,21 @@ export default function MisBarberiasScreen() {
             >
               <View style={styles.row}>
                 <View style={styles.copy}>
-                  <Text style={styles.name}>{workspace.shopName}</Text>
-                  <Text style={styles.meta}>
-                    {workspace.staffName} · {roleLabel(workspace.role)}
+                  <Text style={[styles.name, { color: colors.text }]}>{workspace.shopName}</Text>
+                  <Text style={[styles.meta, { color: colors.textMuted }]}>
+                    {workspace.staffName} - {roleLabel(workspace.role)}
                   </Text>
-                  <Text style={styles.meta}>Slug: {workspace.shopSlug || 'sin-slug'}</Text>
+                  <Text style={[styles.meta, { color: colors.textMuted }]}>
+                    Slug: {workspace.shopSlug || 'sin-slug'}
+                  </Text>
                 </View>
                 {active ? <Chip label="Activa" tone="success" /> : null}
               </View>
               <ActionButton
                 label={active ? 'Workspace activo' : 'Usar esta barberia'}
                 variant={active ? 'secondary' : 'primary'}
-                disabled={switchingId === workspace.staffId || active}
-                loading={switchingId === workspace.staffId}
+                disabled={switchingId === workspace.shopId || active}
+                loading={switchingId === workspace.shopId}
                 onPress={() => {
                   void activateWorkspace(workspace);
                 }}
@@ -152,7 +155,6 @@ export default function MisBarberiasScreen() {
 
 const styles = StyleSheet.create({
   section: {
-    color: palette.text,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -170,16 +172,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   name: {
-    color: palette.text,
     fontSize: 16,
     fontWeight: '800',
   },
   meta: {
-    color: '#64748b',
     fontSize: 12,
   },
   success: {
-    color: '#0f766e',
     fontSize: 13,
     fontWeight: '600',
   },

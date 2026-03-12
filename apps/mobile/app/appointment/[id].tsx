@@ -5,7 +5,7 @@ import { ActionButton, Card, ErrorText, Screen } from '../../components/ui/primi
 import { formatCurrency, formatDateTime } from '../../lib/format';
 import { hasExternalApi, updateWorkspaceAppointmentStatusViaApi } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
-import { palette } from '../../lib/theme';
+import { useNavajaTheme } from '../../lib/theme';
 
 interface AppointmentDetail {
   id: string;
@@ -31,6 +31,7 @@ const PAYMENT_STATUS_LABEL: Record<string, string> = {
 };
 
 export default function AppointmentDetailsScreen() {
+  const { colors } = useNavajaTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -127,8 +128,8 @@ export default function AppointmentDetailsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator />
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator color={colors.text} />
       </View>
     );
   }
@@ -139,25 +140,39 @@ export default function AppointmentDetailsScreen() {
 
       {!appointment ? (
         <Card>
-          <Text style={styles.empty}>No hay datos para esta cita.</Text>
+          <Text style={[styles.empty, { color: colors.textMuted }]}>No hay datos para esta cita.</Text>
         </Card>
       ) : (
         <>
           <Card>
-            <Text style={styles.title}>{formatDateTime(appointment.start_at)}</Text>
-            <Text style={styles.item}>Servicio: {appointment.service_name}</Text>
-            <Text style={styles.item}>Cliente: {appointment.customer_name}</Text>
-            <Text style={styles.item}>Telefono: {appointment.customer_phone || '-'}</Text>
-            <Text style={styles.item}>Estado: {appointment.status}</Text>
-            <Text style={styles.item}>
-              Pago: {PAYMENT_STATUS_LABEL[appointment.payment_status || ''] || (appointment.payment_status || 'sin pago')}
+            <Text style={[styles.title, { color: colors.text }]}>
+              {formatDateTime(appointment.start_at)}
             </Text>
-            <Text style={styles.item}>Precio: {formatCurrency(appointment.price_cents)}</Text>
-            <Text style={styles.item}>Notas: {appointment.notes || 'Sin notas'}</Text>
+            <Text style={[styles.item, { color: colors.text }]}>
+              Servicio: {appointment.service_name}
+            </Text>
+            <Text style={[styles.item, { color: colors.text }]}>
+              Cliente: {appointment.customer_name}
+            </Text>
+            <Text style={[styles.item, { color: colors.text }]}>
+              Telefono: {appointment.customer_phone || '-'}
+            </Text>
+            <Text style={[styles.item, { color: colors.text }]}>Estado: {appointment.status}</Text>
+            <Text style={[styles.item, { color: colors.text }]}>
+              Pago:{' '}
+              {PAYMENT_STATUS_LABEL[appointment.payment_status || ''] ||
+                (appointment.payment_status || 'sin pago')}
+            </Text>
+            <Text style={[styles.item, { color: colors.text }]}>
+              Precio: {formatCurrency(appointment.price_cents)}
+            </Text>
+            <Text style={[styles.item, { color: colors.text }]}>
+              Notas: {appointment.notes || 'Sin notas'}
+            </Text>
           </Card>
 
           <Card>
-            <Text style={styles.section}>Acciones</Text>
+            <Text style={[styles.section, { color: colors.text }]}>Acciones</Text>
             <View style={styles.actions}>
               <ActionButton
                 label="Marcar confirmada"
@@ -165,7 +180,11 @@ export default function AppointmentDetailsScreen() {
                 onPress={() => updateStatus('confirmed')}
                 disabled={updating}
               />
-              <ActionButton label="Marcar asistio" onPress={() => updateStatus('done')} disabled={updating} />
+              <ActionButton
+                label="Marcar asistio"
+                onPress={() => updateStatus('done')}
+                disabled={updating}
+              />
               <ActionButton
                 label="Marcar no se presento"
                 variant="secondary"
@@ -191,19 +210,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: palette.bg,
   },
   title: {
-    color: palette.text,
     fontWeight: '800',
     fontSize: 18,
   },
   item: {
-    color: '#334155',
     fontSize: 13,
   },
   section: {
-    color: palette.text,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -211,7 +226,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   empty: {
-    color: '#64748b',
     fontSize: 13,
   },
 });

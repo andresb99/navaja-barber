@@ -1,11 +1,11 @@
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { Card, Chip, MutedText, Screen } from '../../components/ui/primitives';
+import { Card, Chip, ErrorText, MutedText, Screen } from '../../components/ui/primitives';
 import { getStaffContext } from '../../lib/auth';
 import { formatCurrency, formatDateTime } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
-import { palette } from '../../lib/theme';
+import { useNavajaTheme } from '../../lib/theme';
 
 interface StaffAppointment {
   id: string;
@@ -44,6 +44,7 @@ function toneForStatus(status: string): 'neutral' | 'success' | 'warning' | 'dan
 }
 
 export default function StaffPanelScreen() {
+  const { colors } = useNavajaTheme();
   const [appointments, setAppointments] = useState<StaffAppointment[]>([]);
   const [staffName, setStaffName] = useState('');
   const [shopName, setShopName] = useState('');
@@ -128,14 +129,16 @@ export default function StaffPanelScreen() {
   return (
     <Screen
       title="Panel staff"
-      subtitle={shopName ? `Agenda de los proximos 7 dias · ${shopName}` : 'Agenda de los proximos 7 dias'}
+      subtitle={shopName ? `Agenda de los proximos 7 dias - ${shopName}` : 'Agenda de los proximos 7 dias'}
     >
       <Card>
-        <Text style={styles.title}>{staffName || 'Sin sesion'}</Text>
-        <Text style={styles.subtitle}>Rol: {role === 'admin' ? 'Admin' : 'Staff'}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{staffName || 'Sin sesion'}</Text>
+        <Text style={[styles.subtitle, { color: colors.textMuted }]}>
+          Rol: {role === 'admin' ? 'Admin' : 'Staff'}
+        </Text>
       </Card>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <ErrorText message={error} />
       {loading ? <MutedText>Cargando agenda...</MutedText> : null}
       {!loading && appointments.length === 0 ? <MutedText>No hay citas en este periodo.</MutedText> : null}
 
@@ -144,17 +147,27 @@ export default function StaffPanelScreen() {
           <Pressable key={item.id} onPress={() => router.push(`/appointment/${item.id}`)}>
             <Card>
               <View style={styles.row}>
-                <Text style={styles.itemTitle}>{formatDateTime(item.start_at)}</Text>
+                <Text style={[styles.itemTitle, { color: colors.text }]}>
+                  {formatDateTime(item.start_at)}
+                </Text>
                 <Chip label={item.status} tone={toneForStatus(item.status)} />
               </View>
-              <Text style={styles.itemMeta}>{item.customer_name} - {item.customer_phone || '-'}</Text>
-              <Text style={styles.itemMeta}>
+              <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
+                {item.customer_name} - {item.customer_phone || '-'}
+              </Text>
+              <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
                 {item.service_name} - {formatCurrency(item.price_cents)}
               </Text>
-              <Text style={styles.itemMeta}>
-                Pago: {PAYMENT_STATUS_LABEL[item.payment_status || ''] || (item.payment_status || 'sin pago')}
+              <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
+                Pago:{' '}
+                {PAYMENT_STATUS_LABEL[item.payment_status || ''] ||
+                  (item.payment_status || 'sin pago')}
               </Text>
-              {role === 'admin' ? <Text style={styles.itemMeta}>Barbero: {item.staff_name || '-'}</Text> : null}
+              {role === 'admin' ? (
+                <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
+                  Barbero: {item.staff_name || '-'}
+                </Text>
+              ) : null}
             </Card>
           </Pressable>
         ))}
@@ -165,12 +178,10 @@ export default function StaffPanelScreen() {
 
 const styles = StyleSheet.create({
   title: {
-    color: palette.text,
     fontSize: 18,
     fontWeight: '800',
   },
   subtitle: {
-    color: '#64748b',
     fontSize: 13,
   },
   row: {
@@ -183,17 +194,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   itemTitle: {
-    color: palette.text,
     fontWeight: '700',
     fontSize: 14,
     flex: 1,
   },
   itemMeta: {
-    color: '#64748b',
     fontSize: 12,
-  },
-  error: {
-    color: '#b91c1c',
-    fontSize: 13,
   },
 });

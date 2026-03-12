@@ -16,7 +16,7 @@ export function HeaderBrand({ className }: HeaderBrandProps) {
         width={774}
         height={297}
         quality={100}
-        className="block h-12 w-auto shrink-0 object-contain sm:h-[3.35rem] md:h-[3.75rem]"
+        className="block h-9 w-auto max-w-[8.75rem] shrink-0 object-contain min-[360px]:h-10 min-[360px]:max-w-[9.75rem] sm:h-[3.35rem] sm:max-w-none md:h-[3.75rem]"
         priority
       />
     </span>

@@ -16,7 +16,7 @@ export interface AuthContext {
 }
 
 export interface StaffContext {
-  staffId: string;
+  staffId: string | null;
   name: string;
   role: 'admin' | 'staff';
   shopId: string;
@@ -148,11 +148,19 @@ export async function getStaffContext(): Promise<StaffContext | null> {
     return null;
   }
 
+  if (!ctx.shopId) {
+    return null;
+  }
+
+  if (ctx.role === 'staff' && !ctx.staffId) {
+    return null;
+  }
+
   return {
-    staffId: ctx.staffId as string,
+    staffId: ctx.staffId,
     name: ctx.staffName || 'Staff',
     role: ctx.role,
-    shopId: ctx.shopId as string,
+    shopId: ctx.shopId,
     shopName: ctx.shopName || 'Barberia',
     shopSlug: ctx.shopSlug || null,
   };

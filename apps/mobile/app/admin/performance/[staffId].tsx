@@ -1,7 +1,23 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { Card, MutedText, Screen } from '../../../components/ui/primitives';
+import {
+  AnalyticsAreaChart,
+  AnalyticsBarRow,
+  AnalyticsFilterBar,
+  AnalyticsLineItem,
+  AnalyticsMetricCard,
+  AnalyticsSectionTitle,
+} from '../../../components/admin/analytics-ui';
+import {
+  Card,
+  Chip,
+  HeroPanel,
+  MutedText,
+  Screen,
+  StatTile,
+  SurfaceCard,
+} from '../../../components/ui/primitives';
 import { getAuthContext } from '../../../lib/auth';
 import { formatCurrency } from '../../../lib/format';
 import {
@@ -9,7 +25,13 @@ import {
   type MetricRange,
   type StaffPerformanceDetail,
 } from '../../../lib/metrics';
-import { palette } from '../../../lib/theme';
+import { useNavajaTheme } from '../../../lib/theme';
+
+const rangeOptions: Array<{ label: string; value: MetricRange }> = [
+  { label: 'Hoy', value: 'today' },
+  { label: 'Ultimos 7 dias', value: 'last7' },
+  { label: 'Este mes', value: 'month' },
+];
 
 function normalizeRange(value: string | undefined): MetricRange {
   if (value === 'today' || value === 'last7' || value === 'month') {
@@ -26,7 +48,16 @@ function formatHours(minutes: number) {
   return `${(minutes / 60).toFixed(1)} h`;
 }
 
+function formatReviewPeriod(value: string) {
+  return new Date(`${value}T00:00:00.000Z`).toLocaleDateString('es-UY', {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 export default function AdminStaffPerformanceScreen() {
+  const { colors } = useNavajaTheme();
   const params = useLocalSearchParams<{ staffId?: string; range?: string }>();
   const staffId = String(params.staffId || '');
 
@@ -43,6 +74,15 @@ export default function AdminStaffPerformanceScreen() {
     }
     return Math.max(5, ...detail.ratingTrend.map((item) => item.averageRating));
   }, [detail?.ratingTrend]);
+
+  const ratingTrendChartData = useMemo(
+    () =>
+      (detail?.ratingTrend || []).map((item) => ({
+        label: formatReviewPeriod(item.periodStart),
+        value: item.averageRating,
+      })),
+    [detail?.ratingTrend],
+  );
 
   const loadData = useCallback(async () => {
     if (!staffId) {
@@ -90,7 +130,9 @@ export default function AdminStaffPerformanceScreen() {
     return (
       <Screen title="Performance" subtitle="Acceso restringido">
         <Card>
-          <Text style={styles.error}>No tienes permisos de admin.</Text>
+          <Text style={[styles.warningText, { color: colors.danger }]}>
+            No tienes permisos de admin.
+          </Text>
         </Card>
       </Screen>
     );
@@ -100,130 +142,253 @@ export default function AdminStaffPerformanceScreen() {
 
   return (
     <Screen
+      eyebrow="Admin"
       title={metric?.staffName || 'Performance'}
       subtitle={
         workspaceName
-          ? `${detail?.rangeLabel || 'Detalle por barbero'} · ${workspaceName}`
+          ? `${detail?.rangeLabel || 'Detalle por barbero'} - ${workspaceName}`
           : (detail?.rangeLabel || 'Detalle por barbero')
       }
     >
-      <View style={styles.rangeRow}>
-        <RangeChip label="Hoy" active={range === 'today'} onPress={() => setRange('today')} />
-        <RangeChip label="Ultimos 7 dias" active={range === 'last7'} onPress={() => setRange('last7')} />
-        <RangeChip label="Este mes" active={range === 'month'} onPress={() => setRange('month')} />
-      </View>
+      <HeroPanel
+        eyebrow="Staff"
+        title={metric?.staffName || 'Detalle individual'}
+        description="Mobile replica la lectura ejecutiva de web con foco en revenue, calidad de servicio, retencion y tendencia de resenas."
+      >
+        <View style={styles.heroStats}>
+          <StatTile
+            label="Facturacion"
+            value={metric ? formatCurrency(metric.totalRevenueCents) : '--'}
+          />
+          <StatTile
+            label="Ocupacion"
+            value={metric ? formatPercent(metric.occupancyRatio) : '--'}
+          />
+          <StatTile
+            label="Resena"
+            value={
+              metric ? `${metric.trustedRating.toFixed(1)} (${metric.reviewCount})` : '--'
+            }
+          />
+        </View>
+      </HeroPanel>
 
-      {loading ? <MutedText>Cargando performance...</MutedText> : null}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Card elevated>
+        <AnalyticsSectionTitle>Filtro temporal</AnalyticsSectionTitle>
+        <AnalyticsFilterBar
+          label="Rango"
+          options={rangeOptions}
+          value={range}
+          onChange={setRange}
+        />
+      </Card>
+
+      {loading ? (
+        <Card>
+          <MutedText>Cargando performance...</MutedText>
+        </Card>
+      ) : null}
+      {error ? (
+        <Card>
+          <Text style={[styles.warningText, { color: colors.danger }]}>{error}</Text>
+        </Card>
+      ) : null}
 
       {metric ? (
         <>
-          <View style={styles.grid}>
-            <MetricCard label="Facturacion" value={formatCurrency(metric.totalRevenueCents)} />
-            <MetricCard
-              label="Facturacion / hora"
-              value={formatCurrency(metric.revenuePerAvailableHourCents)}
-            />
-            <MetricCard label="Ocupacion" value={formatPercent(metric.occupancyRatio)} />
-            <MetricCard label="Ticket promedio" value={formatCurrency(metric.averageTicketCents)} />
-            <MetricCard
-              label="Reseña"
-              value={`${metric.trustedRating.toFixed(1)} (${metric.reviewCount})`}
-            />
-            <MetricCard label="Recompra" value={formatPercent(metric.repeatClientRate)} />
-          </View>
-
-          <Card>
-            <Text style={styles.section}>Productividad</Text>
-            <MetricLine label="Horas disponibles" value={formatHours(metric.availableMinutes)} />
-            <MetricLine label="Horas reservadas" value={formatHours(metric.bookedMinutes)} />
-            <MetricLine label="Horas atendidas" value={formatHours(metric.serviceMinutes)} />
-            <MetricLine label="Realizadas" value={String(metric.completedAppointments)} />
-          </Card>
-
-          <Card>
-            <Text style={styles.section}>Confiabilidad</Text>
-            <MetricLine label="Canceladas por equipo" value={String(metric.staffCancellations)} />
-            <MetricLine label="Canceladas por cliente" value={String(metric.customerCancellations)} />
-            <MetricLine label="No show" value={String(metric.noShowAppointments)} />
-            <MetricLine label="Tasa de cancelacion" value={formatPercent(metric.cancellationRate)} />
-          </Card>
-
-          <Card>
-            <Text style={styles.section}>Clientes</Text>
-            <MetricLine label="Clientes unicos" value={String(metric.uniqueCustomers)} />
-            <MetricLine label="Clientes repetidos" value={String(metric.repeatCustomers)} />
-            <MetricLine label="Reseñas" value={String(metric.reviewCount)} />
-            <MetricLine label="Promedio bruto" value={metric.averageRating.toFixed(1)} />
-          </Card>
-
-          <Card>
-            <Text style={styles.section}>Tendencia de reseñas</Text>
-            <View style={styles.list}>
-              {detail?.ratingTrend.length ? (
-                detail.ratingTrend.map((item) => (
-                  <View key={item.periodStart} style={styles.barRow}>
-                    <View style={styles.rowBetween}>
-                      <Text style={styles.itemLabel}>
-                        {new Date(`${item.periodStart}T00:00:00.000Z`).toLocaleDateString('es-UY', {
-                          month: 'short',
-                          year: 'numeric',
-                          timeZone: 'UTC',
-                        })}
-                      </Text>
-                      <Text style={styles.itemValue}>
-                        {item.averageRating.toFixed(1)} ({item.reviewCount})
-                      </Text>
-                    </View>
-                    <View style={styles.barTrack}>
-                      <View
-                        style={[
-                          styles.barFill,
-                          {
-                            width: `${Math.max(0, Math.min(100, (item.averageRating / maxTrendValue) * 100))}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                  </View>
-                ))
-              ) : (
-                <MutedText>Sin datos</MutedText>
-              )}
+          <Card elevated>
+            <AnalyticsSectionTitle>KPIs del barbero</AnalyticsSectionTitle>
+            <View style={styles.metricGrid}>
+              <AnalyticsMetricCard
+                label="Facturacion"
+                value={formatCurrency(metric.totalRevenueCents)}
+                hint={`${metric.completedAppointments} citas realizadas`}
+                tone="accent"
+              />
+              <AnalyticsMetricCard
+                label="Facturacion / hora"
+                value={formatCurrency(metric.revenuePerAvailableHourCents)}
+                hint={`${formatHours(metric.availableMinutes)} disponibles`}
+                tone="focus"
+              />
+              <AnalyticsMetricCard
+                label="Ocupacion"
+                value={formatPercent(metric.occupancyRatio)}
+                hint={`${formatHours(metric.bookedMinutes)} reservadas`}
+                tone="success"
+              />
+              <AnalyticsMetricCard
+                label="Ticket promedio"
+                value={formatCurrency(metric.averageTicketCents)}
+                hint="Ingreso medio por cita"
+                tone="primary"
+              />
+              <AnalyticsMetricCard
+                label="Resena confiable"
+                value={`${metric.trustedRating.toFixed(1)} (${metric.reviewCount})`}
+                hint={`Promedio bruto ${metric.averageRating.toFixed(1)}`}
+                tone="warning"
+              />
+              <AnalyticsMetricCard
+                label="Recompra"
+                value={formatPercent(metric.repeatClientRate)}
+                hint={`${metric.repeatCustomers} clientes recurrentes`}
+                tone="focus"
+              />
             </View>
           </Card>
 
-          <Card>
-            <Text style={styles.section}>Reseñas recientes</Text>
-            <View style={styles.list}>
-              {detail?.recentReviews.length ? (
-                detail.recentReviews.map((review) => (
-                  <View key={review.id} style={styles.reviewCard}>
-                    <View style={styles.rowBetween}>
-                      <Text style={styles.reviewName}>{review.customerName}</Text>
-                      <Text style={styles.reviewDate}>
-                        {new Date(review.submittedAt).toLocaleDateString('es-UY')}
-                      </Text>
-                    </View>
-                    <Text style={styles.reviewRate}>{review.rating} / 5</Text>
-                    {review.comment ? <Text style={styles.reviewComment}>{review.comment}</Text> : null}
-                  </View>
-                ))
-              ) : (
-                <MutedText>No hay reseñas publicadas en este rango.</MutedText>
-              )}
+          <Card elevated>
+            <AnalyticsSectionTitle>Lectura operativa</AnalyticsSectionTitle>
+            <View style={styles.dualSectionGrid}>
+              <SurfaceCard style={styles.dualSectionCard} contentStyle={styles.dualSectionContent}>
+                <Text style={[styles.subSectionTitle, { color: colors.text }]}>Productividad</Text>
+                <View style={styles.list}>
+                  <AnalyticsLineItem
+                    label="Horas disponibles"
+                    value={formatHours(metric.availableMinutes)}
+                  />
+                  <AnalyticsLineItem
+                    label="Horas reservadas"
+                    value={formatHours(metric.bookedMinutes)}
+                  />
+                  <AnalyticsLineItem
+                    label="Horas atendidas"
+                    value={formatHours(metric.serviceMinutes)}
+                  />
+                  <AnalyticsLineItem
+                    label="Realizadas"
+                    value={String(metric.completedAppointments)}
+                  />
+                </View>
+              </SurfaceCard>
+
+              <SurfaceCard style={styles.dualSectionCard} contentStyle={styles.dualSectionContent}>
+                <Text style={[styles.subSectionTitle, { color: colors.text }]}>Confiabilidad</Text>
+                <View style={styles.list}>
+                  <AnalyticsLineItem
+                    label="Canceladas por equipo"
+                    value={String(metric.staffCancellations)}
+                  />
+                  <AnalyticsLineItem
+                    label="Canceladas por cliente"
+                    value={String(metric.customerCancellations)}
+                  />
+                  <AnalyticsLineItem
+                    label="No show"
+                    value={String(metric.noShowAppointments)}
+                  />
+                  <AnalyticsLineItem
+                    label="Tasa de cancelacion"
+                    value={formatPercent(metric.cancellationRate)}
+                  />
+                </View>
+              </SurfaceCard>
+
+              <SurfaceCard style={styles.dualSectionCard} contentStyle={styles.dualSectionContent}>
+                <Text style={[styles.subSectionTitle, { color: colors.text }]}>Clientes</Text>
+                <View style={styles.list}>
+                  <AnalyticsLineItem
+                    label="Clientes unicos"
+                    value={String(metric.uniqueCustomers)}
+                  />
+                  <AnalyticsLineItem
+                    label="Clientes repetidos"
+                    value={String(metric.repeatCustomers)}
+                  />
+                  <AnalyticsLineItem
+                    label="Resenas"
+                    value={String(metric.reviewCount)}
+                  />
+                  <AnalyticsLineItem
+                    label="Promedio bruto"
+                    value={metric.averageRating.toFixed(1)}
+                  />
+                </View>
+              </SurfaceCard>
             </View>
           </Card>
 
-          <Card>
-            <Text style={styles.section}>Lectura rapida</Text>
-            <View style={styles.list}>
-              {detail?.insights.map((item) => (
-                <Text key={item} style={styles.insightText}>
-                  {item}
-                </Text>
-              ))}
-            </View>
+          <Card elevated>
+            <AnalyticsSectionTitle>Tendencia de resenas</AnalyticsSectionTitle>
+            {detail?.ratingTrend.length ? (
+              <>
+                <AnalyticsAreaChart
+                  data={ratingTrendChartData}
+                  maxValue={maxTrendValue}
+                  tone="focus"
+                />
+                <View style={styles.list}>
+                  {detail.ratingTrend.map((item) => (
+                    <AnalyticsBarRow
+                      key={item.periodStart}
+                      label={formatReviewPeriod(item.periodStart)}
+                      valueLabel={`${item.averageRating.toFixed(1)} (${item.reviewCount})`}
+                      widthPercent={(item.averageRating / maxTrendValue) * 100}
+                      hint={`${item.reviewCount} resenas publicadas`}
+                      tone="focus"
+                    />
+                  ))}
+                </View>
+              </>
+            ) : (
+              <MutedText>Sin datos</MutedText>
+            )}
+          </Card>
+
+          <Card elevated>
+            <AnalyticsSectionTitle>Resenas recientes</AnalyticsSectionTitle>
+            {detail?.recentReviews.length ? (
+              <View style={styles.list}>
+                {detail.recentReviews.map((review) => (
+                  <SurfaceCard
+                    key={review.id}
+                    style={styles.reviewCard}
+                    contentStyle={styles.reviewCardContent}
+                  >
+                    <View style={styles.reviewHeader}>
+                      <View style={styles.reviewMetaBlock}>
+                        <Text style={[styles.reviewName, { color: colors.text }]}>
+                          {review.customerName}
+                        </Text>
+                        <Text style={[styles.reviewDate, { color: colors.textMuted }]}>
+                          {new Date(review.submittedAt).toLocaleDateString('es-UY')}
+                        </Text>
+                      </View>
+                      <Chip label={`${review.rating} / 5`} tone="warning" />
+                    </View>
+                    {review.comment ? (
+                      <Text style={[styles.reviewComment, { color: colors.textSoft }]}>
+                        {review.comment}
+                      </Text>
+                    ) : (
+                      <MutedText>Sin comentario textual.</MutedText>
+                    )}
+                  </SurfaceCard>
+                ))}
+              </View>
+            ) : (
+              <MutedText>No hay resenas publicadas en este rango.</MutedText>
+            )}
+          </Card>
+
+          <Card elevated>
+            <AnalyticsSectionTitle>Lectura rapida</AnalyticsSectionTitle>
+            {detail?.insights.length ? (
+              <View style={styles.list}>
+                {detail.insights.map((item) => (
+                  <SurfaceCard
+                    key={item}
+                    style={styles.insightCard}
+                    contentStyle={styles.insightCardContent}
+                  >
+                    <Text style={[styles.insightText, { color: colors.textSoft }]}>{item}</Text>
+                  </SurfaceCard>
+                ))}
+              </View>
+            ) : (
+              <MutedText>Sin insights para este rango.</MutedText>
+            )}
           </Card>
         </>
       ) : null}
@@ -231,154 +396,72 @@ export default function AdminStaffPerformanceScreen() {
   );
 }
 
-function RangeChip({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable style={[styles.rangeChip, active ? styles.rangeChipActive : null]} onPress={onPress}>
-      <Text style={[styles.rangeChipText, active ? styles.rangeChipTextActive : null]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <Card style={styles.metricCard}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={styles.metricValue}>{value}</Text>
-    </Card>
-  );
-}
-
-function MetricLine({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.rowBetween}>
-      <Text style={styles.itemLabel}>{label}</Text>
-      <Text style={styles.itemValue}>{value}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  rangeRow: {
+  heroStats: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  metricGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
-  rangeChip: {
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+  dualSectionGrid: {
+    gap: 10,
   },
-  rangeChipActive: {
-    borderColor: palette.text,
-    backgroundColor: palette.text,
+  dualSectionCard: {
+    padding: 0,
   },
-  rangeChipText: {
-    color: '#334155',
-    fontSize: 12,
-    fontWeight: '600',
+  dualSectionContent: {
+    gap: 10,
   },
-  rangeChipTextActive: {
-    color: '#fff',
-  },
-  grid: {
-    gap: 8,
-  },
-  metricCard: {
-    gap: 2,
-  },
-  metricLabel: {
-    color: '#64748b',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  metricValue: {
-    color: palette.text,
-    fontSize: 22,
+  subSectionTitle: {
+    fontSize: 14,
     fontWeight: '800',
-  },
-  section: {
-    color: palette.text,
-    fontSize: 16,
-    fontWeight: '700',
   },
   list: {
     gap: 8,
   },
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  reviewCard: {
+    padding: 0,
+  },
+  reviewCardContent: {
     gap: 8,
   },
-  itemLabel: {
-    color: '#334155',
-    fontSize: 13,
+  reviewHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  reviewMetaBlock: {
     flex: 1,
-  },
-  itemValue: {
-    color: palette.text,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  barRow: {
-    gap: 4,
-  },
-  barTrack: {
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: '#e2e8f0',
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: 8,
-    borderRadius: 999,
-    backgroundColor: palette.accent,
-  },
-  reviewCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#dbe4ee',
-    backgroundColor: '#f8fafc',
-    paddingHorizontal: 10,
-    paddingVertical: 8,
     gap: 2,
   },
   reviewName: {
-    color: palette.text,
-    fontWeight: '700',
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '800',
   },
   reviewDate: {
-    color: '#64748b',
-    fontSize: 11,
-  },
-  reviewRate: {
-    color: '#334155',
     fontSize: 12,
-    fontWeight: '700',
   },
   reviewComment: {
-    color: '#475569',
-    fontSize: 12,
-  },
-  insightText: {
-    color: '#334155',
     fontSize: 13,
     lineHeight: 18,
   },
-  error: {
-    color: '#b91c1c',
+  insightCard: {
+    padding: 0,
+  },
+  insightCardContent: {
+    gap: 0,
+  },
+  insightText: {
     fontSize: 13,
+    lineHeight: 18,
+  },
+  warningText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
   },
 });

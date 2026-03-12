@@ -1,18 +1,44 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { courseEnrollmentCreateSchema } from '@navaja/shared';
+import { resolveAuthenticatedUser } from '@/lib/api-auth';
 import { resolveShopTierForUser } from '@/lib/billing.server';
 import { createCourseEnrollmentFromIntent } from '@/lib/course-payments.server';
 import { env } from '@/lib/env';
 import { getMercadoPagoServerEnv } from '@/lib/env.server';
 import { createMercadoPagoCheckoutPreference } from '@/lib/mercado-pago.server';
 import { trackProductEvent } from '@/lib/product-analytics';
-import { getRequestOrigin } from '@/lib/request-origin';
 import { readSanitizedJsonBody, sanitizeText } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 function normalizeEmail(value: string | null | undefined) {
   return sanitizeText(value, { lowercase: true }) || null;
+}
+
+function resolveCheckoutReturnBaseUrl(value: string | null | undefined) {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    return null;
+  }
+
+  try {
+    const candidate = new URL(normalized);
+    if (
+      candidate.protocol === 'navajastaff:' ||
+      candidate.protocol === 'exp:' ||
+      candidate.protocol === 'exps:'
+    ) {
+      return candidate.toString();
+    }
+
+    const appUrl = new URL(env.NEXT_PUBLIC_APP_URL);
+    if (candidate.origin === appUrl.origin) {
+      return candidate.toString();
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 }
 
 export async function POST(request: NextRequest) {
@@ -25,12 +51,23 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const sessionSupabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await sessionSupabase.auth.getUser();
-
+  const user = await resolveAuthenticatedUser(request);
   const supabase = createSupabaseAdminClient();
+  const returnBaseUrl = resolveCheckoutReturnBaseUrl(
+    typeof body === 'object' && body !== null && 'return_to' in body
+      ? String((body as { return_to?: unknown }).return_to || '')
+      : null,
+  );
+
+  if (
+    typeof body === 'object' &&
+    body !== null &&
+    'return_to' in body &&
+    (body as { return_to?: unknown }).return_to &&
+    !returnBaseUrl
+  ) {
+    return new NextResponse('La URL de retorno no es valida.', { status: 400 });
+  }
 
   const normalizedEmail =
     normalizeEmail(parsed.data.email) ?? normalizeEmail(user?.email) ?? null;
@@ -194,7 +231,6 @@ export async function POST(request: NextRequest) {
     });
 
     try {
-      const requestOrigin = getRequestOrigin(request);
       const mercadoPagoEnv = getMercadoPagoServerEnv();
       const webhookToken = mercadoPagoEnv.MERCADO_PAGO_WEBHOOK_TOKEN?.trim() || null;
       if (!webhookToken) {
@@ -205,6 +241,7 @@ export async function POST(request: NextRequest) {
         throw new Error('Falta configurar MERCADO_PAGO_WEBHOOK_SECRET para habilitar pagos.');
       }
       const webhookUrl = `${env.NEXT_PUBLIC_APP_URL}/api/payments/mercadopago/webhook?token=${encodeURIComponent(webhookToken)}`;
+      const successBaseUrl = returnBaseUrl || `${env.NEXT_PUBLIC_APP_URL}/courses/enrollment/success`;
 
       const checkout = await createMercadoPagoCheckoutPreference({
         item: {
@@ -215,9 +252,9 @@ export async function POST(request: NextRequest) {
         },
         payerEmail: normalizedEmail,
         externalReference,
-        successUrl: `${requestOrigin}/courses/enrollment/success?${paymentStateParams.toString()}&payment_status=approved`,
-        pendingUrl: `${requestOrigin}/courses/enrollment/success?${paymentStateParams.toString()}&payment_status=pending`,
-        failureUrl: `${requestOrigin}/courses/enrollment/success?${paymentStateParams.toString()}&payment_status=failure`,
+        successUrl: `${successBaseUrl}?${paymentStateParams.toString()}&payment_status=approved`,
+        pendingUrl: `${successBaseUrl}?${paymentStateParams.toString()}&payment_status=pending`,
+        failureUrl: `${successBaseUrl}?${paymentStateParams.toString()}&payment_status=failure`,
         notificationUrl: webhookUrl,
         metadata: {
           intent_id: String(paymentIntent.id),

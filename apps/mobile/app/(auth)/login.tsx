@@ -16,7 +16,7 @@ import {
   signInWithGoogleOnMobile,
 } from '../../lib/auth-links';
 import { supabase } from '../../lib/supabase';
-import { useNavajaTheme } from '../../lib/theme';
+import { getStatusSurface, useNavajaTheme } from '../../lib/theme';
 
 type Mode = 'login' | 'register' | 'recover' | 'reset';
 
@@ -56,6 +56,7 @@ function mapAuthError(message: string) {
 
 export default function LoginScreen() {
   const { colors } = useNavajaTheme();
+  const warningTone = getStatusSurface(colors, 'warning');
   const params = useLocalSearchParams<{ mode?: string }>();
   const initialMode = useMemo(
     () => normalizeMode(typeof params.mode === 'string' ? params.mode : undefined),
@@ -342,15 +343,9 @@ export default function LoginScreen() {
                 style={[
                   styles.helper,
                   {
-                    color: colors.mode === 'dark' ? '#fde68a' : '#a16207',
-                    backgroundColor:
-                      colors.mode === 'dark'
-                        ? 'rgba(120, 53, 15, 0.26)'
-                        : 'rgba(254,243,199,0.82)',
-                    borderColor:
-                      colors.mode === 'dark'
-                        ? 'rgba(120, 53, 15, 0.42)'
-                        : 'rgba(250,204,21,0.4)',
+                    color: warningTone.textColor,
+                    backgroundColor: warningTone.backgroundColor,
+                    borderColor: warningTone.borderColor,
                   },
                 ]}
               >

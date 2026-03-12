@@ -92,6 +92,7 @@ export default function AdminSessionModelosScreen() {
   const [compensationValueUy, setCompensationValueUy] = useState('');
   const [notesPublic, setNotesPublic] = useState('');
   const [isOpen, setIsOpen] = useState(true);
+  const [modelCategories, setModelCategories] = useState<string[]>([]);
 
   const confirmedCount = useMemo(
     () => applications.filter((item) => item.status === 'confirmed').length,
@@ -127,7 +128,7 @@ export default function AdminSessionModelosScreen() {
 
     const { data: sessionRow, error: sessionError } = await supabase
       .from('course_sessions')
-      .select('id, start_at, location, status, course_id, courses(title)')
+      .select('id, start_at, location, status, course_id, courses(title, model_categories)')
       .eq('id', sessionId)
       .maybeSingle();
 
@@ -197,6 +198,16 @@ export default function AdminSessionModelosScreen() {
     setApplicationNotes(nextNotes);
 
     const req = (requirementRow?.requirements as Record<string, unknown> | null) || {};
+    const courseCategoriesRaw =
+      ((sessionRow.courses as { model_categories?: unknown } | null)?.model_categories as
+        | unknown[]
+        | undefined) || [];
+    const courseCategories = courseCategoriesRaw
+      .map((item) => String(item || '').trim())
+      .filter(Boolean);
+    const existingCategories = Array.isArray(req.categories)
+      ? req.categories.map((item) => String(item || '').trim()).filter(Boolean)
+      : [];
     setModelsNeeded(String(Number(req.models_needed || 1)));
     setBeardRequired(Boolean(req.beard_required));
     setHairLengthCategory(
@@ -219,6 +230,7 @@ export default function AdminSessionModelosScreen() {
     );
     setNotesPublic(String(requirementRow?.notes_public || ''));
     setIsOpen(requirementRow ? Boolean(requirementRow.is_open) : true);
+    setModelCategories(existingCategories.length ? existingCategories : courseCategories);
 
     setLoading(false);
   }, [sessionId]);
@@ -266,6 +278,7 @@ export default function AdminSessionModelosScreen() {
           beard_required: parsed.data.beard_required || false,
           hair_length_category: parsed.data.hair_length_category || 'indistinto',
           hair_type: parsed.data.hair_type || null,
+          categories: modelCategories,
         },
         compensation_type: parsed.data.compensation_type,
         compensation_value_cents:

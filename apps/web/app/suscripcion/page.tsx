@@ -1,18 +1,21 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Card, CardBody } from '@heroui/card';
+import { publicMarketingSubscriptionHero, resolveSubscriptionBillingMessage } from '@navaja/shared';
 import { SubscriptionBillingPanel } from '@/components/admin/subscription-billing-panel';
+import { MarketingHero } from '@/components/public/marketing';
 import { getCurrentAuthContext } from '@/lib/auth';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import {
   getSubscriptionPlanDescriptor,
+  normalizeSubscriptionStatus,
+  normalizeSubscriptionTier,
   PUBLIC_MARKETPLACE_PLANS,
   type SubscriptionStatus,
   type SubscriptionTier,
 } from '@/lib/subscription-plans';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { buildAdminHref } from '@/lib/workspace-routes';
-import { Container } from '@/components/heroui/container';
 
 interface SubscriptionPageProps {
   searchParams: Promise<{
@@ -44,49 +47,10 @@ function formatUyuCents(amountCents: number) {
   return UYU_FORMATTER.format(Math.round(amountCents / 100));
 }
 
-function resolveCurrentPlan(value: string | null | undefined): SubscriptionTier {
-  const normalized = String(value || '').trim();
-  if (
-    normalized === 'free' ||
-    normalized === 'pro' ||
-    normalized === 'business' ||
-    normalized === 'app_admin'
-  ) {
-    return normalized;
-  }
-
-  return 'free';
-}
-
-function resolveCurrentStatus(value: string | null | undefined): SubscriptionStatus {
-  const normalized = String(value || '').trim();
-  if (
-    normalized === 'active' ||
-    normalized === 'trialing' ||
-    normalized === 'past_due' ||
-    normalized === 'cancelled'
-  ) {
-    return normalized;
-  }
-
-  return 'active';
-}
-
-function resolveBillingMessage(value: string | null | undefined) {
-  const normalized = String(value || '')
-    .trim()
-    .toLowerCase();
-  if (normalized === 'success' || normalized === 'pending' || normalized === 'failure') {
-    return normalized;
-  }
-
-  return null;
-}
-
 export default async function SubscriptionPage({ searchParams }: SubscriptionPageProps) {
   const params = await searchParams;
   const ctx = await getCurrentAuthContext({ shopSlug: params.shop });
-  const billingMessage = resolveBillingMessage(params.billing);
+  const billingMessage = resolveSubscriptionBillingMessage(params.billing);
   const canManageSelectedWorkspace =
     ctx.selectedWorkspaceRole === 'admin' && Boolean(ctx.shopId && ctx.shopSlug);
   const canAdminAnyWorkspace = ctx.availableWorkspaces.some(
@@ -105,8 +69,8 @@ export default async function SubscriptionPage({ searchParams }: SubscriptionPag
       .maybeSingle();
 
     const subscriptionData = (subscription as SubscriptionRow | null) || null;
-    currentPlan = resolveCurrentPlan(subscriptionData?.plan);
-    currentStatus = resolveCurrentStatus(subscriptionData?.status);
+    currentPlan = normalizeSubscriptionTier(subscriptionData?.plan);
+    currentStatus = normalizeSubscriptionStatus(subscriptionData?.status);
   }
 
   const selectedShopSlug = ctx.shopSlug || null;
@@ -117,37 +81,23 @@ export default async function SubscriptionPage({ searchParams }: SubscriptionPag
 
   return (
     <section className="space-y-6">
-      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-          <div>
-            <p className="hero-eyebrow">Suscripcion</p>
-            <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.3rem] dark:text-slate-100">
-              Gestiona tu suscripcion desde la cuenta
-            </h1>
-            <p className="mt-3 text-sm text-slate/80 dark:text-slate-300">
-              Compara Free, Pro y Business. La suscripcion vive en tu cuenta y, si tienes una
-              barberia administrable seleccionada, puedes iniciar el checkout desde esta pantalla.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            {PUBLIC_MARKETPLACE_PLANS.map((planId) => {
-              const plan = getSubscriptionPlanDescriptor(planId);
-              return (
-                <div key={plan.id} className="stat-tile">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                    {plan.name}
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                    {formatUyuCents(plan.monthlyPriceCents)}
-                  </p>
-                  <p className="mt-1 text-xs text-slate/70 dark:text-slate-300">por mes</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </Container>
+      <MarketingHero
+        eyebrow={publicMarketingSubscriptionHero.eyebrow}
+        title={publicMarketingSubscriptionHero.title}
+        description={publicMarketingSubscriptionHero.description}
+        stats={PUBLIC_MARKETPLACE_PLANS.map((planId) => {
+          const plan = getSubscriptionPlanDescriptor(planId);
+          return {
+            label: plan.name,
+            value: formatUyuCents(plan.monthlyPriceCents),
+            detail: 'por mes',
+            valueClassName: 'mt-2 text-2xl font-semibold text-ink dark:text-slate-100',
+          };
+        })}
+        layoutClassName="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end"
+        titleClassName="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.3rem] dark:text-slate-100"
+        descriptionClassName="mt-3 text-sm text-slate/80 dark:text-slate-300"
+      />
 
       <div className="grid gap-3 md:grid-cols-3">
         {PUBLIC_MARKETPLACE_PLANS.map((planId) => {

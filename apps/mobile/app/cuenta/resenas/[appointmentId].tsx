@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
   ActionButton,
@@ -9,6 +9,7 @@ import {
   MultilineField,
   MutedText,
   Screen,
+  SelectionChip,
 } from '../../../components/ui/primitives';
 import {
   hasExternalApi,
@@ -17,7 +18,7 @@ import {
 } from '../../../lib/api';
 import { formatDateTime } from '../../../lib/format';
 import { supabase } from '../../../lib/supabase';
-import { palette } from '../../../lib/theme';
+import { useNavajaTheme } from '../../../lib/theme';
 
 interface AppointmentForReview {
   id: string;
@@ -29,6 +30,7 @@ interface AppointmentForReview {
 }
 
 export default function CuentaResenaScreen() {
+  const { colors } = useNavajaTheme();
   const params = useLocalSearchParams<{ appointmentId?: string }>();
   const appointmentId = String(params.appointmentId || '');
 
@@ -130,7 +132,7 @@ export default function CuentaResenaScreen() {
     }
 
     if (!hasExternalApi) {
-      setError('Configura EXPO_PUBLIC_API_BASE_URL para enviar reseñas desde mobile.');
+      setError('Configura EXPO_PUBLIC_API_BASE_URL para enviar resenas desde mobile.');
       return;
     }
 
@@ -155,13 +157,13 @@ export default function CuentaResenaScreen() {
       });
 
       if (!result?.success) {
-        throw new Error('No se pudo guardar la reseña.');
+        throw new Error('No se pudo guardar la resena.');
       }
 
-      setMessage('Reseña enviada. Gracias por calificar tu experiencia.');
+      setMessage('Resena enviada. Gracias por calificar tu experiencia.');
       setAppointment((current) => (current ? { ...current, hasReview: true } : current));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se pudo guardar la reseña.');
+      setError(cause instanceof Error ? cause.message : 'No se pudo guardar la resena.');
     } finally {
       setSaving(false);
     }
@@ -171,15 +173,17 @@ export default function CuentaResenaScreen() {
     <Screen title="Calificar cita" subtitle="Comparte como fue tu experiencia">
       {loading ? <MutedText>Cargando detalle de la cita...</MutedText> : null}
       <ErrorText message={error} />
-      {message ? <Text style={styles.success}>{message}</Text> : null}
+      {message ? <Text style={[styles.success, { color: colors.success }]}>{message}</Text> : null}
 
       {appointment ? (
         <Card>
-          <Text style={styles.title}>{formatDateTime(appointment.startAt)}</Text>
-          <Text style={styles.meta}>
+          <Text style={[styles.title, { color: colors.text }]}>{formatDateTime(appointment.startAt)}</Text>
+          <Text style={[styles.meta, { color: colors.textMuted }]}>
             {appointment.serviceName} - {appointment.staffName}
           </Text>
-          <Text style={styles.meta}>Estado: {appointment.status}</Text>
+          <Text style={[styles.meta, { color: colors.textMuted }]}>
+            Estado: {appointment.status}
+          </Text>
         </Card>
       ) : null}
 
@@ -187,15 +191,12 @@ export default function CuentaResenaScreen() {
         <Label>Puntaje</Label>
         <View style={styles.ratingRow}>
           {[1, 2, 3, 4, 5].map((value) => (
-            <Pressable
+            <SelectionChip
               key={value}
-              style={[styles.ratingChip, rating === value ? styles.ratingChipActive : null]}
+              label={String(value)}
+              active={rating === value}
               onPress={() => setRating(value)}
-            >
-              <Text style={[styles.ratingChipText, rating === value ? styles.ratingChipTextActive : null]}>
-                {value}
-              </Text>
-            </Pressable>
+            />
           ))}
         </View>
 
@@ -204,7 +205,7 @@ export default function CuentaResenaScreen() {
 
         {canSubmitReview ? (
           <ActionButton
-            label={saving ? 'Enviando...' : 'Enviar reseña'}
+            label={saving ? 'Enviando...' : 'Enviar resena'}
             onPress={() => {
               void submitReview();
             }}
@@ -227,12 +228,10 @@ export default function CuentaResenaScreen() {
 
 const styles = StyleSheet.create({
   title: {
-    color: palette.text,
     fontSize: 16,
     fontWeight: '800',
   },
   meta: {
-    color: '#64748b',
     fontSize: 12,
   },
   ratingRow: {
@@ -240,28 +239,7 @@ const styles = StyleSheet.create({
     gap: 8,
     flexWrap: 'wrap',
   },
-  ratingChip: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
-  },
-  ratingChipActive: {
-    borderColor: palette.text,
-    backgroundColor: palette.text,
-  },
-  ratingChipText: {
-    color: '#334155',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  ratingChipTextActive: {
-    color: '#fff',
-  },
   success: {
-    color: '#047857',
     fontSize: 13,
     fontWeight: '600',
   },

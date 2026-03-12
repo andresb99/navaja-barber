@@ -26,19 +26,10 @@ import {
   saveMarketplaceShopId,
   type MarketplaceShop,
 } from '../../lib/marketplace';
-import { supabase } from '../../lib/supabase';
 import { useNavajaTheme } from '../../lib/theme';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const NETWORK_SCOPE = 'network';
-
-function randomId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function sanitizeFilename(name: string) {
-  return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120);
-}
 
 export default function EmpleoScreen() {
   const { colors } = useNavajaTheme();
@@ -206,44 +197,10 @@ export default function EmpleoScreen() {
     try {
       const apiResult = await submitDirectJobApplicationViaApi(parsed.data, cvAsset);
       if (!apiResult) {
-        const ext = cvAsset.name?.includes('.') ? cvAsset.name.split('.').pop() : 'pdf';
-        const safeName = sanitizeFilename(cvAsset.name || `cv.${ext}`);
-        const path = `${parsed.data.shop_id}/${new Date().toISOString().slice(0, 10)}/${randomId()}-${safeName}`;
-
-        const fileResponse = await fetch(cvAsset.uri);
-        const fileBuffer = await fileResponse.arrayBuffer();
-
-        const { error: uploadError } = await supabase.storage
-          .from('cvs')
-          .upload(path, fileBuffer, {
-            contentType: cvAsset.mimeType || 'application/octet-stream',
-            upsert: false,
-          });
-
-        if (uploadError) {
-          setError(uploadError.message);
-          setSubmitting(false);
-          return;
-        }
-
-        const { error: insertError } = await supabase.from('job_applications').insert({
-          shop_id: parsed.data.shop_id,
-          name: parsed.data.name,
-          phone: parsed.data.phone,
-          email: parsed.data.email,
-          instagram: parsed.data.instagram || null,
-          experience_years: parsed.data.experience_years,
-          availability: parsed.data.availability,
-          cv_path: path,
-          status: 'new',
-        });
-
-        if (insertError) {
-          await supabase.storage.from('cvs').remove([path]);
-          setError(insertError.message);
-          setSubmitting(false);
-          return;
-        }
+        setError(
+          'Configura EXPO_PUBLIC_API_BASE_URL para enviar postulaciones desde mobile con la misma logica de la web.',
+        );
+        return;
       }
 
       setMessage('Postulacion enviada. Te vamos a contactar.');

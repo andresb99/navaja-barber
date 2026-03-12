@@ -1,43 +1,30 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { env } from './env';
 import { supabase } from './supabase';
+import {
+  buildAccessibleWorkspaces,
+} from './workspace-catalog';
+import type {
+  StaffWorkspace,
+  WorkspaceMembershipRow,
+  WorkspaceShopRow,
+  WorkspaceStaffRow,
+} from './workspace-catalog';
+
+export type {
+  StaffWorkspace,
+  WorkspaceMembershipRow,
+  WorkspaceShopRow,
+  WorkspaceStaffRow,
+} from './workspace-catalog';
 
 const ACTIVE_WORKSPACE_KEY_PREFIX = '@navaja/active-workspace';
-
-type StaffRole = 'admin' | 'staff';
-
-interface StaffWorkspaceRow {
-  id: string;
-  shop_id: string;
-  name: string | null;
-  role: StaffRole | null;
-  created_at: string | null;
-}
-
-interface ShopWorkspaceRow {
-  id: string;
-  name: string | null;
-  slug: string | null;
-}
-
-export interface StaffWorkspace {
-  staffId: string;
-  staffName: string;
-  role: StaffRole;
-  shopId: string;
-  shopName: string;
-  shopSlug: string | null;
-}
 
 function storageKey(userId: string) {
   return `${ACTIVE_WORKSPACE_KEY_PREFIX}:${userId}`;
 }
 
-function normalizeRole(value: unknown): StaffRole {
-  return String(value || '').trim().toLowerCase() === 'admin' ? 'admin' : 'staff';
-}
-
-async function getSavedActiveWorkspaceStaffId(userId: string) {
+async function getSavedActiveWorkspaceShopId(userId: string) {
   if (!userId) {
     return '';
   }
@@ -45,7 +32,7 @@ async function getSavedActiveWorkspaceStaffId(userId: string) {
   return (await AsyncStorage.getItem(storageKey(userId))) || '';
 }
 
-async function clearSavedActiveWorkspaceStaffId(userId: string) {
+async function clearSavedActiveWorkspaceShopId(userId: string) {
   if (!userId) {
     return;
   }
@@ -53,94 +40,86 @@ async function clearSavedActiveWorkspaceStaffId(userId: string) {
   await AsyncStorage.removeItem(storageKey(userId));
 }
 
-export async function saveActiveWorkspaceStaffId(userId: string, staffId: string) {
-  if (!userId || !staffId) {
-    await clearSavedActiveWorkspaceStaffId(userId);
+export async function saveActiveWorkspaceShopId(userId: string, shopId: string) {
+  if (!userId || !shopId) {
+    await clearSavedActiveWorkspaceShopId(userId);
     return;
   }
 
-  await AsyncStorage.setItem(storageKey(userId), staffId);
+  await AsyncStorage.setItem(storageKey(userId), shopId);
 }
 
-export async function listStaffWorkspacesForUser(userId: string): Promise<StaffWorkspace[]> {
+export async function listAccessibleWorkspacesForUser(userId: string): Promise<StaffWorkspace[]> {
   if (!userId) {
     return [];
   }
 
-  const { data: staffRows, error: staffError } = await supabase
-    .from('staff')
-    .select('id, shop_id, name, role, created_at')
-    .eq('auth_user_id', userId)
-    .eq('is_active', true)
-    .order('created_at', { ascending: true });
+  const [membershipResult, staffResult] = await Promise.all([
+    supabase
+      .from('shop_memberships')
+      .select('shop_id, role')
+      .eq('user_id', userId)
+      .eq('membership_status', 'active'),
+    supabase
+      .from('staff')
+      .select('id, shop_id, name, role, created_at')
+      .eq('auth_user_id', userId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: true }),
+  ]);
 
-  if (staffError || !staffRows?.length) {
+  if (membershipResult.error) {
+    throw membershipResult.error;
+  }
+
+  if (staffResult.error) {
+    throw staffResult.error;
+  }
+
+  const memberships = (membershipResult.data || []) as WorkspaceMembershipRow[];
+  const staffRows = (staffResult.data || []) as WorkspaceStaffRow[];
+  const shopIds = Array.from(
+    new Set(
+      [...memberships.map((item) => String(item.shop_id || '')), ...staffRows.map((item) => String(item.shop_id || ''))]
+        .filter(Boolean),
+    ),
+  );
+
+  if (!shopIds.length) {
     return [];
   }
 
-  const shopIds = [...new Set((staffRows as StaffWorkspaceRow[]).map((item) => String(item.shop_id || '')))]
-    .filter(Boolean);
+  const { data: shopRows, error: shopError } = await supabase
+    .from('shops')
+    .select('id, name, slug')
+    .in('id', shopIds);
 
-  const { data: shopRows } = shopIds.length
-    ? await supabase
-        .from('shops')
-        .select('id, name, slug')
-        .in('id', shopIds)
-    : { data: [] as ShopWorkspaceRow[] };
+  if (shopError) {
+    throw shopError;
+  }
 
-  const shopsById = new Map(
-    ((shopRows || []) as ShopWorkspaceRow[]).map((item) => [
-      String(item.id),
-      {
-        name: String(item.name || 'Barberia'),
-        slug: item.slug ? String(item.slug) : null,
-      },
-    ]),
-  );
-
-  const workspaces = (staffRows as StaffWorkspaceRow[])
-    .map((item) => {
-      const shopId = String(item.shop_id || '').trim();
-      const shop = shopsById.get(shopId);
-      if (!shopId || !shop) {
-        return null;
-      }
-
-      return {
-        staffId: String(item.id),
-        staffName: String(item.name || 'Staff'),
-        role: normalizeRole(item.role),
-        shopId,
-        shopName: shop.name,
-        shopSlug: shop.slug,
-      } satisfies StaffWorkspace;
-    })
-    .filter((item): item is StaffWorkspace => Boolean(item))
-    .sort((left, right) => {
-      if (left.role !== right.role) {
-        return left.role === 'admin' ? -1 : 1;
-      }
-      return left.shopName.localeCompare(right.shopName, 'es');
-    });
-
-  return workspaces;
+  return buildAccessibleWorkspaces({
+    memberships,
+    staffRows,
+    shops: (shopRows || []) as WorkspaceShopRow[],
+  });
 }
 
 export async function resolveActiveWorkspaceForUser(userId: string): Promise<{
   activeWorkspace: StaffWorkspace | null;
   workspaces: StaffWorkspace[];
 }> {
-  const workspaces = await listStaffWorkspacesForUser(userId);
+  const workspaces = await listAccessibleWorkspacesForUser(userId);
   if (!workspaces.length) {
-    await clearSavedActiveWorkspaceStaffId(userId);
+    await clearSavedActiveWorkspaceShopId(userId);
     return {
       activeWorkspace: null,
       workspaces,
     };
   }
 
-  const savedStaffId = await getSavedActiveWorkspaceStaffId(userId);
-  const bySaved = workspaces.find((item) => item.staffId === savedStaffId) || null;
+  const savedShopId = await getSavedActiveWorkspaceShopId(userId);
+  const bySaved = workspaces.find((item) => item.shopId === savedShopId) || null;
   if (bySaved) {
     return {
       activeWorkspace: bySaved,
@@ -158,7 +137,7 @@ export async function resolveActiveWorkspaceForUser(userId: string): Promise<{
     null;
 
   if (fallback) {
-    await saveActiveWorkspaceStaffId(userId, fallback.staffId);
+    await saveActiveWorkspaceShopId(userId, fallback.shopId);
   }
 
   return {

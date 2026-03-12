@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import {
   ActionButton,
@@ -9,6 +9,7 @@ import {
   MultilineField,
   MutedText,
   Screen,
+  SelectionChip,
 } from '../../components/ui/primitives';
 import {
   getReviewInvitePreviewViaApi,
@@ -16,7 +17,7 @@ import {
   submitSignedReviewViaApi,
 } from '../../lib/api';
 import { formatDateTime } from '../../lib/format';
-import { palette } from '../../lib/theme';
+import { useNavajaTheme } from '../../lib/theme';
 
 interface ReviewPreview {
   appointmentId: string;
@@ -27,6 +28,7 @@ interface ReviewPreview {
 }
 
 export default function PublicReviewScreen() {
+  const { colors } = useNavajaTheme();
   const params = useLocalSearchParams<{ token?: string }>();
   const signedToken = String(params.token || '');
 
@@ -45,13 +47,13 @@ export default function PublicReviewScreen() {
 
     if (!signedToken) {
       setLoading(false);
-      setError('No se recibio un enlace de reseña valido.');
+      setError('No se recibio un enlace de resena valido.');
       return;
     }
 
     if (!hasExternalApi) {
       setLoading(false);
-      setError('Configura EXPO_PUBLIC_API_BASE_URL para abrir enlaces de reseña.');
+      setError('Configura EXPO_PUBLIC_API_BASE_URL para abrir enlaces de resena.');
       return;
     }
 
@@ -59,7 +61,7 @@ export default function PublicReviewScreen() {
       const response = await getReviewInvitePreviewViaApi({ signedToken });
       if (!response) {
         setPreview(null);
-        setError('No se pudo validar el enlace de reseña.');
+        setError('No se pudo validar el enlace de resena.');
       } else {
         setPreview({
           appointmentId: response.appointmentId,
@@ -100,12 +102,12 @@ export default function PublicReviewScreen() {
       });
 
       if (!response?.reviewId) {
-        throw new Error('No se pudo enviar la reseña.');
+        throw new Error('No se pudo enviar la resena.');
       }
 
-      setMessage('Reseña enviada correctamente. Gracias por compartir tu experiencia.');
+      setMessage('Resena enviada correctamente. Gracias por compartir tu experiencia.');
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se pudo enviar la reseña.');
+      setError(cause instanceof Error ? cause.message : 'No se pudo enviar la resena.');
     } finally {
       setSaving(false);
     }
@@ -115,31 +117,32 @@ export default function PublicReviewScreen() {
     <Screen title="Tu experiencia" subtitle="Califica la cita desde este enlace seguro">
       {loading ? <MutedText>Validando enlace...</MutedText> : null}
       <ErrorText message={error} />
-      {message ? <Text style={styles.success}>{message}</Text> : null}
+      {message ? <Text style={[styles.success, { color: colors.success }]}>{message}</Text> : null}
 
       {preview ? (
         <>
           <Card>
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: colors.text }]}>
               {preview.serviceName} con {preview.staffName}
             </Text>
-            <Text style={styles.meta}>Cita: {formatDateTime(preview.appointmentStartAt)}</Text>
-            <Text style={styles.meta}>Expira: {formatDateTime(preview.expiresAt)}</Text>
+            <Text style={[styles.meta, { color: colors.textMuted }]}>
+              Cita: {formatDateTime(preview.appointmentStartAt)}
+            </Text>
+            <Text style={[styles.meta, { color: colors.textMuted }]}>
+              Expira: {formatDateTime(preview.expiresAt)}
+            </Text>
           </Card>
 
           <Card>
             <Label>Puntaje</Label>
             <View style={styles.ratingRow}>
               {[1, 2, 3, 4, 5].map((value) => (
-                <Pressable
+                <SelectionChip
                   key={value}
-                  style={[styles.ratingChip, rating === value ? styles.ratingChipActive : null]}
+                  label={String(value)}
+                  active={rating === value}
                   onPress={() => setRating(value)}
-                >
-                  <Text style={[styles.ratingChipText, rating === value ? styles.ratingChipTextActive : null]}>
-                    {value}
-                  </Text>
-                </Pressable>
+                />
               ))}
             </View>
 
@@ -147,7 +150,7 @@ export default function PublicReviewScreen() {
             <MultilineField value={comment} onChangeText={setComment} />
 
             <ActionButton
-              label={saving ? 'Enviando...' : 'Enviar reseña'}
+              label={saving ? 'Enviando...' : 'Enviar resena'}
               onPress={() => {
                 void submitReview();
               }}
@@ -169,12 +172,10 @@ export default function PublicReviewScreen() {
 
 const styles = StyleSheet.create({
   title: {
-    color: palette.text,
     fontSize: 16,
     fontWeight: '800',
   },
   meta: {
-    color: '#64748b',
     fontSize: 12,
   },
   ratingRow: {
@@ -182,28 +183,7 @@ const styles = StyleSheet.create({
     gap: 8,
     flexWrap: 'wrap',
   },
-  ratingChip: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 999,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
-  },
-  ratingChipActive: {
-    borderColor: palette.text,
-    backgroundColor: palette.text,
-  },
-  ratingChipText: {
-    color: '#334155',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  ratingChipTextActive: {
-    color: '#fff',
-  },
   success: {
-    color: '#047857',
     fontSize: 13,
     fontWeight: '600',
   },

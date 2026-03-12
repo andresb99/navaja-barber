@@ -2,11 +2,20 @@ import { useCallback, useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { jobApplicationUpdateSchema } from '@navaja/shared';
-import { ActionButton, Card, ErrorText, Field, Label, MutedText, Screen } from '../../components/ui/primitives';
+import {
+  ActionButton,
+  Card,
+  ErrorText,
+  Field,
+  Label,
+  MutedText,
+  Screen,
+  SelectionChip,
+} from '../../components/ui/primitives';
 import { getAuthContext } from '../../lib/auth';
 import { formatDateTime } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
-import { palette } from '../../lib/theme';
+import { useNavajaTheme } from '../../lib/theme';
 
 type ApplicantStatus = 'new' | 'contacted' | 'interview' | 'rejected' | 'hired';
 
@@ -35,6 +44,7 @@ const statusLabel: Record<ApplicantStatus, string> = {
 };
 
 export default function AdminApplicantsScreen() {
+  const { colors } = useNavajaTheme();
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -192,25 +202,38 @@ export default function AdminApplicantsScreen() {
   return (
     <Screen title="Postulantes" subtitle="Revision y seguimiento de candidatos">
       <ErrorText message={error} />
-      {success ? <Text style={styles.success}>{success}</Text> : null}
+      {success ? <Text style={[styles.success, { color: colors.success }]}>{success}</Text> : null}
       {loading ? <MutedText>Cargando postulaciones...</MutedText> : null}
       {!loading && applicants.length === 0 ? <MutedText>No hay postulaciones.</MutedText> : null}
 
       <View style={styles.list}>
         {applicants.map((item) => (
           <Card key={item.id}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.meta}>
+            <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
+            <Text style={[styles.meta, { color: colors.textMuted }]}>
               {item.email} - {item.phone}
             </Text>
-            <Text style={styles.meta}>
+            <Text style={[styles.meta, { color: colors.textMuted }]}>
               {item.experience_years} anios - {formatDateTime(item.created_at)}
             </Text>
-            <Text style={styles.meta}>Instagram: {item.instagram || 'No informado'}</Text>
-            <Text style={styles.meta}>Disponibilidad: {item.availability}</Text>
+            <Text style={[styles.meta, { color: colors.textMuted }]}>
+              Instagram: {item.instagram || 'No informado'}
+            </Text>
+            <Text style={[styles.meta, { color: colors.textMuted }]}>
+              Disponibilidad: {item.availability}
+            </Text>
 
-            <Pressable style={styles.cvButton} onPress={() => void openCv(item.id)}>
-              <Text style={styles.cvButtonText}>
+            <Pressable
+              style={[
+                styles.cvButton,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.panelRaised,
+                },
+              ]}
+              onPress={() => void openCv(item.id)}
+            >
+              <Text style={[styles.cvButtonText, { color: colors.text }]}>
                 {signedUrls[item.id] ? 'Abrir CV firmado' : 'CV no disponible'}
               </Text>
             </Pressable>
@@ -220,20 +243,17 @@ export default function AdminApplicantsScreen() {
               {statusOptions.map((status) => {
                 const active = (statusDrafts[item.id] || item.status) === status;
                 return (
-                  <Pressable
+                  <SelectionChip
                     key={status}
-                    style={[styles.statusChip, active ? styles.statusChipActive : null]}
+                    label={statusLabel[status]}
+                    active={active}
                     onPress={() =>
                       setStatusDrafts((current) => ({
                         ...current,
                         [item.id]: status,
                       }))
                     }
-                  >
-                    <Text style={[styles.statusChipText, active ? styles.statusChipTextActive : null]}>
-                      {statusLabel[status]}
-                    </Text>
-                  </Pressable>
+                  />
                 );
               })}
             </View>
@@ -266,25 +286,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   name: {
-    color: palette.text,
     fontSize: 16,
     fontWeight: '800',
   },
   meta: {
-    color: '#475569',
     fontSize: 12,
   },
   cvButton: {
     borderWidth: 1,
-    borderColor: '#dbe4ee',
     borderRadius: 12,
-    backgroundColor: '#f8fafc',
     paddingVertical: 10,
     paddingHorizontal: 12,
     alignItems: 'center',
   },
   cvButtonText: {
-    color: palette.text,
     fontWeight: '700',
     fontSize: 13,
   },
@@ -293,32 +308,10 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  statusChip: {
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    backgroundColor: '#fff',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  statusChipActive: {
-    borderColor: palette.text,
-    backgroundColor: palette.text,
-  },
-  statusChipText: {
-    color: '#334155',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  statusChipTextActive: {
-    color: '#fff',
-  },
   error: {
-    color: '#b91c1c',
     fontSize: 13,
   },
   success: {
-    color: '#0f766e',
     fontSize: 13,
   },
 });

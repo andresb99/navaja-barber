@@ -116,7 +116,7 @@ export function MarketplaceJobsForm({ shops }: MarketplaceJobsFormProps) {
   }
 
   return (
-    <form className="soft-panel space-y-5 rounded-[1.9rem] border-0 p-6" onSubmit={onSubmit}>
+    <form className="soft-panel space-y-5 rounded-[1.9rem] border-0 p-4 sm:p-6" onSubmit={onSubmit}>
       <div className="grid gap-3 md:grid-cols-[1.1fr_0.9fr]">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
@@ -147,9 +147,7 @@ export function MarketplaceJobsForm({ shops }: MarketplaceJobsFormProps) {
         onChange={(event) => setTarget(event.target.value)}
       >
         {targetOptions.map((option) => (
-          <SelectItem key={option.id}>
-            {option.label}
-          </SelectItem>
+          <SelectItem key={option.id}>{option.label}</SelectItem>
         ))}
       </Select>
 
@@ -219,7 +217,11 @@ export function MarketplaceJobsForm({ shops }: MarketplaceJobsFormProps) {
       {error ? <p className="status-banner error">{error}</p> : null}
       {message ? <p className="status-banner success">{message}</p> : null}
 
-      <Button type="submit" disabled={loading} className="action-primary px-5 text-sm font-semibold">
+      <Button
+        type="submit"
+        disabled={loading}
+        className="action-primary w-full justify-center px-5 text-sm font-semibold sm:w-auto"
+      >
         {loading ? 'Enviando...' : 'Enviar postulacion'}
       </Button>
     </form>

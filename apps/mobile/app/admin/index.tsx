@@ -1,13 +1,100 @@
-import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
-import { Card, ErrorText, MutedText, Screen } from '../../components/ui/primitives';
+import {
+  ActionButton,
+  Card,
+  ErrorText,
+  HeroPanel,
+  MutedText,
+  Screen,
+  StatTile,
+  SurfaceCard,
+} from '../../components/ui/primitives';
 import { getAuthContext } from '../../lib/auth';
 import { formatCurrency } from '../../lib/format';
 import { getDashboardMetrics } from '../../lib/metrics';
-import { palette } from '../../lib/theme';
+import { useNavajaTheme } from '../../lib/theme';
+
+type AdminRoute = '/mis-barberias' | '/admin/notifications' | '/admin/appointments' | '/admin/staff' | '/admin/barbershop' | '/admin/services' | '/admin/courses' | '/admin/modelos' | '/admin/applicants' | '/admin/metrics';
+type IconName = React.ComponentProps<typeof Ionicons>['name'];
+
+interface AdminActionItem {
+  label: string;
+  description: string;
+  route: AdminRoute;
+  icon: IconName;
+}
+
+const operationsActions: AdminActionItem[] = [
+  {
+    label: 'Mis barberias',
+    description: 'Cambia de workspace y revisa accesos por local.',
+    route: '/mis-barberias',
+    icon: 'business-outline',
+  },
+  {
+    label: 'Notificaciones',
+    description: 'Solicitudes, ausencias y pendientes del admin.',
+    route: '/admin/notifications',
+    icon: 'notifications-outline',
+  },
+  {
+    label: 'Citas',
+    description: 'Agenda operativa con estado y detalle de reservas.',
+    route: '/admin/appointments',
+    icon: 'calendar-outline',
+  },
+  {
+    label: 'Equipo',
+    description: 'Gestiona staff, roles y disponibilidad.',
+    route: '/admin/staff',
+    icon: 'people-outline',
+  },
+  {
+    label: 'Metricas',
+    description: 'KPIs, revenue, canales y performance del staff.',
+    route: '/admin/metrics',
+    icon: 'analytics-outline',
+  },
+];
+
+const growthActions: AdminActionItem[] = [
+  {
+    label: 'Barberia',
+    description: 'Datos base, identidad y configuracion del local.',
+    route: '/admin/barbershop',
+    icon: 'storefront-outline',
+  },
+  {
+    label: 'Servicios',
+    description: 'Catalogo, duracion y precios publicados.',
+    route: '/admin/services',
+    icon: 'cut-outline',
+  },
+  {
+    label: 'Cursos',
+    description: 'Formacion, sesiones y pipeline de inscripciones.',
+    route: '/admin/courses',
+    icon: 'school-outline',
+  },
+  {
+    label: 'Modelos',
+    description: 'Convocatorias, sesiones y matching de perfiles.',
+    route: '/admin/modelos',
+    icon: 'images-outline',
+  },
+  {
+    label: 'Postulantes',
+    description: 'CVs, filtros y seguimiento de candidatos.',
+    route: '/admin/applicants',
+    icon: 'briefcase-outline',
+  },
+];
 
 export default function AdminHomeScreen() {
+  const { colors } = useNavajaTheme();
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,6 +102,17 @@ export default function AdminHomeScreen() {
   const [revenue, setRevenue] = useState(0);
   const [avgTicket, setAvgTicket] = useState(0);
   const [occupancy, setOccupancy] = useState(0);
+
+  const primaryAction = useMemo<AdminActionItem>(
+    () =>
+      operationsActions.find((item) => item.route === '/admin/metrics') || {
+        label: 'Metricas',
+        description: 'KPIs, revenue, canales y performance del staff.',
+        route: '/admin/metrics',
+        icon: 'analytics-outline',
+      },
+    [],
+  );
 
   const loadData = useCallback(async () => {
     setError(null);
@@ -26,6 +124,7 @@ export default function AdminHomeScreen() {
         setAllowed(false);
         return;
       }
+
       setAllowed(true);
       setWorkspaceName(auth.shopName || 'Barberia');
 
@@ -54,10 +153,13 @@ export default function AdminHomeScreen() {
     return (
       <Screen title="Panel admin" subtitle="Acceso restringido">
         <Card>
-          <Text style={styles.warning}>Tu cuenta no tiene permisos de administrador.</Text>
-          <Pressable style={styles.button} onPress={() => router.replace('/(tabs)/cuenta')}>
-            <Text style={styles.buttonText}>Ir a mi cuenta</Text>
-          </Pressable>
+          <Text style={[styles.warningText, { color: colors.warning }]}>
+            Tu cuenta no tiene permisos de administrador.
+          </Text>
+          <ActionButton
+            label="Ir a mi cuenta"
+            onPress={() => router.replace('/(tabs)/cuenta')}
+          />
         </Card>
       </Screen>
     );
@@ -65,105 +167,136 @@ export default function AdminHomeScreen() {
 
   return (
     <Screen
+      eyebrow="Admin"
       title="Panel admin"
-      subtitle={workspaceName ? `Resumen operativo de hoy · ${workspaceName}` : 'Resumen operativo de hoy'}
+      subtitle={
+        workspaceName
+          ? `Resumen operativo de hoy - ${workspaceName}`
+          : 'Resumen operativo de hoy'
+      }
     >
+      <HeroPanel
+        eyebrow="Operacion"
+        title={workspaceName || 'Control del negocio'}
+        description="El home admin mobile ahora sigue la misma jerarquia que web: resumen corto arriba y accesos agrupados por operacion y crecimiento."
+      >
+        <View style={styles.heroStats}>
+          <StatTile label="Facturacion" value={loading ? '--' : formatCurrency(revenue)} />
+          <StatTile label="Ticket promedio" value={loading ? '--' : formatCurrency(avgTicket)} />
+          <StatTile label="Ocupacion" value={loading ? '--' : `${occupancy}%`} />
+        </View>
+        <ActionButton
+          label={`Abrir ${primaryAction.label}`}
+          onPress={() => router.push(primaryAction.route)}
+          style={styles.heroAction}
+        />
+      </HeroPanel>
+
       <ErrorText message={error} />
-      {loading ? <MutedText>Cargando métricas...</MutedText> : null}
+      {loading ? (
+        <Card>
+          <MutedText>Cargando metricas...</MutedText>
+        </Card>
+      ) : null}
 
-      <View style={styles.metrics}>
-        <MetricCard title="Facturación" value={formatCurrency(revenue)} />
-        <MetricCard title="Ticket promedio" value={formatCurrency(avgTicket)} />
-        <MetricCard title="Ocupación" value={`${occupancy}%`} />
-      </View>
+      <Card elevated>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Operacion diaria</Text>
+        <Text style={[styles.sectionCopy, { color: colors.textMuted }]}>
+          Lo mas usado para mover el negocio durante el dia.
+        </Text>
+        <View style={styles.actionGrid}>
+          {operationsActions.map((item) => (
+            <AdminActionTile key={item.route} item={item} />
+          ))}
+        </View>
+      </Card>
 
-      <Card>
-        <Text style={styles.section}>Gestión</Text>
-        <View style={styles.grid}>
-          <AdminNav label="Mis barberias" onPress={() => router.push('/mis-barberias')} />
-          <AdminNav label="Citas" onPress={() => router.push('/admin/appointments')} />
-          <AdminNav label="Equipo" onPress={() => router.push('/admin/staff')} />
-          <AdminNav label="Barbería" onPress={() => router.push('/admin/barbershop')} />
-          <AdminNav label="Servicios" onPress={() => router.push('/admin/services')} />
-          <AdminNav label="Cursos" onPress={() => router.push('/admin/courses')} />
-          <AdminNav label="Modelos" onPress={() => router.push('/admin/modelos')} />
-          <AdminNav label="Postulantes" onPress={() => router.push('/admin/applicants')} />
-          <AdminNav label="Métricas" onPress={() => router.push('/admin/metrics')} />
+      <Card elevated>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Configuracion y crecimiento</Text>
+        <Text style={[styles.sectionCopy, { color: colors.textMuted }]}>
+          Catalogo, academia, modelos y pipeline comercial.
+        </Text>
+        <View style={styles.actionGrid}>
+          {growthActions.map((item) => (
+            <AdminActionTile key={item.route} item={item} />
+          ))}
         </View>
       </Card>
     </Screen>
   );
 }
 
-function MetricCard({ title, value }: { title: string; value: string }) {
-  return (
-    <Card style={styles.metricCard}>
-      <Text style={styles.metricTitle}>{title}</Text>
-      <Text style={styles.metricValue}>{value}</Text>
-    </Card>
-  );
-}
+function AdminActionTile({ item }: { item: AdminActionItem }) {
+  const { colors } = useNavajaTheme();
 
-function AdminNav({ label, onPress }: { label: string; onPress: () => void }) {
   return (
-    <Pressable style={styles.nav} onPress={onPress}>
-      <Text style={styles.navText}>{label}</Text>
-    </Pressable>
+    <SurfaceCard
+      onPress={() => router.push(item.route)}
+      style={styles.actionTile}
+      contentStyle={styles.actionTileContent}
+    >
+      <View
+        style={[
+          styles.actionIconWrap,
+          {
+            borderColor: colors.borderActive,
+            backgroundColor: colors.pillActive,
+          },
+        ]}
+      >
+        <Ionicons name={item.icon} size={18} color={colors.textAccent} />
+      </View>
+      <Text style={[styles.actionTitle, { color: colors.text }]}>{item.label}</Text>
+      <Text style={[styles.actionDescription, { color: colors.textMuted }]}>
+        {item.description}
+      </Text>
+    </SurfaceCard>
   );
 }
 
 const styles = StyleSheet.create({
-  warning: {
-    color: '#92400e',
+  warningText: {
     fontWeight: '700',
     fontSize: 14,
   },
-  button: {
-    marginTop: 8,
-    borderRadius: 12,
-    backgroundColor: palette.text,
-    paddingVertical: 11,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: '700',
-  },
-  metrics: {
+  heroStats: {
+    flexDirection: 'row',
     gap: 8,
   },
-  metricCard: {
-    gap: 2,
+  heroAction: {
+    marginTop: 4,
   },
-  metricTitle: {
-    color: '#64748b',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  metricValue: {
-    color: palette.text,
-    fontSize: 22,
+  sectionTitle: {
+    fontSize: 17,
     fontWeight: '800',
   },
-  section: {
-    color: palette.text,
-    fontSize: 16,
-    fontWeight: '700',
+  sectionCopy: {
+    fontSize: 13,
+    lineHeight: 18,
   },
-  grid: {
+  actionGrid: {
     gap: 8,
   },
-  nav: {
-    borderWidth: 1,
-    borderColor: '#dbe4ee',
-    borderRadius: 12,
-    paddingVertical: 11,
-    paddingHorizontal: 12,
-    backgroundColor: '#f8fafc',
+  actionTile: {
+    padding: 0,
   },
-  navText: {
-    color: palette.text,
-    fontWeight: '700',
+  actionTileContent: {
+    gap: 8,
+  },
+  actionIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 15,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionTitle: {
     fontSize: 14,
+    fontWeight: '800',
+  },
+  actionDescription: {
+    fontSize: 12,
+    lineHeight: 17,
   },
 });

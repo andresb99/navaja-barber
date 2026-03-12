@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { CoursesMarketplaceCatalog } from '@/components/public/courses-marketplace-catalog';
+import { MarketingHero, MarketingPanel } from '@/components/public/marketing';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
-import { Container } from '@/components/heroui/container';
 
 interface CourseRow {
   id: string;
@@ -63,54 +63,34 @@ export default async function CoursesPage() {
 
   return (
     <section className="space-y-6">
-      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-          <div>
-            <p className="hero-eyebrow">Academia marketplace</p>
-            <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.35rem] dark:text-slate-100">
-              Todos los cursos activos en un solo catalogo
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
-              Aqui comparas oferta educativa entre barberias y luego entras al detalle del tenant
-              que publica el curso.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Cursos
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                {items.length}
-              </p>
-            </div>
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Barberias
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                {shops.length}
-              </p>
-            </div>
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Cobertura
-              </p>
-              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
-                Catalogo global
-              </p>
-            </div>
-          </div>
-        </div>
-      </Container>
+      <MarketingHero
+        eyebrow="Academia marketplace"
+        title="Todos los cursos activos en un solo catalogo"
+        description="Aqui comparas oferta educativa entre barberias y luego entras al detalle del tenant que publica el curso."
+        stats={[
+          {
+            label: 'Cursos',
+            value: items.length,
+            valueClassName: 'mt-2 text-2xl font-semibold text-ink dark:text-slate-100',
+          },
+          {
+            label: 'Barberias',
+            value: shops.length,
+            valueClassName: 'mt-2 text-2xl font-semibold text-ink dark:text-slate-100',
+          },
+          {
+            label: 'Cobertura',
+            value: 'Catalogo global',
+          },
+        ]}
+      />
 
       {items.length === 0 ? (
-        <div className="soft-panel rounded-[1.8rem] p-6">
+        <MarketingPanel className="p-6">
           <p className="text-sm text-slate/80 dark:text-slate-300">
             Todavia no hay cursos activos publicados.
           </p>
-        </div>
+        </MarketingPanel>
       ) : null}
 
       {items.length > 0 ? <CoursesMarketplaceCatalog items={items} /> : null}

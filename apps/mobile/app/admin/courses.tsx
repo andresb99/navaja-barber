@@ -205,35 +205,25 @@ export default function AdminCoursesScreen() {
 
     setSaving(true);
     const accessToken = await getAccessToken();
-    if (hasExternalApi && accessToken) {
-      try {
-        await createAdminCourseResourceViaApi({
-          accessToken,
-          payload: {
-            action: 'course',
-            payload: parsed.data,
-          },
-        });
-      } catch (cause) {
-        setSaving(false);
-        setError(cause instanceof Error ? cause.message : 'No se pudo guardar el curso.');
-        return;
-      }
-
+    if (!hasExternalApi || !accessToken) {
       setSaving(false);
-      setCourseTitle('');
-      setCourseDescription('');
-      setCoursePriceUy('');
-      setCourseHours('');
-      setCourseLevel('');
-      await loadData();
+      setError(
+        'Configura EXPO_PUBLIC_API_BASE_URL e inicia sesion para gestionar cursos con la misma logica de la web.',
+      );
       return;
     }
 
-    const { error: insertError } = await supabase.from('courses').insert(parsed.data);
-    if (insertError) {
+    try {
+      await createAdminCourseResourceViaApi({
+        accessToken,
+        payload: {
+          action: 'course',
+          payload: parsed.data,
+        },
+      });
+    } catch (cause) {
       setSaving(false);
-      setError(insertError.message);
+      setError(cause instanceof Error ? cause.message : 'No se pudo guardar el curso.');
       return;
     }
 
@@ -268,35 +258,26 @@ export default function AdminCoursesScreen() {
 
     setSaving(true);
     const accessToken = await getAccessToken();
-    if (hasExternalApi && accessToken) {
-      try {
-        await createAdminCourseResourceViaApi({
-          accessToken,
-          payload: {
-            action: 'session',
-            shop_id: auth.shopId,
-            payload: parsed.data,
-          },
-        });
-      } catch (cause) {
-        setSaving(false);
-        setError(cause instanceof Error ? cause.message : 'No se pudo guardar la sesion.');
-        return;
-      }
-
+    if (!hasExternalApi || !accessToken) {
       setSaving(false);
-      setSessionStartAt('');
-      setSessionCapacity('10');
-      setSessionLocation('');
-      setSessionStatus('scheduled');
-      await loadData();
+      setError(
+        'Configura EXPO_PUBLIC_API_BASE_URL e inicia sesion para gestionar sesiones con la misma logica de la web.',
+      );
       return;
     }
 
-    const { error: insertError } = await supabase.from('course_sessions').insert(parsed.data);
-    if (insertError) {
+    try {
+      await createAdminCourseResourceViaApi({
+        accessToken,
+        payload: {
+          action: 'session',
+          shop_id: auth.shopId,
+          payload: parsed.data,
+        },
+      });
+    } catch (cause) {
       setSaving(false);
-      setError(insertError.message);
+      setError(cause instanceof Error ? cause.message : 'No se pudo guardar la sesion.');
       return;
     }
 

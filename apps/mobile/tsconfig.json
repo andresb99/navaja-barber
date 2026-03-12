@@ -15,6 +15,7 @@
   "include": [
     "app",
     "lib",
-    "components"
+    "components",
+    "uniwind-env.d.ts"
   ]
 }

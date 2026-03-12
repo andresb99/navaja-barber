@@ -2,9 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
+import { resolveAuthenticatedUser } from '@/lib/api-auth';
 import { sanitizeText, sanitizeUnknownDeep } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const MAX_RECOMMENDED_SHOP_IMAGES = 3;
 const MAX_SHOP_IMAGES = 6;
@@ -30,13 +30,14 @@ const barbershopUpdatePayloadSchema = z.object({
   country_code: z.string().trim().max(8).optional().nullable(),
   latitude: z.number().min(-90).max(90).nullable().optional(),
   longitude: z.number().min(-180).max(180).nullable().optional(),
-  retained_image_ids: z.array(z.string().uuid()).max(MAX_SHOP_IMAGES).default([]),
+  retained_image_ids: z.array(z.string().uuid()).max(MAX_SHOP_IMAGES).optional().nullable(),
   cover_image_ref: z.string().trim().max(120).optional().nullable(),
 });
 
 interface ShopRow {
   id: string;
   slug: string;
+  cover_image_url: string | null;
 }
 
 interface GalleryRow {
@@ -129,11 +130,7 @@ function getRequestErrorMessage(error: unknown, fallback: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await resolveAuthenticatedUser(request);
   if (!user) {
     return new NextResponse('Debes iniciar sesion para editar la barberia.', { status: 401 });
   }
@@ -176,22 +173,38 @@ export async function POST(request: NextRequest) {
   const admin = createSupabaseAdminClient();
   const data = parsedPayload.data;
 
-  const { data: membership, error: membershipError } = await admin
-    .from('shop_memberships')
-    .select('id')
-    .eq('shop_id', data.shop_id)
-    .eq('user_id', user.id)
-    .in('role', ['owner', 'admin'])
-    .eq('membership_status', 'active')
-    .maybeSingle();
+  const [{ data: ownedShop }, { data: membership }, { data: staffAdmin }] = await Promise.all([
+    admin
+      .from('shops')
+      .select('id')
+      .eq('id', data.shop_id)
+      .eq('owner_user_id', user.id)
+      .maybeSingle(),
+    admin
+      .from('shop_memberships')
+      .select('id')
+      .eq('shop_id', data.shop_id)
+      .eq('user_id', user.id)
+      .in('role', ['owner', 'admin'])
+      .eq('membership_status', 'active')
+      .maybeSingle(),
+    admin
+      .from('staff')
+      .select('id')
+      .eq('shop_id', data.shop_id)
+      .eq('auth_user_id', user.id)
+      .eq('is_active', true)
+      .eq('role', 'admin')
+      .maybeSingle(),
+  ]);
 
-  if (membershipError || !membership) {
+  if (!ownedShop?.id && !membership?.id && !staffAdmin?.id) {
     return new NextResponse('No tienes permisos para editar esta barberia.', { status: 403 });
   }
 
   const { data: shopRow, error: shopError } = await admin
     .from('shops')
-    .select('id, slug')
+    .select('id, slug, cover_image_url')
     .eq('id', data.shop_id)
     .maybeSingle();
 
@@ -218,7 +231,10 @@ export async function POST(request: NextRequest) {
 
   const existingGalleryRows = (galleryRows || []) as GalleryRow[];
   const existingById = new Map(existingGalleryRows.map((item) => [item.id, item]));
-  const retainedImageIds = Array.from(new Set(data.retained_image_ids));
+  const retainedImageIds =
+    data.retained_image_ids == null
+      ? existingGalleryRows.map((item) => item.id)
+      : Array.from(new Set(data.retained_image_ids));
 
   if (retainedImageIds.some((id) => !existingById.has(id))) {
     return new NextResponse('Intentaste conservar fotos que ya no existen.', { status: 400 });
@@ -284,9 +300,14 @@ export async function POST(request: NextRequest) {
       requestedCoverRef && requestedCoverRef.startsWith('new:')
         ? uploadedRows.find((item) => item.ref === requestedCoverRef)?.public_url || null
         : null;
+    const resolvedExistingCoverUrl =
+      !requestedCoverRef && currentShop.cover_image_url
+        ? retainedGalleryRows.find((item) => item.public_url === currentShop.cover_image_url)?.public_url || null
+        : null;
     const coverImageUrl =
       resolvedCoverUrlFromRetained ||
       resolvedCoverUrlFromUploads ||
+      resolvedExistingCoverUrl ||
       retainedGalleryRows[0]?.public_url ||
       uploadedRows[0]?.public_url ||
       null;

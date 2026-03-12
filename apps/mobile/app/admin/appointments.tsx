@@ -1,13 +1,22 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { parseCurrencyInputToCents } from '@navaja/shared';
-import { ActionButton, Card, Field, Label, MutedText, Screen } from '../../components/ui/primitives';
+import {
+  ActionButton,
+  Card,
+  ErrorText,
+  Field,
+  Label,
+  MutedText,
+  Screen,
+  SelectionChip,
+} from '../../components/ui/primitives';
 import { hasExternalApi, updateWorkspaceAppointmentStatusViaApi } from '../../lib/api';
 import { getAuthContext } from '../../lib/auth';
 import { formatCurrency, formatDateTime } from '../../lib/format';
 import { supabase } from '../../lib/supabase';
-import { palette } from '../../lib/theme';
+import { useNavajaTheme } from '../../lib/theme';
 
 interface StaffOption {
   id: string;
@@ -43,16 +52,15 @@ function isoDate(value: Date) {
 }
 
 export default function AdminAppointmentsScreen() {
+  const { colors } = useNavajaTheme();
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [workspaceName, setWorkspaceName] = useState('');
-
   const [fromDate, setFromDate] = useState(isoDate(new Date()));
   const [toDate, setToDate] = useState(isoDate(new Date()));
   const [staffFilter, setStaffFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-
   const [staff, setStaff] = useState<StaffOption[]>([]);
   const [appointments, setAppointments] = useState<AppointmentItem[]>([]);
   const [priceOverrides, setPriceOverrides] = useState<Record<string, string>>({});
@@ -85,21 +93,22 @@ export default function AdminAppointmentsScreen() {
     setAllowed(true);
     setWorkspaceName(auth.shopName || 'Barberia');
 
-    const [{ data: staffRows }, { data: appointmentsRows, error: appointmentsError }] = await Promise.all([
-      supabase
-        .from('staff')
-        .select('id, name')
-        .eq('shop_id', auth.shopId)
-        .eq('is_active', true)
-        .order('name'),
-      supabase
-        .from('appointments')
-        .select('id, staff_id, start_at, status, price_cents, customer_name_snapshot, customer_phone_snapshot, customers(name, phone), services(name), staff(name), payment_intents(status)')
-        .eq('shop_id', auth.shopId)
-        .gte('start_at', `${fromDate}T00:00:00.000Z`)
-        .lte('start_at', `${toDate}T23:59:59.999Z`)
-        .order('start_at'),
-    ]);
+    const [{ data: staffRows }, { data: appointmentsRows, error: appointmentsError }] =
+      await Promise.all([
+        supabase
+          .from('staff')
+          .select('id, name')
+          .eq('shop_id', auth.shopId)
+          .eq('is_active', true)
+          .order('name'),
+        supabase
+          .from('appointments')
+          .select('id, staff_id, start_at, status, price_cents, customer_name_snapshot, customer_phone_snapshot, customers(name, phone), services(name), staff(name), payment_intents(status)')
+          .eq('shop_id', auth.shopId)
+          .gte('start_at', `${fromDate}T00:00:00.000Z`)
+          .lte('start_at', `${toDate}T23:59:59.999Z`)
+          .order('start_at'),
+      ]);
 
     if (appointmentsError) {
       setLoading(false);
@@ -179,16 +188,14 @@ export default function AdminAppointmentsScreen() {
     }
 
     try {
-      const requestPayload = {
+      await updateWorkspaceAppointmentStatusViaApi({
         accessToken,
         appointmentId,
         status: status as 'pending' | 'confirmed' | 'cancelled' | 'no_show' | 'done',
         ...(typeof updatePayload.price_cents === 'number'
           ? { priceCents: Number(updatePayload.price_cents) }
           : {}),
-      };
-
-      await updateWorkspaceAppointmentStatusViaApi(requestPayload);
+      });
     } catch (cause) {
       setSavingId(null);
       setError(cause instanceof Error ? cause.message : 'No se pudo actualizar la cita.');
@@ -209,7 +216,7 @@ export default function AdminAppointmentsScreen() {
     return (
       <Screen title="Citas" subtitle="Acceso restringido">
         <Card>
-          <Text style={styles.error}>No tienes permisos de admin.</Text>
+          <Text style={[styles.error, { color: colors.danger }]}>No tienes permisos de admin.</Text>
         </Card>
       </Screen>
     );
@@ -218,7 +225,11 @@ export default function AdminAppointmentsScreen() {
   return (
     <Screen
       title="Citas"
-      subtitle={workspaceName ? `Filtra y actualiza estados de reservas · ${workspaceName}` : 'Filtra y actualiza estados de reservas'}
+      subtitle={
+        workspaceName
+          ? `Filtra y actualiza estados de reservas - ${workspaceName}`
+          : 'Filtra y actualiza estados de reservas'
+      }
     >
       <Card>
         <Label>Desde (YYYY-MM-DD)</Label>
@@ -229,53 +240,82 @@ export default function AdminAppointmentsScreen() {
       </Card>
 
       <Card>
-        <Text style={styles.section}>Filtros rápidos</Text>
+        <Text style={[styles.section, { color: colors.text }]}>Filtros rapidos</Text>
         <View style={styles.chips}>
-          <FilterChip label="Todo el equipo" active={!staffFilter} onPress={() => setStaffFilter('')} />
+          <SelectionChip
+            label="Todo el equipo"
+            active={!staffFilter}
+            onPress={() => setStaffFilter('')}
+          />
           {staff.map((item) => (
-            <FilterChip key={item.id} label={item.name} active={staffFilter === item.id} onPress={() => setStaffFilter(item.id)} />
+            <SelectionChip
+              key={item.id}
+              label={item.name}
+              active={staffFilter === item.id}
+              onPress={() => setStaffFilter(item.id)}
+            />
           ))}
         </View>
         <View style={styles.chips}>
-          <FilterChip label="Todos los estados" active={!statusFilter} onPress={() => setStatusFilter('')} />
+          <SelectionChip
+            label="Todos los estados"
+            active={!statusFilter}
+            onPress={() => setStatusFilter('')}
+          />
           {STATUS_OPTIONS.map((status) => (
-            <FilterChip key={status} label={status} active={statusFilter === status} onPress={() => setStatusFilter(status)} />
+            <SelectionChip
+              key={status}
+              label={status}
+              active={statusFilter === status}
+              onPress={() => setStatusFilter(status)}
+            />
           ))}
         </View>
       </Card>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <ErrorText message={error} />
       {loading ? <MutedText>Cargando citas...</MutedText> : null}
-      {!loading && !filteredAppointments.length ? <MutedText>No hay citas para los filtros seleccionados.</MutedText> : null}
+      {!loading && !filteredAppointments.length ? (
+        <MutedText>No hay citas para los filtros seleccionados.</MutedText>
+      ) : null}
 
       <View style={styles.list}>
         {filteredAppointments.map((item) => (
           <Card key={item.id}>
-            <Text style={styles.itemTitle}>{formatDateTime(item.start_at)}</Text>
-            <Text style={styles.itemMeta}>{item.customer_name} - {item.customer_phone || '-'}</Text>
-            <Text style={styles.itemMeta}>{item.service_name} - {item.staff_name}</Text>
-            <Text style={styles.itemMeta}>
-              Estado: {item.status} - Pago: {PAYMENT_STATUS_LABEL[item.payment_status || ''] || (item.payment_status || 'sin pago')} - {formatCurrency(item.price_cents)}
+            <Text style={[styles.itemTitle, { color: colors.text }]}>
+              {formatDateTime(item.start_at)}
+            </Text>
+            <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
+              {item.customer_name} - {item.customer_phone || '-'}
+            </Text>
+            <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
+              {item.service_name} - {item.staff_name}
+            </Text>
+            <Text style={[styles.itemMeta, { color: colors.textMuted }]}>
+              Estado: {item.status} - Pago:{' '}
+              {PAYMENT_STATUS_LABEL[item.payment_status || ''] || (item.payment_status || 'sin pago')} -{' '}
+              {formatCurrency(item.price_cents)}
             </Text>
             <Label>Precio override (pesos UYU, opcional)</Label>
             <Field
               value={priceOverrides[item.id] || ''}
-              onChangeText={(value) => setPriceOverrides((current) => ({ ...current, [item.id]: value }))}
+              onChangeText={(value) =>
+                setPriceOverrides((current) => ({ ...current, [item.id]: value }))
+              }
               keyboardType="numeric"
               placeholder="Ej: 450"
             />
             <View style={styles.actions}>
               {STATUS_OPTIONS.map((status) => (
-                <Pressable
+                <SelectionChip
                   key={status}
-                  style={[styles.statusButton, item.status === status ? styles.statusButtonActive : null]}
-                  onPress={() => void updateStatus(item.id, status)}
+                  label={status}
+                  active={item.status === status}
+                  onPress={() => {
+                    void updateStatus(item.id, status);
+                  }}
                   disabled={savingId === item.id}
-                >
-                  <Text style={[styles.statusButtonText, item.status === status ? styles.statusButtonTextActive : null]}>
-                    {status}
-                  </Text>
-                </Pressable>
+                />
               ))}
             </View>
           </Card>
@@ -285,25 +325,8 @@ export default function AdminAppointmentsScreen() {
   );
 }
 
-function FilterChip({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable style={[styles.filterChip, active ? styles.filterChipActive : null]} onPress={onPress}>
-      <Text style={[styles.filterChipText, active ? styles.filterChipTextActive : null]}>{label}</Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   section: {
-    color: palette.text,
     fontSize: 16,
     fontWeight: '700',
   },
@@ -312,65 +335,22 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  filterChip: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: '#fff',
-  },
-  filterChipActive: {
-    backgroundColor: palette.text,
-    borderColor: palette.text,
-  },
-  filterChipText: {
-    color: '#334155',
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  filterChipTextActive: {
-    color: '#fff',
-  },
   list: {
     gap: 8,
   },
   itemTitle: {
-    color: palette.text,
     fontSize: 15,
     fontWeight: '700',
   },
   itemMeta: {
-    color: '#64748b',
     fontSize: 12,
   },
   actions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-  },
-  statusButton: {
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: '#fff',
-  },
-  statusButtonActive: {
-    borderColor: palette.accent,
-    backgroundColor: '#fff7e6',
-  },
-  statusButtonText: {
-    color: '#334155',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  statusButtonTextActive: {
-    color: '#92400e',
+    gap: 8,
   },
   error: {
-    color: '#b91c1c',
     fontSize: 13,
   },
 });

@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
+import { appendSubscriptionBillingMessage } from '@navaja/shared';
 import { env } from '@/lib/env';
+import { resolveAuthenticatedUser } from '@/lib/api-auth';
 import { getMercadoPagoServerEnv } from '@/lib/env.server';
 import { createMercadoPagoCheckoutPreference } from '@/lib/mercado-pago.server';
 import {
@@ -12,13 +14,70 @@ import {
 import { trackProductEvent } from '@/lib/product-analytics';
 import { readSanitizedJsonBody } from '@/lib/sanitize';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 const subscriptionCheckoutSchema = z.object({
   shop_id: z.string().uuid(),
   target_plan: z.enum(['pro', 'business']),
   billing_mode: z.enum(['monthly', 'annual_installments']),
+  return_to: z.string().trim().max(2000).optional().nullable(),
 });
+
+function resolveCheckoutReturnBaseUrl(value: string | null | undefined) {
+  const normalized = String(value || '').trim();
+  if (!normalized) {
+    return null;
+  }
+
+  try {
+    const candidate = new URL(normalized);
+    if (
+      candidate.protocol === 'navajastaff:' ||
+      candidate.protocol === 'exp:' ||
+      candidate.protocol === 'exps:'
+    ) {
+      return candidate.toString();
+    }
+
+    const appUrl = new URL(env.NEXT_PUBLIC_APP_URL);
+    if (candidate.origin === appUrl.origin) {
+      return candidate.toString();
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+async function canManageShopSubscription(shopId: string, userId: string) {
+  const admin = createSupabaseAdminClient();
+  const [{ data: ownedShop }, { data: membership }, { data: staffAdmin }] = await Promise.all([
+    admin
+      .from('shops')
+      .select('id')
+      .eq('id', shopId)
+      .eq('owner_user_id', userId)
+      .maybeSingle(),
+    admin
+      .from('shop_memberships')
+      .select('id')
+      .eq('shop_id', shopId)
+      .eq('user_id', userId)
+      .eq('membership_status', 'active')
+      .in('role', ['owner', 'admin'])
+      .maybeSingle(),
+    admin
+      .from('staff')
+      .select('id')
+      .eq('shop_id', shopId)
+      .eq('auth_user_id', userId)
+      .eq('is_active', true)
+      .eq('role', 'admin')
+      .maybeSingle(),
+  ]);
+
+  return Boolean(ownedShop?.id || membership?.id || staffAdmin?.id);
+}
 
 export async function POST(request: NextRequest) {
   const body = await readSanitizedJsonBody(request);
@@ -30,19 +89,12 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  const sessionSupabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await sessionSupabase.auth.getUser();
-
+  const user = await resolveAuthenticatedUser(request);
   if (!user) {
     return new NextResponse('Debes iniciar sesion para continuar.', { status: 401 });
   }
 
-  const { data: canManageShop } = await sessionSupabase.rpc('is_shop_admin', {
-    _shop_id: parsed.data.shop_id,
-  });
-
+  const canManageShop = await canManageShopSubscription(parsed.data.shop_id, user.id);
   if (!canManageShop) {
     return new NextResponse('No tienes permisos para gestionar esta suscripcion.', { status: 403 });
   }
@@ -67,6 +119,15 @@ export async function POST(request: NextRequest) {
   if (!shop?.id) {
     return new NextResponse('No encontramos la barberia seleccionada.', { status: 404 });
   }
+
+  const returnBaseUrl = parsed.data.return_to
+    ? resolveCheckoutReturnBaseUrl(parsed.data.return_to)
+    : null;
+  if (parsed.data.return_to && !returnBaseUrl) {
+    return new NextResponse('La URL de retorno no es valida.', { status: 400 });
+  }
+
+  const subscriptionReturnBaseUrl = returnBaseUrl || `${env.NEXT_PUBLIC_APP_URL}/suscripcion`;
 
   const externalReference = [
     'subscription',
@@ -103,12 +164,13 @@ export async function POST(request: NextRequest) {
   }
 
   const descriptor = getSubscriptionPlanDescriptor(targetPlan);
+  const source = request.headers.get('authorization') ? 'mobile' : 'web';
 
   void trackProductEvent({
     eventName: 'subscription.checkout_submitted',
     shopId: parsed.data.shop_id,
     userId: user.id,
-    source: 'web',
+    source,
     metadata: {
       target_plan: targetPlan,
       billing_mode: billingMode,
@@ -138,9 +200,9 @@ export async function POST(request: NextRequest) {
       },
       payerEmail: user.email || null,
       externalReference,
-      successUrl: `${env.NEXT_PUBLIC_APP_URL}/suscripcion?shop=${encodeURIComponent(shop.slug)}&billing=success`,
-      pendingUrl: `${env.NEXT_PUBLIC_APP_URL}/suscripcion?shop=${encodeURIComponent(shop.slug)}&billing=pending`,
-      failureUrl: `${env.NEXT_PUBLIC_APP_URL}/suscripcion?shop=${encodeURIComponent(shop.slug)}&billing=failure`,
+      successUrl: appendSubscriptionBillingMessage(subscriptionReturnBaseUrl, 'success', shop.slug),
+      pendingUrl: appendSubscriptionBillingMessage(subscriptionReturnBaseUrl, 'pending', shop.slug),
+      failureUrl: appendSubscriptionBillingMessage(subscriptionReturnBaseUrl, 'failure', shop.slug),
       notificationUrl: webhookUrl,
       metadata: {
         intent_id: String(paymentIntent.id),
@@ -163,7 +225,7 @@ export async function POST(request: NextRequest) {
       eventName: 'subscription.checkout_created',
       shopId: parsed.data.shop_id,
       userId: user.id,
-      source: 'web',
+      source,
       metadata: {
         target_plan: targetPlan,
         billing_mode: billingMode,

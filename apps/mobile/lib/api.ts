@@ -1,5 +1,9 @@
 import type { DocumentPickerAsset } from 'expo-document-picker';
-import type { BookingApiResponse } from '@navaja/shared';
+import type {
+  BookingApiResponse,
+  SubscriptionStatus,
+  SubscriptionTier,
+} from '@navaja/shared';
 import type { MarketplaceShop } from './marketplace';
 import { env } from './env';
 
@@ -39,6 +43,35 @@ type DirectJobPayload = {
 };
 
 type NetworkJobPayload = Omit<DirectJobPayload, 'shop_id'>;
+type SubscriptionCheckoutPayload = {
+  accessToken: string;
+  shopId: string;
+  targetPlan: 'pro' | 'business';
+  billingMode: 'monthly' | 'annual_installments';
+  returnTo?: string;
+};
+type CourseEnrollmentPayload = {
+  sessionId: string;
+  name: string;
+  phone: string;
+  email: string;
+  accessToken?: string | undefined;
+  returnTo?: string;
+};
+type AdminBarbershopPayload = {
+  shop_id: string;
+  shop_name: string;
+  shop_slug: string;
+  timezone: string;
+  phone?: string | null | undefined;
+  description?: string | null | undefined;
+  location_label?: string | null | undefined;
+  city?: string | null | undefined;
+  region?: string | null | undefined;
+  country_code?: string | null | undefined;
+  latitude?: number | null | undefined;
+  longitude?: number | null | undefined;
+};
 
 type MarketplaceSearchIntent = 'smart' | 'name' | 'area';
 
@@ -80,6 +113,68 @@ interface ReviewInvitePreviewResponse {
   expiresAt: string;
 }
 
+export interface AdminNotificationDigestItemApi {
+  id: string;
+  kind: 'time_off' | 'membership' | 'payment';
+  targetId: string;
+  title: string;
+  detail: string;
+  createdAt: string | null;
+  isNew: boolean;
+}
+
+export interface AdminTimeOffNotificationApi {
+  id: string;
+  staffName: string;
+  startAt: string;
+  endAt: string;
+  reason: string;
+  createdAt: string;
+}
+
+export interface AdminMembershipNotificationApi {
+  id: string;
+  profileName: string;
+  role: 'admin' | 'staff';
+  createdAt: string;
+}
+
+export interface AdminPaymentNotificationApi {
+  id: string;
+  intentType: 'booking' | 'subscription' | 'course_enrollment';
+  createdAt: string;
+  customerName: string | null;
+}
+
+interface AdminNotificationsSummaryResponse {
+  pending_count: number;
+  pending_time_off_count: number;
+  pending_membership_count: number;
+  stale_pending_intents: number;
+  pending_time_off_requests: AdminTimeOffNotificationApi[];
+  pending_membership_notifications: AdminMembershipNotificationApi[];
+  pending_payment_notifications: AdminPaymentNotificationApi[];
+  items: AdminNotificationDigestItemApi[];
+}
+
+interface AppAdminStatusResponse {
+  is_platform_admin: boolean;
+}
+
+export interface AppAdminSubscriptionItemApi {
+  shopId: string;
+  shopName: string;
+  shopSlug: string;
+  shopStatus: string;
+  plan: SubscriptionTier;
+  status: SubscriptionStatus;
+  currentPeriodEnd: string | null;
+}
+
+interface AppAdminSubscriptionsResponse {
+  items: AppAdminSubscriptionItemApi[];
+}
+
 function getApiUrl(path: string) {
   if (!env.EXPO_PUBLIC_API_BASE_URL) {
     return null;
@@ -114,8 +209,21 @@ async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs = DEFA
 
 async function parseResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || 'La solicitud no se pudo completar.');
+    const rawMessage = await response.text();
+    if (rawMessage) {
+      try {
+        const parsed = JSON.parse(rawMessage) as { message?: string };
+        if (typeof parsed?.message === 'string' && parsed.message.trim()) {
+          throw new Error(parsed.message.trim());
+        }
+      } catch (cause) {
+        if (cause instanceof Error && cause.message.trim()) {
+          throw cause;
+        }
+      }
+    }
+
+    throw new Error(rawMessage || 'La solicitud no se pudo completar.');
   }
 
   return (await response.json()) as T;
@@ -427,6 +535,206 @@ export async function submitNetworkJobApplicationViaApi(
   }, 30000);
 
   return parseResponse<{ profile_id: string }>(response);
+}
+
+export async function createSubscriptionCheckoutViaApi(payload: SubscriptionCheckoutPayload) {
+  const url = getApiUrl('/api/subscriptions/checkout');
+  if (!url) {
+    return null;
+  }
+
+  const response = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${payload.accessToken}`,
+    },
+    body: JSON.stringify({
+      shop_id: payload.shopId,
+      target_plan: payload.targetPlan,
+      billing_mode: payload.billingMode,
+      return_to: payload.returnTo || null,
+    }),
+  });
+
+  return parseResponse<{
+    payment_intent_id: string;
+    checkout_url: string;
+    requires_payment: boolean;
+  }>(response);
+}
+
+export async function createCourseEnrollmentViaApi(payload: CourseEnrollmentPayload) {
+  const url = getApiUrl('/api/courses/enroll');
+  if (!url) {
+    return null;
+  }
+
+  const headers: Record<string, string> = {
+    'content-type': 'application/json',
+  };
+  if (payload.accessToken) {
+    headers.authorization = `Bearer ${payload.accessToken}`;
+  }
+
+  const response = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      session_id: payload.sessionId,
+      name: payload.name,
+      phone: payload.phone,
+      email: payload.email,
+      return_to: payload.returnTo || null,
+    }),
+  });
+
+  return parseResponse<{
+    enrollment_id?: string;
+    requires_payment?: boolean;
+    payment_intent_id?: string;
+    checkout_url?: string;
+  }>(response);
+}
+
+export async function updateAdminBarbershopViaApi(options: {
+  accessToken: string;
+  payload: AdminBarbershopPayload;
+}) {
+  const url = getApiUrl('/api/admin/barbershop');
+  if (!url) {
+    return null;
+  }
+
+  const formData = new FormData();
+  formData.append('payload', JSON.stringify(options.payload));
+
+  const response = await fetchWithTimeout(
+    url,
+    {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${options.accessToken}`,
+      },
+      body: formData,
+    },
+    30000,
+  );
+
+  return parseResponse<{
+    shop_id: string;
+    shop_slug: string;
+    total_images: number;
+    recommended_images: number;
+  }>(response);
+}
+
+export async function getAdminNotificationsSummaryViaApi(options: {
+  accessToken: string;
+  shopId: string;
+}) {
+  const baseUrl = getApiUrl('/api/workspace/admin/notifications/summary');
+  if (!baseUrl) {
+    return null;
+  }
+
+  const params = new URLSearchParams();
+  appendQueryParam(params, 'shop_id', options.shopId);
+
+  const response = await fetchWithTimeout(`${baseUrl}?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      authorization: `Bearer ${options.accessToken}`,
+    },
+  });
+
+  return parseResponse<AdminNotificationsSummaryResponse>(response);
+}
+
+export async function reviewAdminTimeOffViaApi(options: {
+  accessToken: string;
+  shopId: string;
+  timeOffId: string;
+  decision: 'approve' | 'reject';
+}) {
+  const url = getApiUrl('/api/workspace/admin/notifications/time-off');
+  if (!url) {
+    return null;
+  }
+
+  const response = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${options.accessToken}`,
+    },
+    body: JSON.stringify({
+      shop_id: options.shopId,
+      time_off_id: options.timeOffId,
+      decision: options.decision,
+    }),
+  });
+
+  return parseResponse<{ success: boolean }>(response);
+}
+
+export async function getAppAdminStatusViaApi(options: { accessToken: string }) {
+  const url = getApiUrl('/api/app-admin/status');
+  if (!url) {
+    return null;
+  }
+
+  const response = await fetchWithTimeout(url, {
+    method: 'GET',
+    headers: {
+      authorization: `Bearer ${options.accessToken}`,
+    },
+  });
+
+  return parseResponse<AppAdminStatusResponse>(response);
+}
+
+export async function listAppAdminSubscriptionsViaApi(options: { accessToken: string }) {
+  const url = getApiUrl('/api/app-admin/subscriptions');
+  if (!url) {
+    return null;
+  }
+
+  const response = await fetchWithTimeout(url, {
+    method: 'GET',
+    headers: {
+      authorization: `Bearer ${options.accessToken}`,
+    },
+  });
+
+  return parseResponse<AppAdminSubscriptionsResponse>(response);
+}
+
+export async function updateAppAdminSubscriptionViaApi(options: {
+  accessToken: string;
+  shopId: string;
+  plan: SubscriptionTier;
+  status: SubscriptionStatus;
+}) {
+  const url = getApiUrl('/api/app-admin/subscriptions');
+  if (!url) {
+    return null;
+  }
+
+  const response = await fetchWithTimeout(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${options.accessToken}`,
+    },
+    body: JSON.stringify({
+      shop_id: options.shopId,
+      plan: options.plan,
+      status: options.status,
+    }),
+  });
+
+  return parseResponse<{ success: boolean }>(response);
 }
 
 export async function listAdminServicesViaApi(options: {

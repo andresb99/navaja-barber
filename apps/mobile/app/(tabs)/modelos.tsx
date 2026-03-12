@@ -26,7 +26,6 @@ import {
   type MarketplaceOpenModelCall,
   type MarketplaceShop,
 } from '../../lib/marketplace';
-import { supabase } from '../../lib/supabase';
 import { useNavajaTheme } from '../../lib/theme';
 
 const preferenceOptions = [
@@ -151,68 +150,15 @@ export default function ModelosScreen() {
 
     try {
       const apiResult = await submitModelRegistrationViaApi(parsed.data);
-      if (apiResult) {
-        setSuccess('Perfil guardado. Te vamos a contactar por WhatsApp.');
-      } else {
-        if (!resolvedShopId) {
-          setError('Selecciona una barberia para guardar tu perfil desde la app.');
-          setLoadingSubmit(false);
-          return;
-        }
-
-        const { data: model, error: modelError } = await supabase
-          .from('models')
-          .insert({
-            shop_id: resolvedShopId,
-            full_name: parsed.data.full_name,
-            phone: parsed.data.phone,
-            email: parsed.data.email || null,
-            instagram: parsed.data.instagram || null,
-            attributes: {
-              preferences: parsed.data.preferences,
-              consent_photos_videos: parsed.data.consent_photos_videos,
-            },
-            marketing_opt_in: parsed.data.marketing_opt_in,
-          })
-          .select('id')
-          .single();
-
-        if (modelError || !model) {
-          setError(modelError?.message || 'No se pudo registrar el perfil.');
-          setLoadingSubmit(false);
-          return;
-        }
-
-        if (parsed.data.session_id) {
-          const { error: applicationError } = await supabase.from('model_applications').insert({
-            session_id: parsed.data.session_id,
-            model_id: model.id,
-            status: 'applied',
-          });
-
-          if (applicationError) {
-            setError(applicationError.message);
-            setLoadingSubmit(false);
-            return;
-          }
-
-          if (parsed.data.consent_photos_videos) {
-            await supabase.from('waivers').upsert(
-              {
-                session_id: parsed.data.session_id,
-                model_id: model.id,
-                waiver_version: 'v1',
-                accepted_name: parsed.data.full_name,
-              },
-              { onConflict: 'session_id,model_id' },
-            );
-          }
-        }
-
-        setSuccess(
-          'Perfil guardado en la barberia actual. Configura EXPO_PUBLIC_API_BASE_URL para tener sincronizacion marketplace completa.',
+      if (!apiResult) {
+        setError(
+          'Configura EXPO_PUBLIC_API_BASE_URL para registrar modelos desde mobile con la misma logica de la web.',
         );
+        setLoadingSubmit(false);
+        return;
       }
+
+      setSuccess('Perfil guardado. Te vamos a contactar por WhatsApp.');
 
       setFullName('');
       setPhone('');

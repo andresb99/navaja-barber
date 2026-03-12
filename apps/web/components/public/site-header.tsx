@@ -332,6 +332,17 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
 
     return 'public';
   }, [pathname]);
+  const usesCondensedAdminNavigation = navigationContext === 'admin';
+  const inlineHeaderContentClassName = usesCondensedAdminNavigation
+    ? 'hidden min-[1700px]:flex'
+    : 'hidden lg:flex';
+  const collapsedMenuToggleClassName = usesCondensedAdminNavigation
+    ? 'min-[1700px]:hidden'
+    : 'lg:hidden';
+  const headerActionVisibilityClassName = usesCondensedAdminNavigation
+    ? 'hidden min-[1700px]:flex'
+    : 'hidden lg:flex';
+  const shouldRenderAdminSideMenu = usesCondensedAdminNavigation && isMenuOpen;
   const activeHeaderLinks = useMemo<HeaderLink[]>(() => {
     if (navigationContext === 'admin') {
       return adminHeaderLinks.map((item) => ({
@@ -617,7 +628,8 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
   );
 
   return (
-    <Navbar
+    <>
+      <Navbar
       isBlurred={false}
       maxWidth="full"
       height="76px"
@@ -626,21 +638,21 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
       className="bg-transparent px-0 pt-0"
       classNames={{
         wrapper: 'glass-nav mx-auto w-full max-w-none px-4 md:px-6 lg:px-8',
-        menu: 'mobile-nav-menu',
+        menu: cn('mobile-nav-menu', usesCondensedAdminNavigation && 'admin-nav-menu-hidden'),
       }}
     >
       <NavbarContent justify="start">
-        <NavbarBrand className="h-full items-center py-0 md:w-[14rem]">
+        <NavbarBrand className="h-full max-w-[10rem] min-w-0 items-center py-0 min-[360px]:max-w-[11rem] lg:w-[14rem] lg:max-w-none">
           <NextLink
             href={contextualHomeHref}
-            className="flex h-full items-center no-underline md:w-full"
+            className="flex h-full min-w-0 items-center no-underline lg:w-full"
           >
             <HeaderBrand />
           </NextLink>
         </NavbarBrand>
       </NavbarContent>
 
-      <NavbarContent className="hidden md:flex" justify="center">
+      <NavbarContent className={inlineHeaderContentClassName} justify="center">
         {activeHeaderLinks.map((item) => {
           const isActive = item.href === activeHeaderHref;
           return (
@@ -660,7 +672,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
 
       <NavbarContent justify="end">
         {!loading && role === 'guest' ? (
-          <NavbarItem className="hidden md:flex">
+          <NavbarItem className={headerActionVisibilityClassName}>
             <Button
               as={NextLink}
               href="/login"
@@ -674,7 +686,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
         ) : null}
 
         {!loading && hasWorkspaceAccess && navigationContext === 'public' ? (
-          <NavbarItem className="hidden md:flex">
+          <NavbarItem className={headerActionVisibilityClassName}>
             <Button
               as={NextLink}
               href={workspaceHubHref}
@@ -689,7 +701,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
         ) : null}
 
         {!loading && role !== 'guest' ? (
-          <NavbarItem className="hidden md:flex">
+          <NavbarItem className={headerActionVisibilityClassName}>
             <Button
               as={NextLink}
               href={subscriptionHref}
@@ -704,7 +716,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
         ) : null}
 
         {!loading && role !== 'guest' && navigationContext === 'public' ? (
-          <NavbarItem className="hidden md:flex">
+          <NavbarItem className={headerActionVisibilityClassName}>
             <Button
               as={NextLink}
               href="/onboarding/barbershop"
@@ -719,7 +731,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
         ) : null}
 
         {activeWorkspaceLabel && hasMultipleWorkspaces && navigationContext !== 'public' ? (
-          <NavbarItem className="hidden lg:flex">
+          <NavbarItem className={headerActionVisibilityClassName}>
             <NextLink href={workspaceHubHref} className={workspaceSwitcherClassName}>
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-white/65 bg-white/60 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
                 <Store className="h-4 w-4" />
@@ -941,7 +953,7 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
           </NavbarItem>
         ) : null}
 
-        <NavbarItem className="md:hidden">
+        <NavbarItem className={collapsedMenuToggleClassName}>
           <NavbarMenuToggle
             aria-label={isMenuOpen ? 'Cerrar menu' : 'Abrir menu'}
             className="h-10 w-10 min-w-10 rounded-2xl border border-white/75 bg-white/58 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition data-[hover=true]:border-white/90 data-[hover=true]:bg-white/84 data-[pressed=true]:scale-100 data-[pressed=true]:bg-white/88 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:data-[hover=true]:bg-white/[0.08]"
@@ -1045,6 +1057,75 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
           </NavbarMenuItem>
         ) : null}
       </NavbarMenu>
-    </Navbar>
+      </Navbar>
+      {shouldRenderAdminSideMenu ? (
+        <div className="admin-nav-shell" aria-hidden={false}>
+          <button
+            type="button"
+            aria-label="Cerrar menu lateral"
+            className="admin-nav-backdrop"
+            onClick={() => setIsMenuOpen(false)}
+          />
+          <aside className="admin-nav-panel" aria-label="Navegacion admin">
+            <div className="rounded-[1.35rem] border border-slate-200/80 bg-white/72 px-4 py-3 text-left shadow-[0_18px_30px_-24px_rgba(15,23,42,0.18)] dark:border-white/10 dark:bg-white/[0.05] dark:shadow-[0_18px_34px_-26px_rgba(0,0,0,0.44)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                Panel admin
+              </p>
+              <p className="mt-1 text-sm font-semibold text-ink dark:text-slate-100">
+                {activeWorkspaceLabel || 'Barberia activa'}
+              </p>
+              <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                Navegacion lateral para evitar overflow en escritorio intermedio.
+              </p>
+            </div>
+
+            <nav className="mt-3 flex flex-col gap-2" aria-label="Secciones admin">
+              {activeHeaderLinks.map((item) => {
+                const isActive = item.href === activeHeaderHref;
+                return (
+                  <NextLink
+                    key={`drawer:${item.key}`}
+                    href={item.href}
+                    aria-current={isActive ? 'page' : undefined}
+                    onClick={() => setIsMenuOpen(false)}
+                    className="nav-link-pill flex w-full justify-start no-underline"
+                    data-active={String(isActive)}
+                  >
+                    {item.label}
+                  </NextLink>
+                );
+              })}
+
+              <NextLink
+                href={adminNotificationsHref}
+                onClick={() => setIsMenuOpen(false)}
+                className="nav-link-pill flex w-full justify-start no-underline"
+              >
+                Notificaciones
+                {effectiveNotificationCount > 0 ? ` (${effectiveNotificationCount})` : ''}
+              </NextLink>
+
+              <NextLink
+                href={subscriptionHref}
+                onClick={() => setIsMenuOpen(false)}
+                className="nav-link-pill flex w-full justify-start no-underline"
+              >
+                Suscripcion
+              </NextLink>
+
+              {hasMultipleWorkspaces ? (
+                <NextLink
+                  href={workspaceHubHref}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="nav-link-pill flex w-full justify-start no-underline"
+                >
+                  Cambiar barberia
+                </NextLink>
+              ) : null}
+            </nav>
+          </aside>
+        </div>
+      ) : null}
+    </>
   );
 }

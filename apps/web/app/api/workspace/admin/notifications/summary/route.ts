@@ -42,6 +42,9 @@ export async function GET(request: NextRequest) {
     pending_time_off_count: notifications.pendingTimeOffCount,
     pending_membership_count: notifications.pendingMembershipCount,
     stale_pending_intents: notifications.stalePendingIntents,
+    pending_time_off_requests: notifications.pendingTimeOffRequests,
+    pending_membership_notifications: notifications.pendingMembershipNotifications,
+    pending_payment_notifications: notifications.pendingPaymentNotifications,
     items,
   });
 }

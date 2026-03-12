@@ -8,7 +8,6 @@ import {
   StyleProp,
   StyleSheet,
   Text,
-  TextInput,
   TextInputProps,
   TextStyle,
   View,
@@ -16,7 +15,15 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavajaTheme } from '../../lib/theme';
+import {
+  Button as HeroButton,
+  Card as HeroCard,
+  Chip as HeroChip,
+  Input as HeroInput,
+  TextArea as HeroTextArea,
+} from 'heroui-native';
+import { getStatusSurface, useNavajaTheme } from '../../lib/theme';
+import { AppMenuButton } from '../navigation/app-menu';
 
 function getSurfaceGradient(colors: ReturnType<typeof useNavajaTheme>['colors']) {
   return [colors.surfaceGradientStart, colors.surfaceGradientEnd] as const;
@@ -40,8 +47,8 @@ function getPrimaryGradient(colors: ReturnType<typeof useNavajaTheme>['colors'])
 
 function getGlassTint(colors: ReturnType<typeof useNavajaTheme>['colors']) {
   return colors.mode === 'dark'
-    ? (['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.01)'] as const)
-    : (['rgba(255,255,255,0.24)', 'rgba(255,255,255,0.08)'] as const);
+    ? (['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.01)'] as const)
+    : (['rgba(255,255,255,0.22)', 'rgba(255,255,255,0.06)'] as const);
 }
 
 function getSheenGradient(
@@ -50,45 +57,25 @@ function getSheenGradient(
 ) {
   if (colors.mode === 'dark') {
     return intensity === 'strong'
-      ? ([
-          'rgba(255,255,255,0.02)',
-          'rgba(255,255,255,0.24)',
-          'rgba(255,255,255,0.08)',
-          'rgba(255,255,255,0)',
-        ] as const)
-      : ([
-          'rgba(255,255,255,0.01)',
-          'rgba(255,255,255,0.16)',
-          'rgba(255,255,255,0.05)',
-          'rgba(255,255,255,0)',
-        ] as const);
+      ? (['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)', 'rgba(255,255,255,0)'] as const)
+      : (['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.01)', 'rgba(255,255,255,0)'] as const);
   }
 
   return intensity === 'strong'
-    ? ([
-        'rgba(255,255,255,0.02)',
-        'rgba(255,255,255,0.62)',
-        'rgba(255,255,255,0.18)',
-        'rgba(255,255,255,0)',
-      ] as const)
-    : ([
-        'rgba(255,255,255,0.02)',
-        'rgba(255,255,255,0.34)',
-        'rgba(255,255,255,0.1)',
-        'rgba(255,255,255,0)',
-      ] as const);
+    ? (['rgba(255,255,255,0.26)', 'rgba(255,255,255,0.06)', 'rgba(255,255,255,0)'] as const)
+    : (['rgba(255,255,255,0.18)', 'rgba(255,255,255,0.04)', 'rgba(255,255,255,0)'] as const);
 }
 
 function getCoolFade(colors: ReturnType<typeof useNavajaTheme>['colors']) {
   return colors.mode === 'dark'
-    ? (['rgba(56,189,248,0.12)', 'rgba(56,189,248,0.04)', 'rgba(56,189,248,0)'] as const)
-    : (['rgba(14,165,233,0.14)', 'rgba(14,165,233,0.05)', 'rgba(14,165,233,0)'] as const);
+    ? (['rgba(56,189,248,0.08)', 'rgba(56,189,248,0.02)', 'rgba(56,189,248,0)'] as const)
+    : (['rgba(56,189,248,0.09)', 'rgba(56,189,248,0.03)', 'rgba(56,189,248,0)'] as const);
 }
 
 function getWarmFade(colors: ReturnType<typeof useNavajaTheme>['colors']) {
   return colors.mode === 'dark'
-    ? (['rgba(236,72,153,0.12)', 'rgba(236,72,153,0.04)', 'rgba(236,72,153,0)'] as const)
-    : (['rgba(244,63,94,0.12)', 'rgba(244,63,94,0.04)', 'rgba(244,63,94,0)'] as const);
+    ? (['rgba(234,176,72,0.1)', 'rgba(234,176,72,0.02)', 'rgba(234,176,72,0)'] as const)
+    : (['rgba(234,176,72,0.1)', 'rgba(234,176,72,0.03)', 'rgba(234,176,72,0)'] as const);
 }
 
 export function Screen({
@@ -98,12 +85,14 @@ export function Screen({
   children,
   contentStyle,
   showThemeToggle = true,
+  showAppMenu = true,
 }: PropsWithChildren<{
   eyebrow?: string;
   title: string;
   subtitle?: string;
   contentStyle?: StyleProp<ViewStyle>;
   showThemeToggle?: boolean;
+  showAppMenu?: boolean;
 }>) {
   const { colors } = useNavajaTheme();
   const fade = useRef(new Animated.Value(0)).current;
@@ -221,7 +210,12 @@ export function Screen({
                 ) : null}
                 <Text style={[baseStyles.screenTitle, { color: colors.text }]}>{title}</Text>
               </View>
-              {showThemeToggle ? <ThemeToggle /> : null}
+              {showThemeToggle || showAppMenu ? (
+                <View style={baseStyles.screenHeaderActions}>
+                  {showThemeToggle ? <ThemeToggle /> : null}
+                  {showAppMenu ? <AppMenuButton /> : null}
+                </View>
+              ) : null}
             </View>
 
             {subtitle ? (
@@ -246,7 +240,9 @@ export function Card({
   const { colors } = useNavajaTheme();
 
   return (
-    <View
+    <HeroCard
+      variant={elevated ? 'default' : 'secondary'}
+      className="overflow-hidden p-0"
       style={[
         baseStyles.card,
         {
@@ -288,7 +284,7 @@ export function Card({
         style={baseStyles.cardBeam}
       />
       <View style={baseStyles.cardContent}>{children}</View>
-    </View>
+    </HeroCard>
   );
 }
 
@@ -342,7 +338,7 @@ export function SurfaceCard({
         style={StyleSheet.absoluteFillObject}
       />
       <LinearGradient
-        colors={['rgba(255,255,255,0)', beamAccent, 'rgba(244,63,94,0.18)', 'rgba(255,255,255,0)']}
+        colors={['rgba(255,255,255,0)', beamAccent, `${colors.accent}33`, 'rgba(255,255,255,0)']}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={baseStyles.surfaceBeam}
@@ -351,26 +347,10 @@ export function SurfaceCard({
     </>
   );
 
-  if (onPress) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={[
-          baseStyles.surfaceCard,
-          {
-            borderColor,
-            shadowColor: colors.shadow,
-          },
-          style,
-        ]}
-      >
-        {inner}
-      </Pressable>
-    );
-  }
-
-  return (
-    <View
+  const card = (
+    <HeroCard
+      variant={active ? 'default' : 'secondary'}
+      className="overflow-hidden p-0"
       style={[
         baseStyles.surfaceCard,
         {
@@ -381,8 +361,18 @@ export function SurfaceCard({
       ]}
     >
       {inner}
-    </View>
+    </HeroCard>
   );
+
+  if (onPress) {
+    return (
+      <Pressable onPress={onPress} accessibilityRole="button">
+        {card}
+      </Pressable>
+    );
+  }
+
+  return card;
 }
 
 export function HeroPanel({
@@ -501,7 +491,7 @@ export function StatTile({
         style={StyleSheet.absoluteFillObject}
       />
       <LinearGradient
-        colors={['rgba(255,255,255,0)', colors.borderActive, 'rgba(244,63,94,0.18)', 'rgba(255,255,255,0)']}
+        colors={['rgba(255,255,255,0)', colors.borderActive, `${colors.accent}33`, 'rgba(255,255,255,0)']}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={baseStyles.statBeam}
@@ -563,32 +553,29 @@ export function ThemeToggle() {
   const isDark = mode === 'dark';
 
   return (
-    <Pressable
+    <HeroButton
+      isIconOnly
+      variant="secondary"
       onPress={() => {
         void toggleTheme();
       }}
+      className="rounded-[16px]"
       style={[
         baseStyles.themeToggle,
         {
           borderColor: colors.border,
           shadowColor: colors.shadow,
+          backgroundColor: colors.panelRaised,
         },
       ]}
-      accessibilityRole="button"
       accessibilityLabel={isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
     >
-      <LinearGradient
-        colors={getSecondaryGradient(colors)}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
-      />
       <Ionicons
         name={isDark ? 'sunny-outline' : 'moon-outline'}
         size={18}
         color={colors.text}
       />
-    </Pressable>
+    </HeroButton>
   );
 }
 
@@ -599,10 +586,16 @@ export function Label({ children }: PropsWithChildren) {
 
 export function Field(props: TextInputProps) {
   const { colors } = useNavajaTheme();
+  const { style, ...inputProps } = props;
 
   return (
-    <TextInput
-      {...props}
+    <HeroInput
+      {...inputProps}
+      variant="primary"
+      isBottomSheetAware={false}
+      className="text-sm"
+      placeholderColorClassName="text-muted"
+      selectionColorClassName="accent-focus"
       style={[
         baseStyles.field,
         {
@@ -610,21 +603,24 @@ export function Field(props: TextInputProps) {
           backgroundColor: colors.input,
           color: colors.text,
         },
-        props.style,
+        style,
       ]}
-      placeholderTextColor={colors.textMuted}
     />
   );
 }
 
 export function MultilineField(props: TextInputProps) {
   const { colors } = useNavajaTheme();
+  const { style, ...inputProps } = props;
 
   return (
-    <TextInput
-      {...props}
-      multiline
-      textAlignVertical="top"
+    <HeroTextArea
+      {...inputProps}
+      variant="primary"
+      isBottomSheetAware={false}
+      className="text-sm"
+      placeholderColorClassName="text-muted"
+      selectionColorClassName="accent-focus"
       style={[
         baseStyles.field,
         baseStyles.multilineField,
@@ -633,9 +629,8 @@ export function MultilineField(props: TextInputProps) {
           backgroundColor: colors.input,
           color: colors.text,
         },
-        props.style,
+        style,
       ]}
-      placeholderTextColor={colors.textMuted}
     />
   );
 }
@@ -660,30 +655,35 @@ export function ActionButton({
   const { colors, mode } = useNavajaTheme();
   const isSecondary = variant === 'secondary';
   const isDanger = variant === 'danger';
+  const dangerTone = getStatusSurface(colors, 'danger');
 
   const borderColor = isSecondary
-    ? colors.border
+    ? colors.borderMuted
     : isDanger
-      ? 'rgba(153, 27, 27, 0.24)'
+      ? dangerTone.borderColor
       : colors.borderMuted;
   const textColor = isSecondary
     ? colors.text
     : isDanger
-      ? '#ffffff'
+      ? colors.inverseForeground
       : mode === 'dark'
-        ? '#0f172a'
-        : '#ffffff';
+        ? colors.inverseSurface
+        : colors.inverseForeground;
   const spinnerColor = isSecondary ? colors.text : textColor;
+  const heroVariant = isDanger ? 'danger' : isSecondary ? 'secondary' : 'primary';
 
   return (
-    <Pressable
-      disabled={disabled || loading}
+    <HeroButton
+      variant={heroVariant}
+      isDisabled={disabled || loading}
       onPress={onPress}
+      className="overflow-hidden rounded-full"
       style={[
         baseStyles.button,
         {
           borderColor,
           shadowColor: colors.shadow,
+          backgroundColor: 'transparent',
         },
         disabled ? baseStyles.buttonDisabled : null,
         style,
@@ -694,7 +694,7 @@ export function ActionButton({
           style={[
             StyleSheet.absoluteFillObject,
             {
-              backgroundColor: colors.danger,
+              backgroundColor: dangerTone.backgroundColor,
             },
           ]}
         />
@@ -712,7 +712,7 @@ export function ActionButton({
       ) : (
         <Text style={[baseStyles.buttonText, { color: textColor }, textStyle]}>{label}</Text>
       )}
-    </Pressable>
+    </HeroButton>
   );
 }
 
@@ -727,42 +727,81 @@ export function Chip({
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
 }) {
-  const { colors, mode } = useNavajaTheme();
+  const { colors } = useNavajaTheme();
 
   const toneStyles =
     tone === 'success'
-      ? {
-          backgroundColor: mode === 'dark' ? 'rgba(6, 78, 59, 0.26)' : 'rgba(209, 250, 229, 0.76)',
-          color: mode === 'dark' ? '#a7f3d0' : '#065f46',
-        }
+      ? getStatusSurface(colors, 'success')
       : tone === 'warning'
-        ? {
-            backgroundColor: mode === 'dark' ? 'rgba(120, 53, 15, 0.26)' : 'rgba(254, 243, 199, 0.82)',
-            color: mode === 'dark' ? '#fde68a' : '#92400e',
-          }
+        ? getStatusSurface(colors, 'warning')
         : tone === 'danger'
-          ? {
-              backgroundColor: mode === 'dark' ? 'rgba(127, 29, 29, 0.25)' : 'rgba(254, 226, 226, 0.82)',
-              color: mode === 'dark' ? '#fecaca' : '#991b1b',
-            }
+          ? getStatusSurface(colors, 'danger')
           : {
               backgroundColor: colors.pillMuted,
-              color: colors.text,
+              borderColor: colors.borderMuted,
+              textColor: colors.text,
             };
+  const heroColor =
+    tone === 'success'
+      ? 'success'
+      : tone === 'warning'
+        ? 'warning'
+        : tone === 'danger'
+          ? 'danger'
+          : 'default';
+  const heroVariant = tone === 'neutral' ? 'secondary' : 'soft';
 
   return (
-    <View
+    <HeroChip
+      variant={heroVariant}
+      color={heroColor}
+      animation="disable-all"
       style={[
         baseStyles.chip,
         {
           backgroundColor: toneStyles.backgroundColor,
-          borderColor: colors.border,
+          borderColor: toneStyles.borderColor,
         },
         style,
       ]}
     >
-      <Text style={[baseStyles.chipText, { color: toneStyles.color }, textStyle]}>{label}</Text>
-    </View>
+      <Text style={[baseStyles.chipText, { color: toneStyles.textColor }, textStyle]}>{label}</Text>
+    </HeroChip>
+  );
+}
+
+export function SelectionChip({
+  label,
+  active = false,
+  onPress,
+  disabled = false,
+}: {
+  label: string;
+  active?: boolean;
+  onPress?: () => void;
+  disabled?: boolean;
+}) {
+  const { colors } = useNavajaTheme();
+  const textColor = active ? '#111f33' : colors.text;
+
+  return (
+    <HeroChip
+      disabled={disabled}
+      onPress={onPress}
+      variant={active ? 'primary' : 'secondary'}
+      color={active ? 'accent' : 'default'}
+      animation="disable-all"
+      style={[
+        baseStyles.selectionChip,
+        {
+          backgroundColor: active ? colors.accent : colors.panelRaised,
+          borderColor: active ? colors.borderActive : colors.borderMuted,
+        },
+        disabled ? baseStyles.buttonDisabled : null,
+      ]}
+    >
+      <Text style={[baseStyles.selectionChipText, { color: textColor }]}>{label}</Text>
+    </HeroChip>
   );
 }
 
@@ -772,12 +811,14 @@ export function ErrorText({ message }: { message: string | null }) {
     return null;
   }
 
+  const dangerTone = getStatusSurface(colors, 'danger');
+
   return (
     <Text
       style={[
         baseStyles.errorText,
         {
-          color: colors.mode === 'dark' ? '#fecaca' : '#b91c1c',
+          color: dangerTone.textColor,
         },
       ]}
     >
@@ -796,7 +837,7 @@ const baseStyles = StyleSheet.create({
     flex: 1,
   },
   scrollViewport: {
-    paddingBottom: 10,
+    paddingBottom: 14,
   },
   backgroundLayer: {
     ...StyleSheet.absoluteFillObject,
@@ -806,66 +847,23 @@ const baseStyles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
     paddingHorizontal: 16,
-    paddingTop: 18,
+    paddingTop: 20,
     paddingBottom: 126,
-    gap: 16,
-  },
-  backdropGlow: {
-    position: 'absolute',
-    borderRadius: 999,
-  },
-  backdropGlowPrimary: {
-    width: 190,
-    height: 190,
-    top: -62,
-    left: -54,
-    opacity: 0.5,
-  },
-  backdropGlowSecondary: {
-    width: 152,
-    height: 152,
-    top: 120,
-    right: -54,
-    opacity: 0.42,
-  },
-  backdropGlowWarm: {
-    width: 176,
-    height: 176,
-    bottom: 34,
-    left: 32,
-    opacity: 0.36,
+    gap: 18,
   },
   screenHeaderShell: {
     position: 'relative',
     overflow: 'hidden',
-    borderRadius: 26,
+    borderRadius: 28,
     borderWidth: 1,
-    padding: 16,
-    shadowOpacity: 0.14,
+    padding: 18,
+    shadowOpacity: 0.11,
     shadowOffset: { width: 0, height: 10 },
-    shadowRadius: 24,
+    shadowRadius: 20,
     elevation: 4,
   },
-  screenHeaderGlow: {
-    position: 'absolute',
-    borderRadius: 999,
-  },
-  screenHeaderGlowPrimary: {
-    width: 124,
-    height: 124,
-    top: -28,
-    right: -18,
-    opacity: 0.34,
-  },
-  screenHeaderGlowSecondary: {
-    width: 118,
-    height: 118,
-    bottom: -28,
-    left: -10,
-    opacity: 0.28,
-  },
   screenHeaderContent: {
-    gap: 8,
+    gap: 10,
   },
   screenHeaderRow: {
     flexDirection: 'row',
@@ -877,11 +875,16 @@ const baseStyles = StyleSheet.create({
     flex: 1,
     gap: 6,
   },
+  screenHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   screenEyebrow: {
     alignSelf: 'flex-start',
     borderRadius: 999,
     borderWidth: 1,
-    paddingHorizontal: 11,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     fontSize: 10,
     fontWeight: '800',
@@ -890,123 +893,69 @@ const baseStyles = StyleSheet.create({
     overflow: 'hidden',
   },
   screenTitle: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: '800',
-    letterSpacing: -0.45,
+    letterSpacing: -0.5,
   },
   screenSubtitle: {
     fontSize: 14,
-    lineHeight: 21,
+    lineHeight: 20,
   },
   card: {
     position: 'relative',
     overflow: 'hidden',
     borderRadius: 24,
     borderWidth: 1,
-    padding: 16,
-    shadowOpacity: 0.12,
+    padding: 18,
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 22,
+    shadowRadius: 18,
     elevation: 3,
   },
-  cardHalo: {
-    position: 'absolute',
-    width: 104,
-    height: 104,
-    top: -28,
-    right: -14,
-    borderRadius: 999,
-    opacity: 0.26,
-  },
-  cardRose: {
-    position: 'absolute',
-    width: 88,
-    height: 88,
-    bottom: -18,
-    left: -12,
-    borderRadius: 999,
-    opacity: 0.22,
-  },
   cardBeam: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    top: 0,
+    height: 1,
+  },
+  cardContent: {
+    gap: 12,
+  },
+  surfaceCard: {
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 14,
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 2,
+  },
+  surfaceBeam: {
     position: 'absolute',
     left: 14,
     right: 14,
     top: 0,
     height: 1,
   },
-  cardContent: {
-    gap: 10,
-  },
-  surfaceCard: {
-    position: 'relative',
-    overflow: 'hidden',
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 12,
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 18,
-    elevation: 2,
-  },
-  surfaceHalo: {
-    position: 'absolute',
-    width: 74,
-    height: 74,
-    top: -18,
-    right: -10,
-    borderRadius: 999,
-    opacity: 0.22,
-  },
-  surfaceRose: {
-    position: 'absolute',
-    width: 66,
-    height: 66,
-    bottom: -16,
-    left: -10,
-    borderRadius: 999,
-    opacity: 0.18,
-  },
-  surfaceBeam: {
-    position: 'absolute',
-    left: 10,
-    right: 10,
-    top: 0,
-    height: 1,
-  },
   surfaceContent: {
-    gap: 4,
+    gap: 6,
   },
   heroPanel: {
     position: 'relative',
     overflow: 'hidden',
-    borderRadius: 32,
+    borderRadius: 30,
     borderWidth: 1,
-    padding: 18,
-    shadowOpacity: 0.14,
+    padding: 20,
+    shadowOpacity: 0.12,
     shadowOffset: { width: 0, height: 10 },
-    shadowRadius: 26,
+    shadowRadius: 22,
     elevation: 4,
   },
-  heroGlow: {
-    position: 'absolute',
-    borderRadius: 999,
-  },
-  heroGlowPrimary: {
-    width: 132,
-    height: 132,
-    top: -28,
-    right: -16,
-    opacity: 0.28,
-  },
-  heroGlowSecondary: {
-    width: 112,
-    height: 112,
-    bottom: -24,
-    left: -14,
-    opacity: 0.22,
-  },
   heroContent: {
-    gap: 9,
+    gap: 10,
   },
   heroEyebrow: {
     alignSelf: 'flex-start',
@@ -1021,22 +970,22 @@ const baseStyles = StyleSheet.create({
     overflow: 'hidden',
   },
   heroTitle: {
-    fontSize: 24,
+    fontSize: 25,
     fontWeight: '800',
-    letterSpacing: -0.4,
+    letterSpacing: -0.45,
   },
   heroDescription: {
     fontSize: 13,
-    lineHeight: 19,
+    lineHeight: 20,
   },
   statTile: {
     position: 'relative',
     overflow: 'hidden',
     flex: 1,
-    borderRadius: 18,
+    borderRadius: 20,
     borderWidth: 1,
-    padding: 11,
-    gap: 5,
+    padding: 12,
+    gap: 6,
   },
   statBeam: {
     position: 'absolute',
@@ -1052,7 +1001,7 @@ const baseStyles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   statValue: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '800',
   },
   pillToggle: {
@@ -1079,15 +1028,15 @@ const baseStyles = StyleSheet.create({
   themeToggle: {
     position: 'relative',
     overflow: 'hidden',
-    width: 42,
-    height: 42,
-    borderRadius: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 18,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 14,
+    shadowRadius: 12,
     elevation: 2,
   },
   label: {
@@ -1097,9 +1046,9 @@ const baseStyles = StyleSheet.create({
   },
   field: {
     borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 11,
+    borderRadius: 18,
+    paddingHorizontal: 13,
+    paddingVertical: 12,
     fontSize: 14,
   },
   multilineField: {
@@ -1114,10 +1063,10 @@ const baseStyles = StyleSheet.create({
     paddingHorizontal: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 50,
-    shadowOpacity: 0.12,
+    minHeight: 52,
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 18,
+    shadowRadius: 16,
     elevation: 3,
   },
   buttonDisabled: {
@@ -1132,10 +1081,22 @@ const baseStyles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: 1,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     alignSelf: 'flex-start',
   },
   chipText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  selectionChip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectionChipText: {
     fontSize: 12,
     fontWeight: '700',
   },
