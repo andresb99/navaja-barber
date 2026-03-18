@@ -168,13 +168,8 @@ export function DayColumn({
   return (
     <div className="relative border-r border-white/10 last:border-r-0 dark:border-white/[0.04]">
       <div className="relative" style={{ height: gridHeight }}>
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),transparent_18%,transparent_84%,rgba(255,255,255,0.025))] dark:bg-[radial-gradient(circle_at_top,rgba(76,29,149,0.06),transparent_30%),linear-gradient(180deg,rgba(255,255,255,0.01),transparent_22%,transparent_84%,rgba(255,255,255,0.016))]" />
-
         {isToday ? (
-          <>
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(139,92,246,0.035),rgba(255,255,255,0.025),rgba(139,92,246,0.015))] dark:bg-[linear-gradient(180deg,rgba(139,92,246,0.14),rgba(76,29,149,0.08),rgba(17,10,29,0.02))]" />
-            <div className="absolute inset-x-4 top-0 h-16 rounded-b-[1.3rem] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),transparent_64%)] dark:bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.16),transparent_68%)]" />
-          </>
+          <div className="pointer-events-none absolute inset-0 bg-violet-500/[0.02] dark:bg-violet-500/[0.06]" />
         ) : null}
 
         {hourOffsets.map((offset, index) => (
@@ -211,7 +206,7 @@ export function DayColumn({
             className="pointer-events-none absolute inset-x-0 z-20"
             style={{ top: nowPosition }}
           >
-            <div className="absolute inset-x-3 top-1/2 h-4 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_left,rgba(139,92,246,0.18),transparent_28%)] blur-md dark:bg-[radial-gradient(circle_at_left,rgba(168,85,247,0.24),transparent_32%)]" />
+            <div className="absolute inset-x-3 top-1/2 h-px -translate-y-1/2 bg-violet-400/20 dark:bg-violet-400/30" />
             <div className="absolute left-0 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-violet-500 shadow-[0_0_0_6px_rgba(139,92,246,0.14)] dark:border-[rgba(12,7,22,0.96)] dark:bg-violet-300" />
             <div className="h-px bg-violet-400/72 dark:bg-violet-200/88" />
           </div>

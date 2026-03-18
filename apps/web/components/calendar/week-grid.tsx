@@ -97,17 +97,14 @@ export function WeekGrid({
   }
 
   return (
-    <div className="relative hidden overflow-hidden rounded-[1.9rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.3),rgba(248,250,255,0.18))] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_28px_56px_-38px_rgba(15,23,42,0.14)] dark:bg-[linear-gradient(180deg,rgba(18,11,30,0.68),rgba(7,4,15,0.74))] dark:shadow-[0_32px_56px_-36px_rgba(0,0,0,0.72)] md:block">
-      <div className="pointer-events-none absolute inset-x-4 top-0 h-24 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.68),transparent_72%)] blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.18),transparent_68%)]" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-64 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_76%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(217,70,239,0.12),transparent_72%)]" />
-      <div className="pointer-events-none absolute inset-y-8 left-1/2 w-72 -translate-x-1/2 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_70%)] blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.08),transparent_68%)]" />
-      <div className="relative max-h-[40rem] overflow-auto rounded-[1.55rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.28),rgba(248,250,255,0.2))] dark:bg-[linear-gradient(180deg,rgba(13,8,24,0.92),rgba(7,4,15,0.94))]">
+    <div className="relative hidden overflow-hidden rounded-[1.9rem] bg-white/20 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_1px_3px_rgba(15,23,42,0.06),0_8px_24px_-12px_rgba(15,23,42,0.1)] dark:bg-[rgba(14,9,24,0.7)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),0_8px_24px_-12px_rgba(0,0,0,0.5)] md:block">
+      <div className="relative max-h-[40rem] overflow-auto rounded-[1.55rem] bg-white/20 dark:bg-[rgba(13,8,24,0.92)]">
         <div className={contentMinWidthClass}>
           <div
-            className="sticky top-0 z-30 grid border-b border-white/10 backdrop-blur-xl dark:border-white/[0.04]"
+            className="sticky top-0 z-30 grid border-b border-white/10 bg-white/60 dark:border-white/[0.04] dark:bg-[rgba(14,9,24,0.95)]"
             style={{ gridTemplateColumns }}
           >
-            <div className="sticky left-0 z-30 flex items-center border-r border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.28),rgba(248,250,255,0.18))] px-3 py-3 dark:border-white/[0.04] dark:bg-[linear-gradient(180deg,rgba(14,9,24,0.82),rgba(8,4,16,0.86))]">
+            <div className="sticky left-0 z-30 flex items-center border-r border-white/10 bg-white/20 px-3 py-3 dark:border-white/[0.04] dark:bg-[rgba(14,9,24,0.85)]">
               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate/54 dark:text-slate-300/58">
                 Hora
               </span>
@@ -122,8 +119,8 @@ export function WeekGrid({
                   className={cn(
                     'border-r border-white/10 px-4 py-3 last:border-r-0 dark:border-white/[0.04]',
                     isToday
-                      ? 'bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(248,250,255,0.24),rgba(255,255,255,0.18))] dark:bg-[linear-gradient(180deg,rgba(139,92,246,0.22),rgba(76,29,149,0.12),rgba(17,10,29,0.03))]'
-                      : 'bg-[linear-gradient(180deg,rgba(255,255,255,0.2),rgba(248,250,255,0.14))] dark:bg-[linear-gradient(180deg,rgba(22,13,35,0.76),rgba(11,7,20,0.68))]',
+                      ? 'bg-white/25 dark:bg-violet-500/[0.08]'
+                      : 'bg-white/14 dark:bg-white/[0.02]',
                   )}
                 >
                   <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/54 dark:text-slate-300/56">
@@ -152,7 +149,7 @@ export function WeekGrid({
           </div>
 
           <div className="grid" style={{ gridTemplateColumns }}>
-            <div className="sticky left-0 z-20 border-r border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.22),rgba(248,250,255,0.14))] dark:border-white/[0.04] dark:bg-[linear-gradient(180deg,rgba(12,7,22,0.84),rgba(7,4,14,0.86))]">
+            <div className="sticky left-0 z-20 border-r border-white/10 bg-white/16 dark:border-white/[0.04] dark:bg-[rgba(12,7,22,0.85)]">
               <div className="relative" style={{ height: gridHeight }}>
                 {hourOffsets.map((offset) => {
                   const top = offset * PIXELS_PER_MINUTE;

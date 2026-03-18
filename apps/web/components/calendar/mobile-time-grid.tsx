@@ -248,11 +248,9 @@ export function MobileTimeGrid({
   return (
     <div
       data-mobile-time-grid={isWeekly ? 'week' : 'day'}
-      className="relative overflow-hidden rounded-[1.7rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.52),rgba(248,250,255,0.34))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_22px_42px_-30px_rgba(15,23,42,0.16)] dark:bg-[linear-gradient(180deg,rgba(20,12,32,0.96),rgba(8,4,16,0.98))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_28px_46px_-32px_rgba(0,0,0,0.72)] md:hidden"
+      className="relative overflow-hidden rounded-[1.7rem] bg-white/35 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_1px_3px_rgba(15,23,42,0.06),0_8px_24px_-12px_rgba(15,23,42,0.1)] dark:bg-[rgba(16,10,28,0.96)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),0_8px_24px_-12px_rgba(0,0,0,0.5)] md:hidden"
     >
-      <div className="pointer-events-none absolute inset-x-3 top-0 h-24 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.5),transparent_72%)] blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.18),transparent_68%)]" />
-
-      <div className="relative space-y-3 rounded-[1.45rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.4),rgba(248,250,255,0.24))] p-3 dark:bg-[linear-gradient(180deg,rgba(12,7,22,0.94),rgba(8,4,16,0.96))]">
+      <div className="relative space-y-3 rounded-[1.45rem] bg-white/30 p-3 dark:bg-[rgba(12,7,22,0.94)]">
         {isWeekly ? (
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-3">
@@ -322,7 +320,7 @@ export function MobileTimeGrid({
           </div>
         )}
 
-        <div className="relative overflow-hidden rounded-[1.35rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.22),rgba(248,250,255,0.12))] dark:bg-[linear-gradient(180deg,rgba(13,8,24,0.96),rgba(7,4,15,0.98))]">
+        <div className="relative overflow-hidden rounded-[1.35rem] bg-white/16 dark:bg-[rgba(13,8,24,0.96)]">
           <div className="max-h-[32rem] overflow-auto">
             <div className="grid grid-cols-[3.25rem_minmax(0,1fr)]">
               <div className="relative bg-white/6 dark:bg-white/[0.015]">
@@ -346,7 +344,6 @@ export function MobileTimeGrid({
               </div>
 
               <div className="relative border-l border-white/10 dark:border-white/[0.05]">
-                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_20%,transparent_84%,rgba(255,255,255,0.02))] dark:bg-[radial-gradient(circle_at_top,rgba(76,29,149,0.06),transparent_28%),linear-gradient(180deg,rgba(255,255,255,0.012),transparent_20%,transparent_84%,rgba(255,255,255,0.018))]" />
                 <div className="relative" style={{ height: gridHeight }}>
                   {hourOffsets.map((offset, index) => (
                     <div
@@ -382,7 +379,7 @@ export function MobileTimeGrid({
                       className="pointer-events-none absolute inset-x-0 z-20"
                       style={{ top: nowPosition }}
                     >
-                      <div className="absolute inset-x-2 top-1/2 h-4 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_left,rgba(139,92,246,0.18),transparent_28%)] blur-md dark:bg-[radial-gradient(circle_at_left,rgba(168,85,247,0.24),transparent_32%)]" />
+                      <div className="absolute inset-x-2 top-1/2 h-px -translate-y-1/2 bg-violet-400/20 dark:bg-violet-400/30" />
                       <div className="absolute left-0 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-violet-500 shadow-[0_0_0_6px_rgba(139,92,246,0.14)] dark:border-[rgba(12,7,22,0.96)] dark:bg-violet-300" />
                       <div className="h-px bg-violet-400/72 dark:bg-violet-200/88" />
                     </div>

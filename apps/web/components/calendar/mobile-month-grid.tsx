@@ -168,11 +168,9 @@ export function MobileMonthGrid({
   return (
     <div
       data-mobile-month-grid="true"
-      className="relative overflow-hidden rounded-[1.7rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.52),rgba(248,250,255,0.34))] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_22px_42px_-30px_rgba(15,23,42,0.16)] dark:bg-[linear-gradient(180deg,rgba(20,12,32,0.96),rgba(8,4,16,0.98))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_28px_46px_-32px_rgba(0,0,0,0.72)] md:hidden"
+      className="relative overflow-hidden rounded-[1.7rem] bg-white/35 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_1px_3px_rgba(15,23,42,0.06),0_8px_24px_-12px_rgba(15,23,42,0.1)] dark:bg-[rgba(16,10,28,0.96)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),0_8px_24px_-12px_rgba(0,0,0,0.5)] md:hidden"
     >
-      <div className="pointer-events-none absolute inset-x-3 top-0 h-24 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.5),transparent_72%)] blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.18),transparent_68%)]" />
-
-      <div className="relative space-y-3 rounded-[1.45rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.4),rgba(248,250,255,0.24))] p-3 dark:bg-[linear-gradient(180deg,rgba(12,7,22,0.94),rgba(8,4,16,0.96))]">
+      <div className="relative space-y-3 rounded-[1.45rem] bg-white/30 p-3 dark:bg-[rgba(12,7,22,0.94)]">
         <div className="grid grid-cols-7 gap-1 px-0.5">
           {weekdayHeaders.map((day) => (
             <span

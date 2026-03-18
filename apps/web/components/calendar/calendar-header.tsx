@@ -129,7 +129,7 @@ export function CalendarHeader({
 
   return (
     <div className="relative overflow-hidden border-b border-white/10 px-4 pb-4 pt-4 dark:border-white/[0.04] md:px-6 md:pb-6 md:pt-6">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(circle_at_16%_18%,rgba(255,255,255,0.6),transparent_42%),radial-gradient(circle_at_88%_0%,rgba(216,180,254,0.16),transparent_28%)] dark:bg-[radial-gradient(circle_at_14%_18%,rgba(168,85,247,0.14),transparent_34%),radial-gradient(circle_at_88%_2%,rgba(217,70,239,0.1),transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-white/30 to-transparent dark:from-violet-500/[0.06] dark:to-transparent" />
 
       <div className="relative flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0 flex-1">
