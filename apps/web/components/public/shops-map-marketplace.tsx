@@ -15,6 +15,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react';
 import { Button, Card, CardBody, CardFooter, CardHeader, Skeleton } from '@heroui/react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -98,35 +99,113 @@ function getInitialSelectedShop(shops: MarketplaceShop[]) {
   );
 }
 
+type MarkerBadgeVariant = 'nuevo' | 'top' | 'good' | 'default';
+
+const MARKER_MAX_NAME_LENGTH = 14;
+
+function getMarkerVariant(shop: MarketplaceShop): MarkerBadgeVariant {
+  if (shop.averageRating === null) {
+    return 'nuevo';
+  }
+  if (shop.averageRating >= 4.5) {
+    return 'top';
+  }
+  if (shop.averageRating >= 3.5) {
+    return 'good';
+  }
+  return 'default';
+}
+
 function getMarkerLabel(shop: MarketplaceShop) {
-  return shop.averageRating !== null ? `${formatRating(shop.averageRating)}/5` : 'Nuevo';
+  const name = shop.name || 'Sin nombre';
+  return name.length > MARKER_MAX_NAME_LENGTH
+    ? `${name.slice(0, MARKER_MAX_NAME_LENGTH - 1).trimEnd()}…`
+    : name;
+}
+
+function getMarkerDotColor(variant: MarkerBadgeVariant, isActive: boolean, isDarkTheme: boolean) {
+  if (isActive) {
+    return variant === 'nuevo' ? '#7c3aed' : variant === 'top' ? '#d97706' : '#6366f1';
+  }
+  if (variant === 'nuevo') {
+    return isDarkTheme ? '#a78bfa' : '#8b5cf6';
+  }
+  if (variant === 'top') {
+    return isDarkTheme ? '#fbbf24' : '#d97706';
+  }
+  if (variant === 'good') {
+    return isDarkTheme ? '#34d399' : '#059669';
+  }
+  return isDarkTheme ? '#64748b' : '#94a3b8';
 }
 
 function createMarkerBadgeSvg(
   label: string,
-  fillColor: string,
-  borderColor: string,
-  textColor: string,
+  variant: MarkerBadgeVariant,
+  isActive: boolean,
+  isDarkTheme: boolean,
 ) {
-  const cacheKey = [label, fillColor, borderColor, textColor].join('|');
+  const cacheKey = [label, variant, isActive, isDarkTheme].join('|');
   const cachedIcon = markerBadgeIconCache.get(cacheKey);
   if (cachedIcon) {
     return cachedIcon;
   }
 
-  const width = Math.max(72, label.length * 9 + 30);
-  const badgeHeight = 34;
-  const pointerHeight = 10;
-  const totalHeight = badgeHeight + pointerHeight + 2;
+  const dotSize = 6;
+  const dotGap = 6;
+  const charWidth = 6.8;
+  const paddingH = 12;
+  const textWidth = Math.ceil(label.length * charWidth);
+  const contentWidth = dotSize + dotGap + textWidth;
+  const width = Math.max(54, Math.ceil(contentWidth + paddingH * 2));
+  const badgeHeight = 28;
+  const pointerHeight = 7;
+  const shadowPad = 4;
+  const totalHeight = badgeHeight + pointerHeight + shadowPad;
   const centerX = width / 2;
+  const contentStartX = Math.round((width - contentWidth) / 2);
+
+  let fillColor: string;
+  let borderColor: string;
+  let textColor: string;
+  let shadowOpacity: number;
+  const dotColor = getMarkerDotColor(variant, isActive, isDarkTheme);
+
+  if (isActive) {
+    fillColor = '#ffffff';
+    borderColor = 'rgba(139,92,246,0.45)';
+    textColor = '#1e1b4b';
+    shadowOpacity = 0.3;
+  } else if (isDarkTheme) {
+    fillColor = 'rgba(10,4,22,0.92)';
+    borderColor = 'rgba(139,92,246,0.2)';
+    textColor = '#e2e8f0';
+    shadowOpacity = 0.5;
+  } else {
+    fillColor = 'rgba(255,255,255,0.96)';
+    borderColor = 'rgba(15,23,42,0.12)';
+    textColor = '#1e293b';
+    shadowOpacity = 0.15;
+  }
+
+  const dotY = badgeHeight / 2;
+  const textY = badgeHeight / 2 + 4;
+  const sp = shadowPad / 2;
 
   const iconUrl = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
     `<svg width="${width}" height="${totalHeight}" viewBox="0 0 ${width} ${totalHeight}" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="1" y="1" width="${width - 2}" height="${badgeHeight}" rx="17" fill="${fillColor}" stroke="${borderColor}" stroke-width="1.5"/>
-      <path d="M${centerX - 6} ${badgeHeight - 1}L${centerX} ${badgeHeight + pointerHeight}L${centerX + 6} ${badgeHeight - 1}" fill="${fillColor}" stroke="${borderColor}" stroke-width="1.5" stroke-linejoin="round"/>
-      <text x="${centerX}" y="21" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="12.5" font-weight="700" fill="${textColor}">
-        ${label}
-      </text>
+      <defs>
+        <filter id="s" x="0" y="0" width="${width}" height="${totalHeight}" filterUnits="userSpaceOnUse">
+          <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000" flood-opacity="${shadowOpacity}"/>
+        </filter>
+      </defs>
+      <g filter="url(#s)">
+        <rect x="${sp}" y="${sp}" width="${width - shadowPad}" height="${badgeHeight}" rx="14" fill="${fillColor}" stroke="${borderColor}" stroke-width="1"/>
+        <path d="M${centerX - 4} ${badgeHeight + sp - 1}L${centerX} ${badgeHeight + pointerHeight + sp - 2}L${centerX + 4} ${badgeHeight + sp - 1}" fill="${fillColor}" stroke="${borderColor}" stroke-width="1" stroke-linejoin="round"/>
+        <rect x="${centerX - 4}" y="${badgeHeight + sp - 3}" width="8" height="4" fill="${fillColor}"/>
+      </g>
+      <circle cx="${contentStartX + sp + dotSize / 2}" cy="${dotY + sp}" r="${dotSize / 2}" fill="${dotColor}"/>
+      <text x="${contentStartX + dotSize + dotGap + sp}" y="${textY + sp}" font-family="Inter, system-ui, -apple-system, sans-serif" font-size="11.5" font-weight="600" fill="${textColor}">${label}</text>
     </svg>`,
   )}`;
 
@@ -141,16 +220,17 @@ function getShopMarkerIcon(
   isDarkTheme: boolean,
 ) {
   const label = getMarkerLabel(shop);
-  const width = Math.max(72, label.length * 9 + 30);
-  const height = 46;
-  const fillColor = isActive ? '#ffffff' : isDarkTheme ? '#0f172a' : '#111827';
-  const borderColor = isActive ? '#cbd5e1' : isDarkTheme ? '#334155' : '#374151';
-  const textColor = isActive ? '#0f172a' : '#f8fafc';
+  const variant = getMarkerVariant(shop);
+  const charWidth = 6.8;
+  const textWidth = Math.ceil(label.length * charWidth);
+  const contentWidth = 6 + 6 + textWidth;
+  const width = Math.max(54, Math.ceil(contentWidth + 24));
+  const height = 39;
 
   return {
-    url: createMarkerBadgeSvg(label, fillColor, borderColor, textColor),
+    url: createMarkerBadgeSvg(label, variant, isActive, isDarkTheme),
     scaledSize: new google.Size(width, height),
-    anchor: new google.Point(Math.round(width / 2), 44),
+    anchor: new google.Point(Math.round(width / 2), 37),
   };
 }
 
@@ -429,7 +509,8 @@ const MarketplaceShopCard = memo(
           fallback={<div className="h-full w-full" style={getFallbackCoverStyle(shop)} />}
         />
 
-        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-slate-950/88 via-slate-950/28 to-slate-950/10" />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-slate-950/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-slate-950/88 via-slate-950/28 to-transparent" />
 
         <CardFooter className="absolute inset-x-0 bottom-0 z-10 border-t border-white/10 bg-black/40 px-4 py-4 backdrop-blur-md">
           <div className="flex w-full flex-col gap-3">
@@ -523,32 +604,7 @@ const MarketplaceCardsSection = memo(
       return (
         <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
           {Array.from({ length: MARKETPLACE_CARD_SKELETON_COUNT }).map((_, index) => (
-            <Card
-              key={`shop-skeleton-${index}`}
-              className="data-card overflow-hidden rounded-[1.9rem] border-0 p-0 shadow-none ring-1 ring-white/10"
-            >
-              <Skeleton className="aspect-[4/3] w-full rounded-none" />
-              <CardBody className="space-y-4 p-4">
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-2/3 rounded-xl" />
-                  <Skeleton className="h-3 w-full rounded-xl" />
-                  <Skeleton className="h-3 w-5/6 rounded-xl" />
-                </div>
-                <div className="space-y-2">
-                  <Skeleton className="h-3 w-full rounded-xl" />
-                  <Skeleton className="h-3 w-4/5 rounded-xl" />
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Skeleton className="h-7 w-24 rounded-full" />
-                  <Skeleton className="h-7 w-24 rounded-full" />
-                  <Skeleton className="h-7 w-28 rounded-full" />
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <Skeleton className="h-10 w-24 rounded-2xl" />
-                  <Skeleton className="h-10 w-28 rounded-2xl" />
-                </div>
-              </CardBody>
-            </Card>
+            <Skeleton key={`shop-skeleton-${index}`} className="h-[22rem] w-full rounded-[1.9rem]" />
           ))}
         </div>
       );
@@ -556,21 +612,35 @@ const MarketplaceCardsSection = memo(
 
     if (filteredShops.length > 0) {
       return (
-        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-          {filteredShops.map(({ shop, distanceKm }) => {
-            const isActive = shop.id === selectedShopId;
+        <AnimatePresence mode="wait">
+          <motion.div
+            key="shop-cards"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+            className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3"
+          >
+            {filteredShops.map(({ shop, distanceKm }, index) => {
+              const isActive = shop.id === selectedShopId;
 
-            return (
-              <MarketplaceShopCard
-                key={shop.id}
-                shop={shop}
-                distanceKm={distanceKm}
-                isActive={isActive}
-                onFocus={onFocus}
-              />
-            );
-          })}
-        </div>
+              return (
+                <motion.div
+                  key={shop.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.04, ease: [0.4, 0, 0.2, 1] }}
+                >
+                  <MarketplaceShopCard
+                    shop={shop}
+                    distanceKm={distanceKm}
+                    isActive={isActive}
+                    onFocus={onFocus}
+                  />
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </AnimatePresence>
       );
     }
 
@@ -659,8 +729,9 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   const [isMobileViewport, setIsMobileViewport] = useState<boolean | null>(null);
   const [mobileViewportHeight, setMobileViewportHeight] = useState<number | null>(null);
   const [mobileSheetStage, setMobileSheetStage] = useState<MobileSheetStage>('collapsed');
-  const [mobileSheetDragOffset, setMobileSheetDragOffset] = useState(0);
-  const [isMobileSheetDragging, setIsMobileSheetDragging] = useState(false);
+  const mobileSheetDragOffsetRef = useRef(0);
+  const isMobileSheetDraggingRef = useRef(false);
+  const [mobileSheetDragSnapshot, setMobileSheetDragSnapshot] = useState<{ dragging: boolean; offset: number }>({ dragging: false, offset: 0 });
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const displayedShops = activeSearchMode === 'name' ? (searchResults ?? []) : viewportShops;
 
@@ -788,8 +859,9 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     }
 
     setMobileViewportHeight(null);
-    setMobileSheetDragOffset(0);
-    setIsMobileSheetDragging(false);
+    mobileSheetDragOffsetRef.current = 0;
+    isMobileSheetDraggingRef.current = false;
+    setMobileSheetDragSnapshot({ dragging: false, offset: 0 });
     setMobileSheetStage('collapsed');
   }, [isMobileViewport]);
 
@@ -1303,22 +1375,47 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
   const setMobileSheetSnap = useCallback((nextStage: MobileSheetStage) => {
     setMobileSheetStage(nextStage);
-    setMobileSheetDragOffset(0);
-    setIsMobileSheetDragging(false);
+    mobileSheetDragOffsetRef.current = 0;
+    isMobileSheetDraggingRef.current = false;
+    setMobileSheetDragSnapshot({ dragging: false, offset: 0 });
   }, []);
 
-  function getClosestMobileSheetStage(translatePercent: number, sheetHeight: number) {
-    return (
-      Object.entries(MOBILE_SHEET_STAGE_TRANSLATE) as Array<[MobileSheetStage, number]>
-    ).reduce((closestStage, [stage]) => {
-      const currentDistance = Math.abs(
-        getMobileSheetStageTranslate(closestStage, sheetHeight) - translatePercent,
-      );
-      const nextDistance = Math.abs(
-        getMobileSheetStageTranslate(stage, sheetHeight) - translatePercent,
-      );
-      return nextDistance < currentDistance ? stage : closestStage;
-    }, 'mid' as MobileSheetStage);
+  function resolveVelocitySnap(
+    translatePercent: number,
+    velocityPxPerMs: number,
+    sheetHeight: number,
+  ): MobileSheetStage {
+    const VELOCITY_THRESHOLD = 0.35;
+    const stages: MobileSheetStage[] = ['expanded', 'mid', 'collapsed'];
+    const translates = stages.map((s) => getMobileSheetStageTranslate(s, sheetHeight));
+
+    if (Math.abs(velocityPxPerMs) > VELOCITY_THRESHOLD) {
+      const direction = velocityPxPerMs > 0 ? 1 : -1;
+      let best: MobileSheetStage = stages[0]!;
+      for (const stage of stages) {
+        const t = getMobileSheetStageTranslate(stage, sheetHeight);
+        if (direction > 0 && t > translatePercent) {
+          return stage;
+        }
+        if (direction < 0 && t < translatePercent) {
+          best = stage;
+        }
+      }
+      if (direction < 0) {
+        return best;
+      }
+    }
+
+    let closestStage = stages[0]!;
+    let closestDist = Math.abs(translates[0]! - translatePercent);
+    for (let i = 1; i < stages.length; i++) {
+      const dist = Math.abs(translates[i]! - translatePercent);
+      if (dist < closestDist) {
+        closestDist = dist;
+        closestStage = stages[i]!;
+      }
+    }
+    return closestStage;
   }
 
   function handleMobileSheetDragStart(event: ReactPointerEvent<HTMLDivElement>) {
@@ -1334,29 +1431,67 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     event.preventDefault();
 
     const startY = event.clientY;
+    const startTime = performance.now();
     const sheetHeight = sheet.getBoundingClientRect().height;
     const stageTranslate = getMobileSheetStageTranslate(mobileSheetStage, sheetHeight);
     const collapsedTranslate = getMobileSheetStageTranslate('collapsed', sheetHeight);
     const minOffset = (-stageTranslate / 100) * sheetHeight;
     const maxOffset = ((collapsedTranslate - stageTranslate) / 100) * sheetHeight;
 
-    setIsMobileSheetDragging(true);
-    setMobileSheetDragOffset(0);
+    let lastY = startY;
+    let lastTime = startTime;
+    let velocityPxPerMs = 0;
+    let rafId = 0;
+
+    isMobileSheetDraggingRef.current = true;
+    mobileSheetDragOffsetRef.current = 0;
+    sheet.style.transition = 'none';
+    sheet.style.willChange = 'transform';
+
+    const applyTransform = (offset: number) => {
+      const basePercent = getMobileSheetStageTranslate(mobileSheetStage, sheetHeight);
+      sheet.style.transform = `translateY(calc(${basePercent}% + ${offset}px))`;
+    };
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
       const rawOffset = moveEvent.clientY - startY;
       const clampedOffset = Math.min(Math.max(rawOffset, minOffset), maxOffset);
-      setMobileSheetDragOffset(clampedOffset);
+      mobileSheetDragOffsetRef.current = clampedOffset;
+
+      const now = performance.now();
+      const dt = now - lastTime;
+      if (dt > 4) {
+        velocityPxPerMs = (moveEvent.clientY - lastY) / dt;
+        lastY = moveEvent.clientY;
+        lastTime = now;
+      }
+
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          applyTransform(mobileSheetDragOffsetRef.current);
+          rafId = 0;
+        });
+      }
     };
 
     const handlePointerEnd = (endEvent?: PointerEvent) => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+
       const finalOffset = endEvent ? endEvent.clientY - startY : 0;
       const clampedOffset = Math.min(Math.max(finalOffset, minOffset), maxOffset);
       const translatePercent = stageTranslate + (clampedOffset / sheetHeight) * 100;
+      const nextStage = resolveVelocitySnap(translatePercent, velocityPxPerMs, sheetHeight);
 
-      setMobileSheetDragOffset(0);
-      setIsMobileSheetDragging(false);
-      setMobileSheetStage(getClosestMobileSheetStage(translatePercent, sheetHeight));
+      sheet.style.willChange = '';
+      sheet.style.transition = '';
+      sheet.style.transform = '';
+
+      mobileSheetDragOffsetRef.current = 0;
+      isMobileSheetDraggingRef.current = false;
+      setMobileSheetDragSnapshot({ dragging: false, offset: 0 });
+      setMobileSheetStage(nextStage);
 
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerEnd);
@@ -1997,7 +2132,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     ? {
         transform: shouldHideMobileSheetForMapPreview
           ? 'translateY(calc(100% + 1.5rem))'
-          : `translateY(calc(${getMobileSheetStageTranslate(mobileSheetStage, mobileSheetHeight)}% + ${mobileSheetDragOffset}px))`,
+          : `translateY(${getMobileSheetStageTranslate(mobileSheetStage, mobileSheetHeight)}%)`,
         height: mobileSheetHeight ? `${mobileSheetHeight}px` : undefined,
         maxHeight: mobileSheetHeight ? `${mobileSheetHeight}px` : undefined,
       }
@@ -2021,11 +2156,11 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   const mobileSheetClassName = cn(
     'pointer-events-auto relative z-10',
     isMobileViewportActive
-      ? 'mobile-marketplace-sheet flex w-full h-[calc(100svh-9.5rem)] max-h-[calc(100svh-9.5rem)] flex-col rounded-t-[2.25rem] rounded-b-none border border-slate-200 bg-white shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] dark:border-white/10 dark:bg-slate-950'
+      ? 'mobile-marketplace-sheet flex w-full h-[calc(100svh-9.5rem)] max-h-[calc(100svh-9.5rem)] flex-col rounded-t-[2.25rem] rounded-b-none border border-slate-200/60 bg-white shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] dark:border-violet-500/15 dark:bg-[#0a0416]'
       : 'relative z-10 rounded-[2.25rem] border border-white/70 bg-white/95 p-4 shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/94 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none xl:backdrop-blur-0',
     !isMobileViewportActive && '-mt-14 xl:mt-0',
     shouldHideMobileSheetForMapPreview && 'pointer-events-none opacity-0',
-    !isMobileSheetDragging &&
+    !isMobileSheetDraggingRef.current &&
       isMobileViewportActive &&
       'transition-transform duration-300 ease-out',
   );
@@ -2172,10 +2307,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
         <div ref={mobileSheetRef} className={mobileSheetClassName} style={mobileSheetStyle}>
           <div
-            className="mobile-sheet-surface absolute inset-x-0 top-0 z-10 flex h-7 cursor-grab touch-none justify-center pt-2 select-none active:cursor-grabbing xl:hidden"
+            className="mobile-sheet-surface absolute inset-x-0 top-0 z-10 flex h-8 cursor-grab touch-none items-center justify-center select-none active:cursor-grabbing xl:hidden"
             onPointerDown={handleMobileSheetDragStart}
           >
-            <div className="h-1.5 w-14 rounded-full bg-black/20 dark:bg-white/20" />
+            <div className="h-[5px] w-10 rounded-full bg-slate-300/80 dark:bg-white/25" />
           </div>
 
           <div
@@ -2348,6 +2483,16 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
             </div>
           ) : null}
 
+          {(isViewportLoading || isApplyingSearch) && !showInitialMapOverlay ? (
+            <div className="pointer-events-none absolute inset-x-0 top-[6.75rem] z-20 flex justify-center xl:top-3">
+              <div className="flex items-center gap-[5px] rounded-full border border-white/60 bg-white/92 px-3.5 py-2 shadow-[0_8px_24px_-10px_rgba(15,23,42,0.2)] backdrop-blur-sm dark:border-white/10 dark:bg-[#0a0416]/85">
+                <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-slate-800 dark:bg-violet-400" />
+                <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-slate-800 dark:bg-violet-400" />
+                <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-slate-800 dark:bg-violet-400" />
+              </div>
+            </div>
+          ) : null}
+
           <div className="hidden xl:block">
             <div className="map-overlay-chip">
               <span>Marketplace Uruguay</span>
@@ -2357,104 +2502,116 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
           {mapPreviewShop ? (
             <div className="pointer-events-none absolute inset-x-3 bottom-4 z-30 xl:inset-x-auto xl:bottom-4 xl:left-4 xl:right-auto xl:w-[23.5rem]">
-              <div className="pointer-events-auto overflow-hidden rounded-[1.65rem] border border-white/70 bg-white p-0 shadow-[0_26px_50px_-30px_rgba(15,23,42,0.62)] dark:border-white/12 dark:bg-slate-950">
-                <div className="relative bg-slate-950">
-                  <MediaShowcase
-                    alt={`Vista de ${mapPreviewShop.name}`}
-                    images={mapPreviewShop.imageUrls}
-                    className="aspect-[16/10] w-full"
-                    dotsClassName="bottom-2.5"
-                    fallback={
-                      <div
-                        className="h-full w-full"
-                        style={{
-                          ...getFallbackCoverStyle(mapPreviewShop),
-                          opacity: 1,
-                        }}
-                      />
-                    }
-                  />
-
-                  <div className="absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-3 p-3">
-                    <span className="rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-slate-900 shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)] dark:bg-slate-950/95 dark:text-slate-100">
+              <Card
+                as="article"
+                isFooterBlurred
+                className="data-card no-hover-motion pointer-events-auto h-[22rem] overflow-hidden rounded-[1.9rem] border-0 p-0 shadow-[0_26px_50px_-30px_rgba(15,23,42,0.62)]"
+              >
+                <CardHeader className="absolute inset-x-0 top-0 z-10 items-start justify-between gap-3 p-4">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/72">
                       {getShopHighlight(mapPreviewShop, mapPreviewDistanceKm)}
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        isIconOnly
-                        radius="full"
-                        variant="light"
-                        onClick={() => {
-                          setMapPreviewShopId(null);
-                          if (isMobileViewport) {
-                            setMobileSheetSnap('collapsed');
-                          }
-                        }}
-                        aria-label="Cerrar vista previa"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-slate-900 shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)] transition hover:bg-white dark:bg-slate-950/95 dark:text-slate-100 dark:hover:bg-slate-900"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3 bg-white p-4 dark:bg-slate-950">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="line-clamp-1 text-[1.08rem] font-semibold text-ink dark:text-slate-100">
-                        {mapPreviewShop.name}
-                      </p>
-                      <p className="mt-1 line-clamp-1 text-sm text-slate/80 dark:text-slate-300">
-                        {getLocationSummary(mapPreviewShop)}
-                      </p>
-                    </div>
-                    <p className="text-sm font-semibold leading-tight text-ink dark:text-slate-100 sm:shrink-0 sm:whitespace-nowrap">
-                      <Star className="mr-1 inline h-3.5 w-3.5 fill-current text-amber-500" />
-                      {formatRating(mapPreviewShop.averageRating)} (
-                      {mapPreviewShop.reviewCount || 0})
                     </p>
+                    <h3 className="mt-2 line-clamp-2 font-[family-name:var(--font-heading)] text-xl font-semibold text-white">
+                      {mapPreviewShop.name}
+                    </h3>
                   </div>
-
-                  <p className="line-clamp-2 text-sm text-slate/80 dark:text-slate-300">
-                    {mapPreviewShop.description || getShopReviewSummary(mapPreviewShop)}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-slate/80 dark:text-slate-300">
-                    {mapPreviewDistanceKm !== null ? (
-                      <span className="rounded-full bg-violet-500/[0.12] px-2.5 py-1 text-violet-700 dark:bg-violet-400/[0.12] dark:text-violet-200">
-                        {mapPreviewDistanceKm.toFixed(1)} km
-                      </span>
-                    ) : null}
-                    <span className="rounded-full bg-slate-500/[0.12] px-2.5 py-1 text-slate-700 dark:bg-white/[0.08] dark:text-slate-200">
-                      {mapPreviewShop.activeServiceCount} servicios
-                    </span>
-                    {mapPreviewShop.minServicePriceCents !== null ? (
-                      <span className="rounded-full bg-emerald-500/[0.14] px-2.5 py-1 text-emerald-700 dark:bg-emerald-400/[0.14] dark:text-emerald-200">
-                        Desde {formatCurrency(mapPreviewShop.minServicePriceCents)}
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <div className="flex flex-wrap gap-3">
-                    <Link
-                      href={buildShopHref(mapPreviewShop.slug)}
-                      className="action-secondary rounded-2xl px-4 py-2 text-sm font-semibold"
+                  <div className="flex shrink-0 items-center gap-2">
+                    <div className="rounded-full bg-white/92 px-3 py-1 text-[11px] font-semibold text-ink shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)] dark:bg-slate-950/90 dark:text-slate-100">
+                      <Star className="mr-1 inline h-3.5 w-3.5 fill-current text-amber-500" />
+                      {formatRating(mapPreviewShop.averageRating)}
+                    </div>
+                    <Button
+                      type="button"
+                      isIconOnly
+                      radius="full"
+                      variant="light"
+                      onClick={() => {
+                        setMapPreviewShopId(null);
+                        if (isMobileViewport) {
+                          setMobileSheetSnap('collapsed');
+                        }
+                      }}
+                      aria-label="Cerrar vista previa"
+                      className="inline-flex h-8 w-8 min-w-8 items-center justify-center rounded-full bg-white/92 text-slate-900 shadow-[0_12px_24px_-18px_rgba(15,23,42,0.35)] transition hover:bg-white dark:bg-slate-950/90 dark:text-slate-100 dark:hover:bg-slate-900"
                     >
-                      Ver perfil
-                    </Link>
-                    <Link
-                      href={buildShopHref(mapPreviewShop.slug, 'book')}
-                      className="action-primary inline-flex items-center gap-1 rounded-2xl px-4 py-2 text-sm font-semibold"
-                    >
-                      Reservar
-                      <ArrowUpRight className="h-4 w-4" />
-                    </Link>
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
-                </div>
-              </div>
+                </CardHeader>
+
+                <MediaShowcase
+                  alt={`Vista de ${mapPreviewShop.name}`}
+                  images={mapPreviewShop.imageUrls}
+                  className="h-full w-full"
+                  dotsClassName="bottom-[7.1rem]"
+                  fallback={
+                    <div
+                      className="h-full w-full"
+                      style={{
+                        ...getFallbackCoverStyle(mapPreviewShop),
+                        opacity: 1,
+                      }}
+                    />
+                  }
+                />
+
+                <div className="absolute inset-0 z-[1] bg-gradient-to-b from-slate-950/60 via-transparent to-transparent" />
+                <div className="absolute inset-0 z-[1] bg-gradient-to-t from-slate-950/88 via-slate-950/28 to-transparent" />
+
+                <CardFooter className="absolute inset-x-0 bottom-0 z-10 border-t border-white/10 bg-black/40 px-4 py-3 backdrop-blur-md">
+                  <div className="flex w-full flex-col gap-2.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="line-clamp-1 text-sm font-semibold text-white">
+                          {getLocationSummary(mapPreviewShop)}
+                        </p>
+                        <p className="mt-1 line-clamp-1 text-xs text-white/68">
+                          {mapPreviewShop.description || getShopReviewSummary(mapPreviewShop)}
+                        </p>
+                      </div>
+                      {mapPreviewDistanceKm !== null ? (
+                        <span className="shrink-0 rounded-full bg-white/14 px-2.5 py-1 text-[11px] font-semibold text-white">
+                          {mapPreviewDistanceKm.toFixed(1)} km
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 text-[11px] font-semibold text-white/72">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1">
+                        <MessageSquareText className="h-3.5 w-3.5" />
+                        {mapPreviewShop.reviewCount || 0} resenas
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1">
+                        {mapPreviewShop.activeServiceCount} servicios
+                      </span>
+                      {mapPreviewShop.minServicePriceCents !== null ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1">
+                          Desde {formatCurrency(mapPreviewShop.minServicePriceCents)}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={buildShopHref(mapPreviewShop.slug)}
+                        className="action-secondary rounded-full px-4 py-2 text-sm font-semibold"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        Ver perfil
+                      </Link>
+                      <Link
+                        href={buildShopHref(mapPreviewShop.slug, 'book')}
+                        className="action-primary inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        Reservar
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </div>
+                </CardFooter>
+              </Card>
             </div>
           ) : null}
         </div>
