@@ -491,16 +491,19 @@ html.dark .soft-panel {
 }
 
 .login-cta-btn {
-  background: linear-gradient(135deg, rgb(14 165 233), rgb(244 63 94)) !important;
-  box-shadow: 0 14px 24px -10px rgba(14, 165, 233, 0.35) !important;
+  background: #0f1c2e !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px -6px rgba(15, 28, 46, 0.5) !important;
 }
 
 .login-cta-btn:hover {
-  box-shadow: 0 14px 28px -8px rgba(14, 165, 233, 0.5) !important;
+  background: #16263d !important;
+  box-shadow: 0 8px 24px -6px rgba(15, 28, 46, 0.6) !important;
 }
 
 html.dark .login-cta-btn {
   background: linear-gradient(135deg, rgb(124 58 237), rgb(217 70 239)) !important;
+  color: #ffffff !important;
   box-shadow: 0 0 20px -4px rgba(139, 92, 246, 0.5) !important;
 }
 
