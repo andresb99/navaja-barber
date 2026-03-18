@@ -5,13 +5,12 @@ import {
   Check,
   ChevronRight,
   KeyRound,
-  LockKeyhole,
   LogIn,
   Sparkles,
   UserPlus,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Divider, Input, type InputProps } from '@heroui/react';
+import { Button, Input } from '@heroui/react';
 import { APP_NAME } from '@/lib/constants';
 import { resolveSafeNextPath } from '@/lib/navigation';
 import {
@@ -489,45 +488,46 @@ export function LoginForm({
   const handleSelectPlanId = useCallback((planId: MarketplacePlanId) => {
     setSelectedPlanId(planId);
   }, []);
-  const inputClassNames: InputProps['classNames'] = {
-    inputWrapper: 'dark:bg-violet-950/40 dark:border-violet-300/12 dark:hover:border-violet-300/20',
-    label: 'dark:text-violet-200/70',
-    input: 'dark:text-slate-100',
+  const inputClassNames = {
+    inputWrapper: 'login-input-wrapper',
+    label: 'login-input-label',
+    input: 'login-input-field',
   };
   const modeButtonClassName = (isActive: boolean) =>
-    `group relative flex min-h-[2.75rem] items-center justify-center gap-1.5 rounded-[0.95rem] border px-2 py-2 text-center text-[0.75rem] font-semibold leading-tight transition sm:gap-2 sm:px-3 sm:text-[0.82rem] ${
+    `relative z-10 flex min-h-[2.5rem] items-center justify-center gap-1.5 px-2 py-2 text-center text-[0.75rem] font-semibold leading-tight transition-all duration-200 sm:gap-2 sm:px-3 sm:text-[0.82rem] ${
       isActive
-        ? 'border-transparent bg-white text-slate-900 shadow-[0_2px_8px_-4px_rgba(15,23,42,0.2)] dark:bg-violet-500/20 dark:text-violet-50 dark:shadow-[0_2px_8px_-4px_rgba(139,92,246,0.3)]'
-        : 'border-transparent bg-transparent text-slate/80 hover:bg-white/70 hover:text-ink dark:text-slate-200 dark:hover:bg-violet-500/10 dark:hover:text-slate-100'
+        ? 'text-white'
+        : 'text-violet-200/60 hover:text-violet-100'
     }`;
 
   return (
     <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] xl:gap-6">
-      <aside className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-[#0c0618] p-6 text-white shadow-[0_1px_3px_rgba(0,0,0,0.3),0_12px_32px_-12px_rgba(2,6,23,0.7)] dark:border-white/10 dark:bg-[#0a0416] dark:text-white dark:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] md:p-8">
+      {/* Left panel - plans */}
+      <aside className="relative overflow-hidden rounded-[2rem] border border-violet-500/15 bg-[#0a0416] p-6 text-white shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] md:p-8">
         <div className="relative flex h-full flex-col">
-          <p className="hero-eyebrow w-fit border-white/20 bg-white/[0.05] text-white/85 dark:border-white/14 dark:bg-white/[0.06] dark:text-white/78">
+          <p className="hero-eyebrow w-fit border-white/20 bg-white/[0.05] text-white/85">
             <Sparkles className="h-3.5 w-3.5" />
             Planes de suscripcion
           </p>
-          <p className="mt-4 text-sm text-white/78 dark:text-white/78">
+          <p className="mt-4 text-sm text-white/78">
             Los planes de {APP_NAME} empiezan desde{' '}
             {formatUyuCents(getSubscriptionPlanDescriptor('free').monthlyPriceCents)} / mes
           </p>
-          <h1 className="mt-7 text-balance text-3xl font-[family-name:var(--font-heading)] font-semibold leading-[1.07] tracking-tight text-white dark:text-white md:text-[2.15rem]">
+          <h1 className="mt-7 text-balance text-3xl font-[family-name:var(--font-heading)] font-semibold leading-[1.07] tracking-tight text-white md:text-[2.15rem]">
             Elige el mejor plan para tu barberia
           </h1>
-          <p className="mt-3 max-w-md text-sm text-white/72 dark:text-white/72">
+          <p className="mt-3 max-w-md text-sm text-white/72">
             Compara precios, funcionalidades y cambia entre pago mensual o anual en cuotas.
           </p>
 
-          <div className="mt-5 w-full rounded-[1.25rem] border border-white/12 bg-white/[0.03] p-2 dark:border-white/10 dark:bg-white/[0.04] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-            <p className="mb-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-white/72 dark:text-white/72">
+          <div className="mt-5 w-full rounded-[1.25rem] border border-white/12 bg-white/[0.03] p-2">
+            <p className="mb-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-white/72">
               Ahorra hasta {maxAnnualSavingsPercent}%
             </p>
-            <div className="relative grid grid-cols-2 items-stretch rounded-full border border-white/12 bg-white/[0.04] p-1 dark:border-white/10 dark:bg-black/20">
+            <div className="relative grid grid-cols-2 items-stretch rounded-full border border-white/12 bg-black/20 p-1">
               <span
                 aria-hidden="true"
-                className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_4px_12px_-6px_rgba(0,0,0,0.3)] transition-transform duration-300 dark:bg-slate-100 dark:shadow-[0_4px_12px_-6px_rgba(0,0,0,0.4)] ${
+                className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_4px_12px_-6px_rgba(0,0,0,0.4)] transition-transform duration-300 ${
                   billingMode === 'monthly' ? 'translate-x-0' : 'translate-x-full'
                 }`}
               />
@@ -537,7 +537,7 @@ export function LoginForm({
                 radius="full"
                 variant="light"
                 className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
-                  billingMode === 'monthly' ? 'text-slate-900' : 'text-white/78 dark:text-white/78'
+                  billingMode === 'monthly' ? 'text-slate-900' : 'text-white/78'
                 }`}
                 aria-pressed={billingMode === 'monthly'}
                 onPress={() => {
@@ -552,9 +552,7 @@ export function LoginForm({
                 radius="full"
                 variant="light"
                 className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
-                  billingMode === 'annual_installments'
-                    ? 'text-slate-900'
-                    : 'text-white/78 dark:text-white/78'
+                  billingMode === 'annual_installments' ? 'text-slate-900' : 'text-white/78'
                 }`}
                 aria-pressed={billingMode === 'annual_installments'}
                 onPress={() => {
@@ -581,53 +579,47 @@ export function LoginForm({
                   onPress={() => handleSelectPlanId(plan.id)}
                   className={`rounded-[1rem] border px-3 py-2 text-left transition ${isLastOddMobileCard ? 'col-span-2 sm:col-span-1' : ''} ${
                     plan.isSelected
-                      ? 'border-violet-300/45 bg-violet-400/15 shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)] dark:border-white/14 dark:bg-violet-500/[0.1] dark:shadow-[0_4px_16px_-8px_rgba(0,0,0,0.4)]'
-                      : 'border-white/12 bg-white/[0.03] hover:bg-white/[0.07] dark:border-white/12 dark:bg-white/[0.03] dark:hover:bg-white/[0.07]'
+                      ? 'border-violet-300/45 bg-violet-400/15 shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)]'
+                      : 'border-white/12 bg-white/[0.03] hover:bg-white/[0.07]'
                   }`}
                 >
                   <p
                     className={`text-sm font-semibold ${
-                      plan.isSelected
-                        ? 'text-white dark:text-white'
-                        : 'text-white/86 dark:text-white/86'
+                      plan.isSelected ? 'text-white' : 'text-white/86'
                     }`}
                   >
                     {plan.name}
                   </p>
-                  <p className="mt-1 text-[11px] text-white/62 dark:text-white/62">
-                    {plan.optionPrice}
-                  </p>
+                  <p className="mt-1 text-[11px] text-white/62">{plan.optionPrice}</p>
                 </Button>
               );
             })}
           </div>
 
-          <article className="mt-3 rounded-[1.35rem] border border-violet-300/28 bg-violet-950/80 p-4 text-white shadow-[0_4px_16px_-8px_rgba(139,92,246,0.25)] dark:border-white/10 dark:bg-violet-950/60 dark:text-white dark:shadow-[0_4px_16px_-8px_rgba(0,0,0,0.4)]">
+          <article className="mt-3 rounded-[1.35rem] border border-violet-300/28 bg-violet-950/80 p-4 text-white shadow-[0_4px_16px_-8px_rgba(139,92,246,0.25)]">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-2xl font-semibold leading-tight text-white dark:text-white">
+                <p className="text-2xl font-semibold leading-tight text-white">
                   {selectedPlan?.name}
                 </p>
-                <p className="mt-1 text-xs text-white/65 dark:text-white/65">
-                  {selectedPlan?.description}
-                </p>
+                <p className="mt-1 text-xs text-white/65">{selectedPlan?.description}</p>
               </div>
               {selectedPlan?.badge ? (
-                <span className="inline-flex shrink-0 rounded-full border border-violet-300/45 bg-violet-400/18 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-100 dark:border-white/10 dark:bg-white/[0.08] dark:text-white/88">
+                <span className="inline-flex shrink-0 rounded-full border border-violet-300/45 bg-violet-400/18 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-100">
                   {selectedPlan.badge}
                 </span>
               ) : null}
             </div>
 
-            <div className="mt-3 border-t border-white/10 pt-3 dark:border-white/10">
-              <p className="text-4xl font-semibold leading-none tracking-[-0.02em] text-white dark:text-white">
+            <div className="mt-3 border-t border-white/10 pt-3">
+              <p className="text-4xl font-semibold leading-none tracking-[-0.02em] text-white">
                 {billingMode === 'monthly'
                   ? `${formatUyuCents(selectedPlan?.monthlyPriceCents || 0)} / mes`
                   : (selectedPlan?.annualInstallmentCents || 0) > 0
                     ? `12x ${formatUyuCents(selectedPlan?.annualInstallmentCents || 0)} / mes`
                     : 'Gratis'}
               </p>
-              <p className="mt-2 text-sm text-white/68 dark:text-white/68">
+              <p className="mt-2 text-sm text-white/68">
                 {billingMode === 'monthly'
                   ? 'Facturacion mes a mes'
                   : (selectedPlan?.annualInstallmentCents || 0) > 0
@@ -640,9 +632,9 @@ export function LoginForm({
               {selectedPlanFeatures.map((feature) => (
                 <li
                   key={`${selectedPlan?.id || 'plan'}-${feature}`}
-                  className="flex items-start gap-2 text-sm text-white/86 dark:text-white/86"
+                  className="flex items-start gap-2 text-sm text-white/86"
                 >
-                  <span className="mt-[0.1rem] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-200 dark:bg-emerald-400/20 dark:text-emerald-200">
+                  <span className="mt-[0.1rem] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-200">
                     <Check className="h-3 w-3" />
                   </span>
                   <span>{feature}</span>
@@ -653,7 +645,7 @@ export function LoginForm({
             <Button
               type="button"
               variant="light"
-              className="mt-4 w-full rounded-xl border border-violet-300/45 bg-violet-400/18 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-violet-100 transition hover:bg-violet-400/24 dark:border-white/12 dark:bg-white/[0.08] dark:text-white dark:hover:bg-white/[0.12]"
+              className="mt-4 w-full rounded-xl border border-violet-300/45 bg-violet-400/18 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-violet-100 transition hover:bg-violet-400/24"
               onPress={handleSelectPlanCta}
             >
               Elegir {selectedPlan?.name}
@@ -662,9 +654,22 @@ export function LoginForm({
         </div>
       </aside>
 
-      <div className="soft-panel rounded-[2rem] border-0 p-4 dark:bg-[#0c0618] md:p-6">
-        <div className="rounded-[1.6rem] border border-white/75 bg-white/66 p-3 dark:border-violet-300/8 dark:bg-violet-950/30">
-          <div className="grid grid-cols-3 gap-1 rounded-[1.2rem] border border-white/80 bg-white/60 p-1.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-violet-300/8 dark:bg-violet-950/40 dark:shadow-none">
+      {/* Right panel - auth form */}
+      <div className="flex flex-col rounded-[2rem] border border-violet-500/15 bg-[#0a0416] p-6 shadow-[0_0_80px_-20px_rgba(139,92,246,0.3)] md:p-8">
+        {/* Mode switcher */}
+        <div className="relative rounded-[1.2rem] border border-violet-500/15 bg-[rgba(139,92,246,0.06)] p-1">
+          {/* Sliding active pill */}
+          <span
+            aria-hidden="true"
+            className={`pointer-events-none absolute bottom-1 top-1 rounded-[0.85rem] bg-gradient-to-r from-violet-600/80 to-fuchsia-600/80 shadow-[0_0_12px_rgba(139,92,246,0.4)] transition-all duration-300 ${
+              mode === 'login'
+                ? 'left-1 w-[calc(33.333%-0.375rem)]'
+                : mode === 'register'
+                  ? 'left-[calc(33.333%+0.125rem)] w-[calc(33.333%-0.375rem)]'
+                  : 'left-[calc(66.666%+0.25rem)] w-[calc(33.333%-0.625rem)]'
+            }`}
+          />
+          <div className="grid grid-cols-3">
             <Button
               type="button"
               variant="light"
@@ -699,23 +704,17 @@ export function LoginForm({
               Recuperar
             </Button>
           </div>
-
-          <div className="mt-3 flex items-center justify-end">
-            <Link
-              href="/book"
-              className="action-secondary inline-flex items-center gap-1 rounded-full px-4 py-2 text-xs font-semibold"
-            >
-              Seguir invitado
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
         </div>
 
-        <h2 className="mt-5 font-[family-name:var(--font-heading)] text-3xl font-semibold text-ink dark:text-slate-100">
-          {titleByMode[mode]}
-        </h2>
-        <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">{subtitleByMode[mode]}</p>
+        {/* Title */}
+        <div className="mt-6">
+          <h2 className="font-[family-name:var(--font-heading)] text-3xl font-semibold text-white">
+            {titleByMode[mode]}
+          </h2>
+          <p className="mt-1.5 text-sm text-violet-200/70">{subtitleByMode[mode]}</p>
+        </div>
 
+        {/* Banners */}
         {error ? (
           <p className="status-banner error mt-4" role="alert" aria-live="assertive">
             {error}
@@ -727,18 +726,20 @@ export function LoginForm({
           </p>
         ) : null}
 
+        {/* Form card */}
         <div
           key={mode}
-          className="page-enter mt-4 rounded-[1.65rem] border border-white/75 bg-white/65 p-4 dark:border-violet-300/8 dark:bg-violet-950/30"
+          className="page-enter mt-5 flex flex-col gap-5 rounded-[1.65rem] border border-[rgba(139,92,246,0.15)] bg-[rgba(139,92,246,0.06)] p-5 md:p-6"
         >
+          {/* Recover mode */}
           {mode === 'recover' ? (
-            <form className="space-y-3" onSubmit={sendPasswordRecovery}>
+            <form className="space-y-4" onSubmit={sendPasswordRecovery}>
               <Input
                 id="recoverEmail"
                 type="email"
                 label="Email"
                 labelPlacement="inside"
-                variant="bordered"
+                variant="flat"
                 radius="lg"
                 classNames={inputClassNames}
                 value={email}
@@ -749,7 +750,8 @@ export function LoginForm({
                 type="submit"
                 isLoading={activeAction === 'recover'}
                 isDisabled={isBusy}
-                className="action-primary px-5 text-sm font-semibold"
+                radius="xl"
+                className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 text-sm font-semibold text-white shadow-[0_0_20px_-4px_rgba(139,92,246,0.5)] transition-all duration-200 hover:shadow-[0_0_28px_-4px_rgba(139,92,246,0.7)]"
               >
                 {activeAction === 'recover'
                   ? 'Enviando enlace...'
@@ -758,10 +760,11 @@ export function LoginForm({
             </form>
           ) : null}
 
+          {/* Reset mode */}
           {mode === 'reset' ? (
-            <form className="space-y-3" onSubmit={updatePassword}>
+            <form className="space-y-4" onSubmit={updatePassword}>
               {!hasRecoverySession ? (
-                <p className="rounded-xl border border-amber-300/70 bg-amber-100/75 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/35 dark:text-amber-200">
+                <p className="rounded-xl border border-amber-900/60 bg-amber-950/35 px-3 py-2 text-sm text-amber-200">
                   Tu sesion de recuperacion no esta activa. Solicita un nuevo enlace.
                 </p>
               ) : null}
@@ -770,7 +773,7 @@ export function LoginForm({
                 type="password"
                 label="Nueva contrasena"
                 labelPlacement="inside"
-                variant="bordered"
+                variant="flat"
                 radius="lg"
                 classNames={inputClassNames}
                 value={newPassword}
@@ -783,7 +786,7 @@ export function LoginForm({
                 type="password"
                 label="Confirmar contrasena"
                 labelPlacement="inside"
-                variant="bordered"
+                variant="flat"
                 radius="lg"
                 classNames={inputClassNames}
                 value={confirmPassword}
@@ -791,19 +794,21 @@ export function LoginForm({
                 required
                 minLength={8}
               />
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-3">
                 <Button
                   type="submit"
                   isLoading={activeAction === 'reset'}
                   isDisabled={isBusy || !hasRecoverySession}
-                  className="action-primary px-5 text-sm font-semibold"
+                  radius="xl"
+                  className="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 text-sm font-semibold text-white shadow-[0_0_20px_-4px_rgba(139,92,246,0.5)] transition-all duration-200 hover:shadow-[0_0_28px_-4px_rgba(139,92,246,0.7)]"
                 >
                   {activeAction === 'reset' ? 'Actualizando...' : 'Guardar nueva contrasena'}
                 </Button>
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="action-secondary px-5 text-sm font-semibold"
+                  variant="bordered"
+                  radius="xl"
+                  className="border-violet-500/30 py-3 text-sm font-semibold text-violet-300 transition-all duration-200 hover:border-violet-400/50 hover:bg-violet-500/10"
                   onClick={() => {
                     setMode('recover');
                   }}
@@ -815,9 +820,10 @@ export function LoginForm({
             </form>
           ) : null}
 
+          {/* Login / Register mode */}
           {isPasswordMode ? (
             <form
-              className="space-y-3"
+              className="space-y-4"
               onSubmit={mode === 'login' ? loginWithPassword : registerWithPassword}
             >
               {mode === 'register' ? (
@@ -825,9 +831,9 @@ export function LoginForm({
                   id="fullName"
                   label="Nombre y apellido"
                   labelPlacement="inside"
-                variant="bordered"
-                radius="lg"
-                classNames={inputClassNames}
+                  variant="flat"
+                  radius="lg"
+                  classNames={inputClassNames}
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
                 />
@@ -838,7 +844,7 @@ export function LoginForm({
                 type="email"
                 label="Email"
                 labelPlacement="inside"
-                variant="bordered"
+                variant="flat"
                 radius="lg"
                 classNames={inputClassNames}
                 value={email}
@@ -846,115 +852,143 @@ export function LoginForm({
                 required
               />
 
-              <div>
+              <div className="space-y-1">
                 <Input
                   id="password"
                   type="password"
                   label="Contrasena"
                   labelPlacement="inside"
-                variant="bordered"
-                radius="lg"
-                classNames={inputClassNames}
+                  variant="flat"
+                  radius="lg"
+                  classNames={inputClassNames}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
                   {...(mode === 'register' ? { minLength: 8 } : {})}
                 />
                 {mode === 'register' ? (
-                  <p className="mt-1 text-xs text-slate/65 dark:text-slate-400">
-                    Minimo 8 caracteres.
-                  </p>
+                  <p className="pl-1 text-xs text-violet-200/50">Minimo 8 caracteres.</p>
                 ) : null}
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              {/* Primary action button */}
+              <Button
+                type="submit"
+                radius="xl"
+                isLoading={activeAction === (mode === 'login' ? 'login' : 'register')}
+                isDisabled={isBusy}
+                className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 text-sm font-semibold text-white shadow-[0_0_20px_-4px_rgba(139,92,246,0.5)] transition-all duration-200 hover:shadow-[0_0_28px_-4px_rgba(139,92,246,0.7)]"
+              >
+                {activeAction === 'login'
+                  ? 'Ingresando...'
+                  : activeAction === 'register'
+                    ? 'Creando cuenta...'
+                    : mode === 'login'
+                      ? 'Ingresar'
+                      : 'Crear cuenta'}
+              </Button>
+
+              {/* Magic link - login only */}
+              {mode === 'login' ? (
                 <Button
-                  type="submit"
-                  radius="lg"
-                  isLoading={activeAction === (mode === 'login' ? 'login' : 'register')}
-                  isDisabled={isBusy}
-                  className="action-primary px-5 text-sm font-semibold"
+                  type="button"
+                  variant="light"
+                  className="w-full text-sm font-semibold text-violet-400 transition-all duration-200 hover:text-violet-300"
+                  isLoading={activeAction === 'magic-link'}
+                  isDisabled={isBusy || !email}
+                  onClick={(event) => {
+                    void sendMagicLink(event);
+                  }}
                 >
-                  {activeAction === 'login'
-                    ? 'Ingresando...'
-                    : activeAction === 'register'
-                      ? 'Creando cuenta...'
-                      : mode === 'login'
-                        ? 'Ingresar'
-                        : 'Crear cuenta'}
+                  {activeAction === 'magic-link' ? 'Enviando enlace...' : 'Recibir enlace magico'}
                 </Button>
-                {mode === 'login' ? (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    className="action-secondary px-5 text-sm font-semibold"
-                    isLoading={activeAction === 'magic-link'}
-                    isDisabled={isBusy || !email}
-                    onClick={(event) => {
-                      void sendMagicLink(event);
-                    }}
-                  >
-                    {activeAction === 'magic-link' ? 'Enviando enlace...' : 'Enlace magico'}
-                  </Button>
-                ) : null}
-              </div>
+              ) : null}
 
-              <div className="relative py-1">
-                <Divider className="bg-slate-200/90 dark:bg-violet-300/10" />
-                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/75 bg-white px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/65 dark:border-violet-300/12 dark:bg-[#0c0618] dark:text-violet-200/60">
-                  Social
+              {/* Social divider */}
+              <div className="relative flex items-center gap-3 py-1">
+                <div className="h-px flex-1 bg-violet-500/15" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-200/40">
+                  o continua con
                 </span>
+                <div className="h-px flex-1 bg-violet-500/15" />
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-2">
+              {/* Social buttons */}
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Button
                   type="button"
                   variant="bordered"
                   radius="lg"
-                  className="w-full justify-center border-white/75 px-5 text-sm font-semibold text-ink dark:border-violet-300/15 dark:bg-violet-950/30 dark:text-slate-200"
+                  className="w-full justify-center gap-2 border-[rgba(139,92,246,0.15)] bg-transparent py-3 text-sm font-semibold text-slate-200 transition-all duration-200 hover:border-violet-400/30 hover:bg-[rgba(139,92,246,0.1)]"
                   isLoading={activeAction === 'google'}
                   isDisabled={isBusy}
                   onClick={() => {
                     void signInWithSocialProvider('google');
                   }}
+                  startContent={
+                    activeAction !== 'google' ? (
+                      <svg className="h-4 w-4" viewBox="0 0 24 24">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                      </svg>
+                    ) : undefined
+                  }
                 >
-                  {activeAction === 'google' ? 'Redirigiendo a Google...' : 'Continuar con Google'}
+                  {activeAction === 'google' ? 'Redirigiendo...' : 'Google'}
                 </Button>
                 <Button
                   type="button"
                   variant="bordered"
                   radius="lg"
-                  className="w-full justify-center border-white/75 px-5 text-sm font-semibold text-ink dark:border-violet-300/15 dark:bg-violet-950/30 dark:text-slate-200"
+                  className="w-full justify-center gap-2 border-[rgba(139,92,246,0.15)] bg-transparent py-3 text-sm font-semibold text-slate-200 transition-all duration-200 hover:border-violet-400/30 hover:bg-[rgba(139,92,246,0.1)]"
                   isLoading={activeAction === 'facebook'}
                   isDisabled={isBusy}
                   onClick={() => {
                     void signInWithSocialProvider('facebook');
                   }}
+                  startContent={
+                    activeAction !== 'facebook' ? (
+                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="#1877F2">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                      </svg>
+                    ) : undefined
+                  }
                 >
-                  {activeAction === 'facebook'
-                    ? 'Redirigiendo a Facebook...'
-                    : 'Continuar con Facebook'}
+                  {activeAction === 'facebook' ? 'Redirigiendo...' : 'Facebook'}
                 </Button>
               </div>
 
+              {/* Forgot password - login only */}
               {mode === 'login' ? (
-                <Button
+                <button
                   type="button"
-                  variant="light"
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-slate/80 transition-colors md:hover:text-ink dark:text-slate-300 dark:md:hover:text-slate-100"
-                  onPress={() => {
+                  className="block w-full text-center text-xs text-violet-200/50 transition-all duration-200 hover:text-violet-300 disabled:pointer-events-none"
+                  disabled={isBusy}
+                  onClick={() => {
                     if (!isBusy) {
                       setMode('recover');
                       setPassword('');
                     }
                   }}
                 >
-                  <LockKeyhole className="h-3.5 w-3.5" />
                   Olvide mi contrasena
-                </Button>
+                </button>
               ) : null}
             </form>
           ) : null}
+        </div>
+
+        {/* Guest link - bottom of right panel */}
+        <div className="mt-5 flex justify-center">
+          <Link
+            href="/book"
+            className="inline-flex items-center gap-1 text-xs text-violet-200/40 transition-all duration-200 hover:text-violet-200/70"
+          >
+            Seguir como invitado
+            <ChevronRight className="h-3 w-3" />
+          </Link>
         </div>
       </div>
     </div>
