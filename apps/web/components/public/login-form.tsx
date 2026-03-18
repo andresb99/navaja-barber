@@ -503,7 +503,7 @@ export function LoginForm({
   return (
     <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] xl:gap-6">
       {/* Left panel - plans */}
-      <aside className="relative overflow-hidden rounded-[2rem] border border-violet-500/15 bg-[#0a0416] p-6 text-white shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] md:p-8">
+      <aside className="relative order-last overflow-hidden rounded-[2rem] border border-violet-500/15 bg-[#0a0416] p-6 text-white shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] lg:order-first md:p-8">
         <div className="relative flex h-full flex-col">
           <p className="hero-eyebrow w-fit border-white/20 bg-white/[0.05] text-white/85">
             <Sparkles className="h-3.5 w-3.5" />
