@@ -496,8 +496,8 @@ export function LoginForm({
   const modeButtonClassName = (isActive: boolean) =>
     `relative z-10 flex min-h-[2.5rem] items-center justify-center gap-1.5 px-2 py-2 text-center text-[0.75rem] font-semibold leading-tight transition-all duration-200 sm:gap-2 sm:px-3 sm:text-[0.82rem] ${
       isActive
-        ? 'text-white'
-        : 'text-violet-200/60 hover:text-violet-100'
+        ? 'text-violet-900 dark:text-white'
+        : 'text-violet-400/70 hover:text-violet-600 dark:text-violet-200/60 dark:hover:text-violet-100'
     }`;
 
   return (
@@ -655,13 +655,13 @@ export function LoginForm({
       </aside>
 
       {/* Right panel - auth form */}
-      <div className="flex flex-col rounded-[2rem] border border-violet-500/15 bg-[#0a0416] p-6 shadow-[0_0_80px_-20px_rgba(139,92,246,0.3)] md:p-8">
+      <div className="flex flex-col rounded-[2rem] border border-violet-200/40 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:bg-[#0a0416] dark:shadow-[0_0_80px_-20px_rgba(139,92,246,0.3)] md:p-8">
         {/* Mode switcher */}
-        <div className="relative rounded-[1.2rem] border border-violet-500/15 bg-[rgba(139,92,246,0.06)] p-1">
+        <div className="relative rounded-[1.2rem] border border-violet-200/40 bg-violet-50/60 p-1 dark:border-violet-500/15 dark:bg-[rgba(139,92,246,0.06)]">
           {/* Sliding active pill */}
           <span
             aria-hidden="true"
-            className={`pointer-events-none absolute bottom-1 top-1 rounded-[0.85rem] bg-gradient-to-r from-violet-600/80 to-fuchsia-600/80 shadow-[0_0_12px_rgba(139,92,246,0.4)] transition-all duration-300 ${
+            className={`pointer-events-none absolute bottom-1 top-1 rounded-[0.85rem] bg-white shadow-[0_2px_8px_-2px_rgba(139,92,246,0.2)] dark:bg-gradient-to-r dark:from-violet-600/80 dark:to-fuchsia-600/80 dark:shadow-[0_0_12px_rgba(139,92,246,0.4)] transition-all duration-300 ${
               mode === 'login'
                 ? 'left-1 w-[calc(33.333%-0.375rem)]'
                 : mode === 'register'
@@ -708,10 +708,10 @@ export function LoginForm({
 
         {/* Title */}
         <div className="mt-6">
-          <h2 className="font-[family-name:var(--font-heading)] text-3xl font-semibold text-white">
+          <h2 className="font-[family-name:var(--font-heading)] text-3xl font-semibold text-ink dark:text-white">
             {titleByMode[mode]}
           </h2>
-          <p className="mt-1.5 text-sm text-violet-200/70">{subtitleByMode[mode]}</p>
+          <p className="mt-1.5 text-sm text-slate/70 dark:text-violet-200/70">{subtitleByMode[mode]}</p>
         </div>
 
         {/* Banners */}
@@ -729,7 +729,7 @@ export function LoginForm({
         {/* Form card */}
         <div
           key={mode}
-          className="page-enter mt-5 flex flex-col gap-5 rounded-[1.65rem] border border-[rgba(139,92,246,0.15)] bg-[rgba(139,92,246,0.06)] p-5 md:p-6"
+          className="page-enter mt-5 flex flex-col gap-5 rounded-[1.65rem] border border-violet-200/30 bg-violet-50/40 p-5 dark:border-[rgba(139,92,246,0.15)] dark:bg-[rgba(139,92,246,0.06)] md:p-6"
         >
           {/* Recover mode */}
           {mode === 'recover' ? (
@@ -764,7 +764,7 @@ export function LoginForm({
           {mode === 'reset' ? (
             <form className="space-y-4" onSubmit={updatePassword}>
               {!hasRecoverySession ? (
-                <p className="rounded-xl border border-amber-900/60 bg-amber-950/35 px-3 py-2 text-sm text-amber-200">
+                <p className="rounded-xl border border-amber-300/60 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/35 dark:text-amber-200">
                   Tu sesion de recuperacion no esta activa. Solicita un nuevo enlace.
                 </p>
               ) : null}
@@ -808,7 +808,7 @@ export function LoginForm({
                   type="button"
                   variant="bordered"
                   radius="xl"
-                  className="border-violet-500/30 py-3 text-sm font-semibold text-violet-300 transition-all duration-200 hover:border-violet-400/50 hover:bg-violet-500/10"
+                  className="border-violet-300/40 py-3 text-sm font-semibold text-violet-600 transition-all duration-200 hover:border-violet-400/60 hover:bg-violet-50 dark:border-violet-500/30 dark:text-violet-300 dark:hover:border-violet-400/50 dark:hover:bg-violet-500/10"
                   onClick={() => {
                     setMode('recover');
                   }}
@@ -867,7 +867,7 @@ export function LoginForm({
                   {...(mode === 'register' ? { minLength: 8 } : {})}
                 />
                 {mode === 'register' ? (
-                  <p className="pl-1 text-xs text-violet-200/50">Minimo 8 caracteres.</p>
+                  <p className="pl-1 text-xs text-slate/50 dark:text-violet-200/50">Minimo 8 caracteres.</p>
                 ) : null}
               </div>
 
@@ -893,7 +893,7 @@ export function LoginForm({
                 <Button
                   type="button"
                   variant="light"
-                  className="w-full text-sm font-semibold text-violet-400 transition-all duration-200 hover:text-violet-300"
+                  className="w-full text-sm font-semibold text-violet-600 transition-all duration-200 hover:text-violet-500 dark:text-violet-400 dark:hover:text-violet-300"
                   isLoading={activeAction === 'magic-link'}
                   isDisabled={isBusy || !email}
                   onClick={(event) => {
@@ -906,11 +906,11 @@ export function LoginForm({
 
               {/* Social divider */}
               <div className="relative flex items-center gap-3 py-1">
-                <div className="h-px flex-1 bg-violet-500/15" />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-200/40">
+                <div className="h-px flex-1 bg-violet-300/30 dark:bg-violet-500/15" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/40 dark:text-violet-200/40">
                   o continua con
                 </span>
-                <div className="h-px flex-1 bg-violet-500/15" />
+                <div className="h-px flex-1 bg-violet-300/30 dark:bg-violet-500/15" />
               </div>
 
               {/* Social buttons */}
@@ -919,7 +919,7 @@ export function LoginForm({
                   type="button"
                   variant="bordered"
                   radius="lg"
-                  className="w-full justify-center gap-2 border-[rgba(139,92,246,0.15)] bg-transparent py-3 text-sm font-semibold text-slate-200 transition-all duration-200 hover:border-violet-400/30 hover:bg-[rgba(139,92,246,0.1)]"
+                  className="w-full justify-center gap-2 border-violet-300/30 bg-transparent py-3 text-sm font-semibold text-slate-700 transition-all duration-200 hover:border-violet-400/50 hover:bg-violet-50/60 dark:border-[rgba(139,92,246,0.15)] dark:text-slate-200 dark:hover:border-violet-400/30 dark:hover:bg-[rgba(139,92,246,0.1)]"
                   isLoading={activeAction === 'google'}
                   isDisabled={isBusy}
                   onClick={() => {
@@ -942,7 +942,7 @@ export function LoginForm({
                   type="button"
                   variant="bordered"
                   radius="lg"
-                  className="w-full justify-center gap-2 border-[rgba(139,92,246,0.15)] bg-transparent py-3 text-sm font-semibold text-slate-200 transition-all duration-200 hover:border-violet-400/30 hover:bg-[rgba(139,92,246,0.1)]"
+                  className="w-full justify-center gap-2 border-violet-300/30 bg-transparent py-3 text-sm font-semibold text-slate-700 transition-all duration-200 hover:border-violet-400/50 hover:bg-violet-50/60 dark:border-[rgba(139,92,246,0.15)] dark:text-slate-200 dark:hover:border-violet-400/30 dark:hover:bg-[rgba(139,92,246,0.1)]"
                   isLoading={activeAction === 'facebook'}
                   isDisabled={isBusy}
                   onClick={() => {
@@ -964,7 +964,7 @@ export function LoginForm({
               {mode === 'login' ? (
                 <button
                   type="button"
-                  className="block w-full text-center text-xs text-violet-200/50 transition-all duration-200 hover:text-violet-300 disabled:pointer-events-none"
+                  className="block w-full text-center text-xs text-slate/50 transition-all duration-200 hover:text-violet-600 disabled:pointer-events-none dark:text-violet-200/50 dark:hover:text-violet-300"
                   disabled={isBusy}
                   onClick={() => {
                     if (!isBusy) {
@@ -984,7 +984,7 @@ export function LoginForm({
         <div className="mt-5 flex justify-center">
           <Link
             href="/book"
-            className="inline-flex items-center gap-1 text-xs text-violet-200/40 transition-all duration-200 hover:text-violet-200/70"
+            className="inline-flex items-center gap-1 text-xs text-slate/40 transition-all duration-200 hover:text-violet-600 dark:text-violet-200/40 dark:hover:text-violet-200/70"
           >
             Seguir como invitado
             <ChevronRight className="h-3 w-3" />
