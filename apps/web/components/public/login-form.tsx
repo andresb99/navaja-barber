@@ -655,7 +655,7 @@ export function LoginForm({
       </aside>
 
       {/* Right panel - auth form */}
-      <div className="flex flex-col rounded-[2rem] border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:bg-[#0a0416] dark:shadow-[0_0_80px_-20px_rgba(139,92,246,0.3)] md:p-8">
+      <div className="login-right-panel flex flex-col rounded-[2rem] border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:shadow-[0_0_80px_-20px_rgba(139,92,246,0.3)] md:p-8">
         {/* Mode switcher */}
         <div className="relative rounded-[1.2rem] border border-slate-200/60 bg-slate-50/60 p-1 dark:border-violet-500/15 dark:bg-[rgba(139,92,246,0.06)]">
           {/* Sliding active pill */}
