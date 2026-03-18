@@ -138,20 +138,17 @@ export function MonthGrid({
   }
 
   return (
-    <div className="relative hidden overflow-hidden rounded-[1.9rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.62),rgba(248,250,255,0.4))] p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.64),0_28px_56px_-38px_rgba(15,23,42,0.14)] dark:bg-[linear-gradient(180deg,rgba(18,11,30,0.92),rgba(7,4,15,0.98))] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_32px_56px_-36px_rgba(0,0,0,0.72)] md:block">
-      <div className="pointer-events-none absolute inset-x-4 top-0 h-24 rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.68),transparent_72%)] blur-3xl dark:bg-[radial-gradient(circle_at_center,rgba(168,85,247,0.18),transparent_68%)]" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-64 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_76%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(217,70,239,0.12),transparent_72%)]" />
-
-      <div className="relative overflow-auto rounded-[1.55rem] bg-[linear-gradient(180deg,rgba(255,255,255,0.6),rgba(248,250,255,0.48))] dark:bg-[linear-gradient(180deg,rgba(13,8,24,0.96),rgba(7,4,15,0.98))]">
+    <div className="relative hidden overflow-hidden rounded-[1.9rem] bg-white/40 p-2.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_1px_3px_rgba(15,23,42,0.06),0_8px_24px_-12px_rgba(15,23,42,0.1)] dark:bg-[rgba(14,9,24,0.92)] dark:shadow-[0_1px_3px_rgba(0,0,0,0.3),0_8px_24px_-12px_rgba(0,0,0,0.5)] md:block">
+      <div className="relative overflow-auto rounded-[1.55rem] bg-white/40 dark:bg-[rgba(13,8,24,0.96)]">
         <div className="min-w-[58rem]">
-          <div className="grid grid-cols-7 border-b border-white/14 backdrop-blur-xl dark:border-white/[0.05]">
+          <div className="grid grid-cols-7 border-b border-white/14 bg-white/40 dark:border-white/[0.05] dark:bg-[rgba(18,11,30,0.9)]">
             {Array.from({ length: DAYS_IN_WEEK }, (_, index) => {
               const date = addDays(startOfWeek(today), index);
 
               return (
                 <div
                   key={date.toISOString()}
-                  className="border-r border-white/12 bg-[linear-gradient(180deg,rgba(255,255,255,0.78),rgba(248,250,255,0.68))] px-4 py-3 last:border-r-0 dark:border-white/[0.05] dark:bg-[linear-gradient(180deg,rgba(22,13,35,0.9),rgba(11,7,20,0.82))]"
+                  className="border-r border-white/12 bg-white/50 px-4 py-3 last:border-r-0 dark:border-white/[0.05] dark:bg-white/[0.02]"
                 >
                   <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/54 dark:text-slate-300/56">
                     {formatWeekday(date, locale)}
@@ -175,10 +172,10 @@ export function MonthGrid({
                   className={cn(
                     'relative flex min-h-[8.8rem] flex-col gap-3 border-r border-t border-white/12 p-3.5 last:border-r-0 dark:border-white/[0.05]',
                     isCurrentMonth
-                      ? 'bg-[linear-gradient(180deg,rgba(255,255,255,0.54),rgba(248,250,255,0.42))] dark:bg-[linear-gradient(180deg,rgba(18,11,29,0.74),rgba(8,5,16,0.78))]'
-                      : 'bg-white/18 opacity-78 dark:bg-white/[0.015] dark:opacity-70',
+                      ? 'bg-white/35 dark:bg-white/[0.02]'
+                      : 'bg-white/14 opacity-78 dark:bg-white/[0.01] dark:opacity-70',
                     isToday &&
-                      'bg-[linear-gradient(180deg,rgba(255,255,255,0.74),rgba(244,240,255,0.58))] dark:bg-[linear-gradient(180deg,rgba(139,92,246,0.16),rgba(76,29,149,0.08),rgba(17,10,29,0.12))]',
+                      'bg-white/50 dark:bg-violet-500/[0.06]',
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">

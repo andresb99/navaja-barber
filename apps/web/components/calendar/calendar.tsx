@@ -287,7 +287,7 @@ export function Calendar({
       shadow="none"
       data-calendar-view={view}
       className={cn(
-        "soft-panel relative overflow-hidden rounded-[2.15rem] border-0 shadow-none before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(circle_at_top_right,rgba(168,85,247,0.18),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(244,114,182,0.08),transparent_28%)] before:opacity-85 dark:before:bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.16),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(217,70,239,0.12),transparent_28%)]",
+        "soft-panel relative overflow-hidden rounded-[2.15rem] border-0 shadow-none",
         className,
       )}
     >

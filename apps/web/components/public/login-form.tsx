@@ -11,7 +11,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Input } from '@heroui/react';
+import { Button, Divider, Input, type InputProps } from '@heroui/react';
 import { APP_NAME } from '@/lib/constants';
 import { resolveSafeNextPath } from '@/lib/navigation';
 import {
@@ -489,21 +489,22 @@ export function LoginForm({
   const handleSelectPlanId = useCallback((planId: MarketplacePlanId) => {
     setSelectedPlanId(planId);
   }, []);
+  const inputClassNames: InputProps['classNames'] = {
+    inputWrapper: 'dark:bg-violet-950/40 dark:border-violet-300/12 dark:hover:border-violet-300/20',
+    label: 'dark:text-violet-200/70',
+    input: 'dark:text-slate-100',
+  };
   const modeButtonClassName = (isActive: boolean) =>
     `group relative flex min-h-[2.75rem] items-center justify-center gap-1.5 rounded-[0.95rem] border px-2 py-2 text-center text-[0.75rem] font-semibold leading-tight transition sm:gap-2 sm:px-3 sm:text-[0.82rem] ${
       isActive
-        ? 'border-transparent bg-white text-slate-900 shadow-[0_16px_26px_-18px_rgba(15,23,42,0.58)]'
-        : 'border-transparent bg-transparent text-slate/80 hover:bg-white/70 hover:text-ink dark:text-slate-200 dark:hover:bg-white/[0.08] dark:hover:text-slate-100'
+        ? 'border-transparent bg-white text-slate-900 shadow-[0_2px_8px_-4px_rgba(15,23,42,0.2)] dark:bg-violet-500/20 dark:text-violet-50 dark:shadow-[0_2px_8px_-4px_rgba(139,92,246,0.3)]'
+        : 'border-transparent bg-transparent text-slate/80 hover:bg-white/70 hover:text-ink dark:text-slate-200 dark:hover:bg-violet-500/10 dark:hover:text-slate-100'
     }`;
 
   return (
     <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] xl:gap-6">
-      <aside className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-[#05070f] p-6 text-white shadow-[0_36px_60px_-42px_rgba(2,6,23,0.9)] dark:border-white/10 dark:bg-[linear-gradient(145deg,rgba(26,29,37,0.96),rgba(13,15,20,0.94),rgba(19,24,33,0.96))] dark:text-white dark:shadow-[0_36px_60px_-42px_rgba(0,0,0,0.78)] md:p-8">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(139,92,246,0.2),transparent_36%),radial-gradient(circle_at_100%_100%,rgba(217,70,239,0.16),transparent_38%)] dark:bg-[radial-gradient(circle_at_10%_0%,rgba(124,58,237,0.18),transparent_38%),radial-gradient(circle_at_100%_100%,rgba(168,85,247,0.14),transparent_40%)]" />
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.04),transparent_42%,rgba(255,255,255,0.02)_75%,transparent)] dark:bg-[linear-gradient(135deg,rgba(255,255,255,0.05),transparent_42%,rgba(255,255,255,0.025)_75%,transparent)]" />
-        </div>
-        <div className="relative z-10 flex h-full flex-col">
+      <aside className="relative overflow-hidden rounded-[2rem] border border-white/12 bg-[#0c0618] p-6 text-white shadow-[0_1px_3px_rgba(0,0,0,0.3),0_12px_32px_-12px_rgba(2,6,23,0.7)] dark:border-white/10 dark:bg-[#0a0416] dark:text-white dark:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] md:p-8">
+        <div className="relative flex h-full flex-col">
           <p className="hero-eyebrow w-fit border-white/20 bg-white/[0.05] text-white/85 dark:border-white/14 dark:bg-white/[0.06] dark:text-white/78">
             <Sparkles className="h-3.5 w-3.5" />
             Planes de suscripcion
@@ -526,7 +527,7 @@ export function LoginForm({
             <div className="relative grid grid-cols-2 items-stretch rounded-full border border-white/12 bg-white/[0.04] p-1 dark:border-white/10 dark:bg-black/20">
               <span
                 aria-hidden="true"
-                className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_14px_24px_-18px_rgba(148,163,184,0.45)] transition-transform duration-300 dark:bg-[linear-gradient(135deg,rgba(246,247,250,0.98),rgba(223,229,236,0.96))] dark:shadow-[0_14px_24px_-18px_rgba(0,0,0,0.42)] ${
+                className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_4px_12px_-6px_rgba(0,0,0,0.3)] transition-transform duration-300 dark:bg-slate-100 dark:shadow-[0_4px_12px_-6px_rgba(0,0,0,0.4)] ${
                   billingMode === 'monthly' ? 'translate-x-0' : 'translate-x-full'
                 }`}
               />
@@ -580,7 +581,7 @@ export function LoginForm({
                   onPress={() => handleSelectPlanId(plan.id)}
                   className={`rounded-[1rem] border px-3 py-2 text-left transition ${isLastOddMobileCard ? 'col-span-2 sm:col-span-1' : ''} ${
                     plan.isSelected
-                      ? 'border-violet-300/45 bg-violet-400/15 shadow-[0_16px_26px_-20px_rgba(139,92,246,0.4)] dark:border-white/14 dark:bg-[linear-gradient(135deg,rgba(124,58,237,0.12),rgba(168,85,247,0.09))] dark:shadow-[0_16px_26px_-20px_rgba(0,0,0,0.54)]'
+                      ? 'border-violet-300/45 bg-violet-400/15 shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)] dark:border-white/14 dark:bg-violet-500/[0.1] dark:shadow-[0_4px_16px_-8px_rgba(0,0,0,0.4)]'
                       : 'border-white/12 bg-white/[0.03] hover:bg-white/[0.07] dark:border-white/12 dark:bg-white/[0.03] dark:hover:bg-white/[0.07]'
                   }`}
                 >
@@ -601,7 +602,7 @@ export function LoginForm({
             })}
           </div>
 
-          <article className="mt-3 rounded-[1.35rem] border border-violet-300/28 bg-[linear-gradient(145deg,rgba(17,11,34,0.94),rgba(27,15,52,0.88))] p-4 text-white shadow-[0_24px_34px_-24px_rgba(139,92,246,0.42)] dark:border-white/10 dark:bg-[linear-gradient(145deg,rgba(28,20,46,0.95),rgba(17,12,30,0.92),rgba(23,16,38,0.94))] dark:text-white dark:shadow-[0_24px_34px_-24px_rgba(0,0,0,0.56)]">
+          <article className="mt-3 rounded-[1.35rem] border border-violet-300/28 bg-violet-950/80 p-4 text-white shadow-[0_4px_16px_-8px_rgba(139,92,246,0.25)] dark:border-white/10 dark:bg-violet-950/60 dark:text-white dark:shadow-[0_4px_16px_-8px_rgba(0,0,0,0.4)]">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-2xl font-semibold leading-tight text-white dark:text-white">
@@ -661,9 +662,9 @@ export function LoginForm({
         </div>
       </aside>
 
-      <div className="soft-panel rounded-[2rem] border-0 p-4 md:p-6">
-        <div className="rounded-[1.6rem] border border-white/75 bg-white/66 p-3 dark:border-white/10 dark:bg-white/[0.03]">
-          <div className="grid grid-cols-3 gap-1 rounded-[1.2rem] border border-white/80 bg-white/72 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] dark:border-white/10 dark:bg-black/20 dark:shadow-none">
+      <div className="soft-panel rounded-[2rem] border-0 p-4 dark:bg-[#0c0618] md:p-6">
+        <div className="rounded-[1.6rem] border border-white/75 bg-white/66 p-3 dark:border-violet-300/8 dark:bg-violet-950/30">
+          <div className="grid grid-cols-3 gap-1 rounded-[1.2rem] border border-white/80 bg-white/60 p-1.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-violet-300/8 dark:bg-violet-950/40 dark:shadow-none">
             <Button
               type="button"
               variant="light"
@@ -728,7 +729,7 @@ export function LoginForm({
 
         <div
           key={mode}
-          className="page-enter mt-4 rounded-[1.65rem] border border-white/75 bg-white/65 p-4 dark:border-white/10 dark:bg-white/[0.04]"
+          className="page-enter mt-4 rounded-[1.65rem] border border-white/75 bg-white/65 p-4 dark:border-violet-300/8 dark:bg-violet-950/30"
         >
           {mode === 'recover' ? (
             <form className="space-y-3" onSubmit={sendPasswordRecovery}>
@@ -737,6 +738,9 @@ export function LoginForm({
                 type="email"
                 label="Email"
                 labelPlacement="inside"
+                variant="bordered"
+                radius="lg"
+                classNames={inputClassNames}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
@@ -766,6 +770,9 @@ export function LoginForm({
                 type="password"
                 label="Nueva contrasena"
                 labelPlacement="inside"
+                variant="bordered"
+                radius="lg"
+                classNames={inputClassNames}
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
                 required
@@ -776,6 +783,9 @@ export function LoginForm({
                 type="password"
                 label="Confirmar contrasena"
                 labelPlacement="inside"
+                variant="bordered"
+                radius="lg"
+                classNames={inputClassNames}
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 required
@@ -815,6 +825,9 @@ export function LoginForm({
                   id="fullName"
                   label="Nombre y apellido"
                   labelPlacement="inside"
+                variant="bordered"
+                radius="lg"
+                classNames={inputClassNames}
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
                 />
@@ -825,6 +838,9 @@ export function LoginForm({
                 type="email"
                 label="Email"
                 labelPlacement="inside"
+                variant="bordered"
+                radius="lg"
+                classNames={inputClassNames}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 required
@@ -836,6 +852,9 @@ export function LoginForm({
                   type="password"
                   label="Contrasena"
                   labelPlacement="inside"
+                variant="bordered"
+                radius="lg"
+                classNames={inputClassNames}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
@@ -851,6 +870,7 @@ export function LoginForm({
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="submit"
+                  radius="lg"
                   isLoading={activeAction === (mode === 'login' ? 'login' : 'register')}
                   isDisabled={isBusy}
                   className="action-primary px-5 text-sm font-semibold"
@@ -880,8 +900,8 @@ export function LoginForm({
               </div>
 
               <div className="relative py-1">
-                <div className="h-px w-full bg-slate-200/90 dark:bg-white/10" />
-                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/75 bg-white px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/65 dark:border-white/10 dark:bg-slate-950 dark:text-slate-400">
+                <Divider className="bg-slate-200/90 dark:bg-violet-300/10" />
+                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/75 bg-white px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/65 dark:border-violet-300/12 dark:bg-[#0c0618] dark:text-violet-200/60">
                   Social
                 </span>
               </div>
@@ -889,8 +909,9 @@ export function LoginForm({
               <div className="grid gap-2 sm:grid-cols-2">
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="action-secondary w-full justify-center px-5 text-sm font-semibold"
+                  variant="bordered"
+                  radius="lg"
+                  className="w-full justify-center border-white/75 px-5 text-sm font-semibold text-ink dark:border-violet-300/15 dark:bg-violet-950/30 dark:text-slate-200"
                   isLoading={activeAction === 'google'}
                   isDisabled={isBusy}
                   onClick={() => {
@@ -901,8 +922,9 @@ export function LoginForm({
                 </Button>
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="action-secondary w-full justify-center px-5 text-sm font-semibold"
+                  variant="bordered"
+                  radius="lg"
+                  className="w-full justify-center border-white/75 px-5 text-sm font-semibold text-ink dark:border-violet-300/15 dark:bg-violet-950/30 dark:text-slate-200"
                   isLoading={activeAction === 'facebook'}
                   isDisabled={isBusy}
                   onClick={() => {
