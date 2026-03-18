@@ -503,31 +503,31 @@ export function LoginForm({
   return (
     <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] xl:gap-6">
       {/* Left panel - plans */}
-      <aside className="relative order-last overflow-hidden rounded-[2rem] border border-violet-500/15 bg-[#0a0416] p-6 text-white shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] lg:order-first md:p-8">
+      <aside className="login-plans-panel relative order-last overflow-hidden rounded-[2rem] border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:text-white dark:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] lg:order-first md:p-8">
         <div className="relative flex h-full flex-col">
-          <p className="hero-eyebrow w-fit border-white/20 bg-white/[0.05] text-white/85">
+          <p className="hero-eyebrow w-fit">
             <Sparkles className="h-3.5 w-3.5" />
             Planes de suscripcion
           </p>
-          <p className="mt-4 text-sm text-white/78">
+          <p className="login-plans-text-muted mt-4 text-sm text-slate/70">
             Los planes de {APP_NAME} empiezan desde{' '}
             {formatUyuCents(getSubscriptionPlanDescriptor('free').monthlyPriceCents)} / mes
           </p>
-          <h1 className="mt-7 text-balance text-3xl font-[family-name:var(--font-heading)] font-semibold leading-[1.07] tracking-tight text-white md:text-[2.15rem]">
+          <h1 className="mt-7 text-balance text-3xl font-[family-name:var(--font-heading)] font-semibold leading-[1.07] tracking-tight text-ink dark:text-white md:text-[2.15rem]">
             Elige el mejor plan para tu barberia
           </h1>
-          <p className="mt-3 max-w-md text-sm text-white/72">
+          <p className="login-plans-text-muted mt-3 max-w-md text-sm text-slate/65">
             Compara precios, funcionalidades y cambia entre pago mensual o anual en cuotas.
           </p>
 
-          <div className="mt-5 w-full rounded-[1.25rem] border border-white/12 bg-white/[0.03] p-2">
-            <p className="mb-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-white/72">
+          <div className="mt-5 w-full rounded-[1.25rem] border border-slate-200/60 bg-slate-50/50 p-2 dark:border-white/12 dark:bg-white/[0.03]">
+            <p className="login-plans-text-muted mb-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/60">
               Ahorra hasta {maxAnnualSavingsPercent}%
             </p>
-            <div className="relative grid grid-cols-2 items-stretch rounded-full border border-white/12 bg-black/20 p-1">
+            <div className="relative grid grid-cols-2 items-stretch rounded-full border border-slate-200/60 bg-slate-100/60 p-1 dark:border-white/12 dark:bg-black/20">
               <span
                 aria-hidden="true"
-                className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_4px_12px_-6px_rgba(0,0,0,0.4)] transition-transform duration-300 ${
+                className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-ink shadow-[0_4px_12px_-6px_rgba(15,23,42,0.3)] transition-transform duration-300 dark:bg-white dark:shadow-[0_4px_12px_-6px_rgba(0,0,0,0.4)] ${
                   billingMode === 'monthly' ? 'translate-x-0' : 'translate-x-full'
                 }`}
               />
@@ -537,7 +537,9 @@ export function LoginForm({
                 radius="full"
                 variant="light"
                 className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
-                  billingMode === 'monthly' ? 'text-slate-900' : 'text-white/78'
+                  billingMode === 'monthly'
+                    ? 'login-billing-active !text-white'
+                    : 'login-billing-inactive !text-slate/60'
                 }`}
                 aria-pressed={billingMode === 'monthly'}
                 onPress={() => {
@@ -552,7 +554,9 @@ export function LoginForm({
                 radius="full"
                 variant="light"
                 className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
-                  billingMode === 'annual_installments' ? 'text-slate-900' : 'text-white/78'
+                  billingMode === 'annual_installments'
+                    ? 'login-billing-active !text-white'
+                    : 'login-billing-inactive !text-slate/60'
                 }`}
                 aria-pressed={billingMode === 'annual_installments'}
                 onPress={() => {
@@ -579,47 +583,47 @@ export function LoginForm({
                   onPress={() => handleSelectPlanId(plan.id)}
                   className={`rounded-[1rem] border px-3 py-2 text-left transition ${isLastOddMobileCard ? 'col-span-2 sm:col-span-1' : ''} ${
                     plan.isSelected
-                      ? 'border-violet-300/45 bg-violet-400/15 shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)]'
-                      : 'border-white/12 bg-white/[0.03] hover:bg-white/[0.07]'
+                      ? 'border-violet-400/40 bg-violet-100/60 shadow-[0_4px_16px_-8px_rgba(139,92,246,0.2)] dark:border-violet-300/45 dark:bg-violet-400/15 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)]'
+                      : 'border-slate-200/60 bg-slate-50/40 hover:bg-slate-100/60 dark:border-white/12 dark:bg-white/[0.03] dark:hover:bg-white/[0.07]'
                   }`}
                 >
                   <p
                     className={`text-sm font-semibold ${
-                      plan.isSelected ? 'text-white' : 'text-white/86'
+                      plan.isSelected ? '!text-violet-800 login-plan-btn-name-selected' : '!text-ink/80 login-plan-btn-name'
                     }`}
                   >
                     {plan.name}
                   </p>
-                  <p className="mt-1 text-[11px] text-white/62">{plan.optionPrice}</p>
+                  <p className="login-plan-btn-price mt-1 text-[11px] text-slate/60">{plan.optionPrice}</p>
                 </Button>
               );
             })}
           </div>
 
-          <article className="mt-3 rounded-[1.35rem] border border-violet-300/28 bg-violet-950/80 p-4 text-white shadow-[0_4px_16px_-8px_rgba(139,92,246,0.25)]">
+          <article className="mt-3 rounded-[1.35rem] border border-violet-300/40 bg-violet-50/80 p-4 shadow-[0_4px_16px_-8px_rgba(139,92,246,0.15)] dark:border-violet-300/28 dark:bg-violet-950/80 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.25)]">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-2xl font-semibold leading-tight text-white">
+                <p className="login-plan-detail-name text-2xl font-semibold leading-tight text-ink dark:text-white">
                   {selectedPlan?.name}
                 </p>
-                <p className="mt-1 text-xs text-white/65">{selectedPlan?.description}</p>
+                <p className="login-plans-text-muted mt-1 text-xs text-slate/60">{selectedPlan?.description}</p>
               </div>
               {selectedPlan?.badge ? (
-                <span className="inline-flex shrink-0 rounded-full border border-violet-300/45 bg-violet-400/18 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-100">
+                <span className="login-plan-badge inline-flex shrink-0 rounded-full border border-violet-400/40 bg-violet-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-700 dark:border-violet-300/45 dark:bg-violet-400/18 dark:text-violet-100">
                   {selectedPlan.badge}
                 </span>
               ) : null}
             </div>
 
-            <div className="mt-3 border-t border-white/10 pt-3">
-              <p className="text-4xl font-semibold leading-none tracking-[-0.02em] text-white">
+            <div className="mt-3 border-t border-slate-200/60 pt-3 dark:border-white/10">
+              <p className="login-plan-detail-price text-4xl font-semibold leading-none tracking-[-0.02em] text-ink dark:text-white">
                 {billingMode === 'monthly'
                   ? `${formatUyuCents(selectedPlan?.monthlyPriceCents || 0)} / mes`
                   : (selectedPlan?.annualInstallmentCents || 0) > 0
                     ? `12x ${formatUyuCents(selectedPlan?.annualInstallmentCents || 0)} / mes`
                     : 'Gratis'}
               </p>
-              <p className="mt-2 text-sm text-white/68">
+              <p className="login-plans-text-muted mt-2 text-sm text-slate/60 dark:text-white/68">
                 {billingMode === 'monthly'
                   ? 'Facturacion mes a mes'
                   : (selectedPlan?.annualInstallmentCents || 0) > 0
@@ -632,9 +636,9 @@ export function LoginForm({
               {selectedPlanFeatures.map((feature) => (
                 <li
                   key={`${selectedPlan?.id || 'plan'}-${feature}`}
-                  className="flex items-start gap-2 text-sm text-white/86"
+                  className="login-plans-feature-item flex items-start gap-2 text-sm text-ink/80"
                 >
-                  <span className="mt-[0.1rem] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-200">
+                  <span className="mt-[0.1rem] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-200">
                     <Check className="h-3 w-3" />
                   </span>
                   <span>{feature}</span>
@@ -645,7 +649,7 @@ export function LoginForm({
             <Button
               type="button"
               variant="light"
-              className="mt-4 w-full rounded-xl border border-violet-300/45 bg-violet-400/18 px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-violet-100 transition hover:bg-violet-400/24"
+              className="login-cta-btn mt-4 w-full rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition"
               onPress={handleSelectPlanCta}
             >
               Elegir {selectedPlan?.name}

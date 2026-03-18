@@ -511,8 +511,43 @@ html.dark .login-cta-btn:hover {
   box-shadow: 0 0 28px -4px rgba(139, 92, 246, 0.7) !important;
 }
 
-html.dark .login-right-panel {
+html.dark .login-right-panel,
+html.dark .login-plans-panel {
   background-color: #0a0416 !important;
+}
+
+/* Plans panel dark mode text overrides */
+html.dark .login-plans-panel .login-plans-text-muted {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+html.dark .login-plans-panel .login-plans-feature-item {
+  color: rgba(255, 255, 255, 0.86) !important;
+}
+html.dark .login-plans-panel .login-plan-btn-name {
+  color: rgba(255, 255, 255, 0.86) !important;
+}
+html.dark .login-plans-panel .login-plan-btn-price {
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+html.dark .login-plans-panel .login-plan-btn-name-selected {
+  color: rgb(255, 255, 255) !important;
+}
+html.dark .login-plans-panel .login-billing-active {
+  color: rgb(15, 23, 42) !important;
+}
+html.dark .login-plans-panel .login-billing-inactive {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+html.dark .login-plans-panel .login-plan-detail-name {
+  color: rgb(255, 255, 255) !important;
+}
+html.dark .login-plans-panel .login-plan-detail-price {
+  color: rgb(255, 255, 255) !important;
+}
+html.dark .login-plans-panel .login-plan-badge {
+  background-color: rgba(167, 139, 250, 0.18) !important;
+  border-color: rgba(196, 181, 253, 0.45) !important;
+  color: rgb(237, 233, 254) !important;
 }
 
 html.dark .login-input-wrapper {
@@ -1519,7 +1554,7 @@ html.dark .meta-chip[data-tone='danger'] {
 }
 
 html.dark .mobile-marketplace-sheet {
-  --mobile-sheet-bg: rgb(2 6 23);
+  --mobile-sheet-bg: #0a0416;
 }
 
 .mobile-marketplace-sheet::before {
@@ -1651,6 +1686,19 @@ html.dark .marketplace-pin[data-active='true'] {
     0 0 0 4px rgb(255 255 255 / 0.72),
     0 0 0 10px rgb(37 99 235 / 0.16);
 }
+
+@keyframes map-dot-wave {
+  0%, 100% { transform: scale(1) translateZ(0); opacity: 1; }
+  25%      { transform: scale(0) translateZ(0); opacity: 0.4; }
+  50%      { transform: scale(1) translateZ(0); opacity: 1; }
+}
+
+.map-loading-dot {
+  will-change: transform, opacity;
+}
+.map-loading-dot:nth-child(1) { animation: map-dot-wave 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+.map-loading-dot:nth-child(2) { animation: map-dot-wave 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.2s infinite; }
+.map-loading-dot:nth-child(3) { animation: map-dot-wave 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.4s infinite; }
 
 .map-overlay-chip {
   position: absolute;
