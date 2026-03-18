@@ -984,7 +984,7 @@ export function LoginForm({
         <div className="mt-5 flex justify-center">
           <Link
             href="/book"
-            className="inline-flex items-center gap-1 text-xs text-slate/40 transition-all duration-200 hover:text-sky-600 dark:text-violet-200/40 dark:hover:text-violet-200/70"
+            className="inline-flex items-center gap-1 text-xs text-slate/40 transition-all duration-200 hover:text-sky-600 dark:text-violet-100/65 dark:hover:text-violet-100/90"
           >
             Seguir como invitado
             <ChevronRight className="h-3 w-3" />
