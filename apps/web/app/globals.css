@@ -511,6 +511,10 @@ html.dark .login-cta-btn:hover {
   box-shadow: 0 0 28px -4px rgba(139, 92, 246, 0.7) !important;
 }
 
+html.dark .login-right-panel {
+  background-color: #0a0416 !important;
+}
+
 html.dark .login-input-wrapper {
   background-color: rgba(46, 16, 80, 0.4) !important;
   border-color: rgba(167, 139, 250, 0.12) !important;
