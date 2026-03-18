@@ -474,20 +474,38 @@ html.dark .soft-panel {
 }
 
 .login-input-wrapper {
-  background-color: rgba(139, 92, 246, 0.06) !important;
-  border-color: rgba(139, 92, 246, 0.18) !important;
+  background-color: rgba(241, 245, 249, 0.6) !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
 }
 
 .login-input-wrapper:hover {
-  border-color: rgba(139, 92, 246, 0.35) !important;
+  border-color: rgba(148, 163, 184, 0.45) !important;
 }
 
 .login-input-label {
-  color: rgba(71, 55, 105, 0.7) !important;
+  color: rgba(71, 85, 105, 0.7) !important;
 }
 
 .login-input-field {
-  color: rgb(30, 20, 60) !important;
+  color: rgb(15, 23, 42) !important;
+}
+
+.login-cta-btn {
+  background: linear-gradient(135deg, rgb(14 165 233), rgb(244 63 94)) !important;
+  box-shadow: 0 14px 24px -10px rgba(14, 165, 233, 0.35) !important;
+}
+
+.login-cta-btn:hover {
+  box-shadow: 0 14px 28px -8px rgba(14, 165, 233, 0.5) !important;
+}
+
+html.dark .login-cta-btn {
+  background: linear-gradient(135deg, rgb(124 58 237), rgb(217 70 239)) !important;
+  box-shadow: 0 0 20px -4px rgba(139, 92, 246, 0.5) !important;
+}
+
+html.dark .login-cta-btn:hover {
+  box-shadow: 0 0 28px -4px rgba(139, 92, 246, 0.7) !important;
 }
 
 html.dark .login-input-wrapper {
