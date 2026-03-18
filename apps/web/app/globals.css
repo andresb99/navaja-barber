@@ -490,6 +490,31 @@ html.dark .soft-panel {
   color: rgb(15, 23, 42) !important;
 }
 
+.login-social-btn {
+  background: rgb(248 250 252) !important;
+  color: rgb(30 41 59) !important;
+  border: 1px solid rgb(226 232 240) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+
+.login-social-btn:hover {
+  background: rgb(241 245 249) !important;
+  border-color: rgb(203 213 225) !important;
+  box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.1) !important;
+}
+
+html.dark .login-social-btn {
+  background: rgba(139, 92, 246, 0.06) !important;
+  color: rgb(226 232 240) !important;
+  border: 1px solid rgba(139, 92, 246, 0.15) !important;
+  box-shadow: none !important;
+}
+
+html.dark .login-social-btn:hover {
+  background: rgba(139, 92, 246, 0.12) !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+}
+
 .login-cta-btn {
   background: #0f1c2e !important;
   color: #ffffff !important;
@@ -533,10 +558,10 @@ html.dark .login-plans-panel .login-plan-btn-name-selected {
   color: rgb(255, 255, 255) !important;
 }
 html.dark .login-plans-panel .login-billing-active {
-  color: rgb(15, 23, 42) !important;
+  color: rgb(255, 255, 255) !important;
 }
 html.dark .login-plans-panel .login-billing-inactive {
-  color: rgba(255, 255, 255, 0.75) !important;
+  color: rgba(255, 255, 255, 0.60) !important;
 }
 html.dark .login-plans-panel .login-plan-detail-name {
   color: rgb(255, 255, 255) !important;
@@ -565,17 +590,6 @@ html.dark .login-input-label {
 
 html.dark .login-input-field {
   color: rgb(226, 232, 240) !important;
-}
-
-html.dark .login-social-btn {
-  border-color: rgba(167, 139, 250, 0.15) !important;
-  background-color: rgba(46, 16, 80, 0.3) !important;
-  color: rgb(226, 232, 240) !important;
-}
-
-html.dark .login-social-btn:hover {
-  border-color: rgba(167, 139, 250, 0.25) !important;
-  background-color: rgba(46, 16, 80, 0.45) !important;
 }
 
 /* Button variant: soft gradient matching nav active pill */

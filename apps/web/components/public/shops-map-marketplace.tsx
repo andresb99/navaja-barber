@@ -2485,10 +2485,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
           {(isViewportLoading || isApplyingSearch) && !showInitialMapOverlay ? (
             <div className="pointer-events-none absolute inset-x-0 top-[6.75rem] z-20 flex justify-center xl:top-3">
-              <div className="flex items-center gap-[5px] rounded-full border border-white/60 bg-white/92 px-3.5 py-2 shadow-[0_8px_24px_-10px_rgba(15,23,42,0.2)] backdrop-blur-sm dark:border-white/10 dark:bg-[#0a0416]/85">
-                <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-slate-800 dark:bg-violet-400" />
-                <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-slate-800 dark:bg-violet-400" />
-                <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-slate-800 dark:bg-violet-400" />
+              <div className="flex items-center gap-[5px] rounded-full border border-slate-200/80 bg-white px-3.5 py-2 shadow-[0_4px_16px_-6px_rgba(15,23,42,0.15)] dark:border-white/10 dark:bg-[#0a0416]/85">
+                <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-ink dark:bg-violet-400" />
+                <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-ink dark:bg-violet-400" />
+                <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-ink dark:bg-violet-400" />
               </div>
             </div>
           ) : null}

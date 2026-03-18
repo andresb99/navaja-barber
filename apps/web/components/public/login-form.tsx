@@ -503,7 +503,7 @@ export function LoginForm({
   return (
     <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] xl:gap-6">
       {/* Left panel - plans */}
-      <aside className="login-plans-panel relative order-last overflow-hidden rounded-[2rem] border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:text-white dark:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] lg:order-first md:p-8">
+      <aside className="login-plans-panel relative order-last overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-white to-slate-50/80 p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:from-transparent dark:via-transparent dark:to-transparent dark:text-white dark:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] lg:order-first md:p-8">
         <div className="relative flex h-full flex-col">
           <p className="hero-eyebrow w-fit">
             <Sparkles className="h-3.5 w-3.5" />
@@ -520,14 +520,14 @@ export function LoginForm({
             Compara precios, funcionalidades y cambia entre pago mensual o anual en cuotas.
           </p>
 
-          <div className="mt-5 w-full rounded-[1.25rem] border border-slate-200/60 bg-slate-50/50 p-2 dark:border-white/12 dark:bg-white/[0.03]">
-            <p className="login-plans-text-muted mb-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/60">
+          <div className="mt-5 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 p-2 dark:border-white/12 dark:bg-white/[0.03]">
+            <p className="login-plans-text-muted mb-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-500/70 dark:text-slate/60">
               Ahorra hasta {maxAnnualSavingsPercent}%
             </p>
-            <div className="relative grid grid-cols-2 items-stretch rounded-full border border-slate-200/60 bg-slate-100/60 p-1 dark:border-white/12 dark:bg-black/20">
+            <div className="relative grid grid-cols-2 items-stretch rounded-full border border-slate-200 bg-slate-100/80 p-1 dark:border-white/12 dark:bg-black/20">
               <span
                 aria-hidden="true"
-                className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-ink shadow-[0_4px_12px_-6px_rgba(15,23,42,0.3)] transition-transform duration-300 dark:bg-white dark:shadow-[0_4px_12px_-6px_rgba(0,0,0,0.4)] ${
+                className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.1)] transition-transform duration-300 dark:bg-gradient-to-r dark:from-violet-600/80 dark:to-fuchsia-600/80 dark:shadow-[0_0_12px_rgba(139,92,246,0.4)] ${
                   billingMode === 'monthly' ? 'translate-x-0' : 'translate-x-full'
                 }`}
               />
@@ -538,8 +538,8 @@ export function LoginForm({
                 variant="light"
                 className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
                   billingMode === 'monthly'
-                    ? 'login-billing-active !text-white'
-                    : 'login-billing-inactive !text-slate/60'
+                    ? 'login-billing-active !text-ink dark:!text-white'
+                    : 'login-billing-inactive !text-slate/54 hover:!text-ink dark:!text-violet-200/60 dark:hover:!text-violet-100'
                 }`}
                 aria-pressed={billingMode === 'monthly'}
                 onPress={() => {
@@ -555,8 +555,8 @@ export function LoginForm({
                 variant="light"
                 className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
                   billingMode === 'annual_installments'
-                    ? 'login-billing-active !text-white'
-                    : 'login-billing-inactive !text-slate/60'
+                    ? 'login-billing-active !text-ink dark:!text-white'
+                    : 'login-billing-inactive !text-slate/54 hover:!text-ink dark:!text-violet-200/60 dark:hover:!text-violet-100'
                 }`}
                 aria-pressed={billingMode === 'annual_installments'}
                 onPress={() => {
@@ -583,8 +583,8 @@ export function LoginForm({
                   onPress={() => handleSelectPlanId(plan.id)}
                   className={`rounded-[1rem] border px-3 py-2 text-left transition ${isLastOddMobileCard ? 'col-span-2 sm:col-span-1' : ''} ${
                     plan.isSelected
-                      ? 'border-violet-400/40 bg-violet-100/60 shadow-[0_4px_16px_-8px_rgba(139,92,246,0.2)] dark:border-violet-300/45 dark:bg-violet-400/15 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)]'
-                      : 'border-slate-200/60 bg-slate-50/40 hover:bg-slate-100/60 dark:border-white/12 dark:bg-white/[0.03] dark:hover:bg-white/[0.07]'
+                      ? 'border-violet-400 bg-violet-50 shadow-[0_0_0_1px_rgba(139,92,246,0.15),0_4px_16px_-8px_rgba(139,92,246,0.25)] dark:border-violet-300/45 dark:bg-violet-400/15 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)]'
+                      : 'border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:shadow-[0_2px_6px_-2px_rgba(15,23,42,0.1)] dark:border-white/12 dark:bg-white/[0.03] dark:shadow-none dark:hover:bg-white/[0.07]'
                   }`}
                 >
                   <p
@@ -600,7 +600,7 @@ export function LoginForm({
             })}
           </div>
 
-          <article className="mt-3 rounded-[1.35rem] border border-violet-300/40 bg-violet-50/80 p-4 shadow-[0_4px_16px_-8px_rgba(139,92,246,0.15)] dark:border-violet-300/28 dark:bg-violet-950/80 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.25)]">
+          <article className="mt-3 rounded-[1.35rem] border border-violet-300/60 bg-gradient-to-br from-violet-50 to-white p-4 shadow-[0_2px_12px_-4px_rgba(139,92,246,0.18)] dark:border-violet-300/28 dark:from-violet-950/80 dark:to-violet-950/60 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.25)]">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="login-plan-detail-name text-2xl font-semibold leading-tight text-ink dark:text-white">
@@ -615,7 +615,7 @@ export function LoginForm({
               ) : null}
             </div>
 
-            <div className="mt-3 border-t border-slate-200/60 pt-3 dark:border-white/10">
+            <div className="mt-3 border-t border-violet-200/60 pt-3 dark:border-white/10">
               <p className="login-plan-detail-price text-4xl font-semibold leading-none tracking-[-0.02em] text-ink dark:text-white">
                 {billingMode === 'monthly'
                   ? `${formatUyuCents(selectedPlan?.monthlyPriceCents || 0)} / mes`
@@ -661,7 +661,7 @@ export function LoginForm({
       {/* Right panel - auth form */}
       <div className="login-right-panel flex flex-col rounded-[2rem] border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:shadow-[0_0_80px_-20px_rgba(139,92,246,0.3)] md:p-8">
         {/* Mode switcher */}
-        <div className="relative rounded-[1.2rem] border border-slate-200/60 bg-slate-50/60 p-1 dark:border-violet-500/15 dark:bg-[rgba(139,92,246,0.06)]">
+        <div className="relative rounded-[1.2rem] border border-slate-200 bg-slate-100/80 p-1 dark:border-violet-500/15 dark:bg-[rgba(139,92,246,0.06)]">
           {/* Sliding active pill */}
           <span
             aria-hidden="true"
@@ -921,9 +921,9 @@ export function LoginForm({
               <div className="grid gap-3 sm:grid-cols-2">
                 <Button
                   type="button"
-                  variant="bordered"
+                  variant="flat"
                   radius="lg"
-                  className="w-full justify-center gap-2 border-slate-200/70 bg-transparent py-3 text-sm font-semibold text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50/60 dark:border-[rgba(139,92,246,0.15)] dark:text-slate-200 dark:hover:border-violet-400/30 dark:hover:bg-[rgba(139,92,246,0.1)]"
+                  className="login-social-btn login-social-google w-full gap-2.5 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98]"
                   isLoading={activeAction === 'google'}
                   isDisabled={isBusy}
                   onClick={() => {
@@ -931,7 +931,7 @@ export function LoginForm({
                   }}
                   startContent={
                     activeAction !== 'google' ? (
-                      <svg className="h-4 w-4" viewBox="0 0 24 24">
+                      <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24">
                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" fill="#4285F4"/>
                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -944,9 +944,9 @@ export function LoginForm({
                 </Button>
                 <Button
                   type="button"
-                  variant="bordered"
+                  variant="flat"
                   radius="lg"
-                  className="w-full justify-center gap-2 border-slate-200/70 bg-transparent py-3 text-sm font-semibold text-slate-700 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50/60 dark:border-[rgba(139,92,246,0.15)] dark:text-slate-200 dark:hover:border-violet-400/30 dark:hover:bg-[rgba(139,92,246,0.1)]"
+                  className="login-social-btn login-social-facebook w-full gap-2.5 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98]"
                   isLoading={activeAction === 'facebook'}
                   isDisabled={isBusy}
                   onClick={() => {
@@ -954,7 +954,7 @@ export function LoginForm({
                   }}
                   startContent={
                     activeAction !== 'facebook' ? (
-                      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="#1877F2">
+                      <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="#1877F2">
                         <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                       </svg>
                     ) : undefined
