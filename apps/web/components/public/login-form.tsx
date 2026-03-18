@@ -754,7 +754,7 @@ export function LoginForm({
                 type="submit"
                 isLoading={activeAction === 'recover'}
                 isDisabled={isBusy}
-                radius="xl"
+                radius="lg"
                 className="login-cta-btn w-full py-3 text-sm font-semibold text-white transition-all duration-200"
               >
                 {activeAction === 'recover'
@@ -803,7 +803,7 @@ export function LoginForm({
                   type="submit"
                   isLoading={activeAction === 'reset'}
                   isDisabled={isBusy || !hasRecoverySession}
-                  radius="xl"
+                  radius="lg"
                   className="login-cta-btn flex-1 py-3 text-sm font-semibold text-white transition-all duration-200"
                 >
                   {activeAction === 'reset' ? 'Actualizando...' : 'Guardar nueva contrasena'}
@@ -811,7 +811,7 @@ export function LoginForm({
                 <Button
                   type="button"
                   variant="bordered"
-                  radius="xl"
+                  radius="lg"
                   className="border-slate-200/70 py-3 text-sm font-semibold text-sky-600 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 dark:border-violet-500/30 dark:text-violet-300 dark:hover:border-violet-400/50 dark:hover:bg-violet-500/10"
                   onClick={() => {
                     setMode('recover');
@@ -878,7 +878,7 @@ export function LoginForm({
               {/* Primary action button */}
               <Button
                 type="submit"
-                radius="xl"
+                radius="lg"
                 isLoading={activeAction === (mode === 'login' ? 'login' : 'register')}
                 isDisabled={isBusy}
                 className="login-cta-btn w-full py-3 text-sm font-semibold text-white transition-all duration-200"
