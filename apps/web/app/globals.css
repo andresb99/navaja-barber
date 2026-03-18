@@ -536,6 +536,40 @@ html.dark .login-social-btn:hover {
   background-color: rgba(46, 16, 80, 0.45) !important;
 }
 
+/* Button variant: soft gradient matching nav active pill */
+.btn-gradient-soft {
+  border-color: transparent !important;
+  background: linear-gradient(135deg, rgb(14 165 233 / 0.14), rgb(244 63 94 / 0.1)) !important;
+  color: rgb(var(--ink)) !important;
+  box-shadow: 0 14px 24px -22px rgba(14, 165, 233, 0.3) !important;
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease !important;
+}
+
+.btn-gradient-soft:hover {
+  background: linear-gradient(135deg, rgb(14 165 233 / 0.2), rgb(244 63 94 / 0.15)) !important;
+  box-shadow: 0 14px 28px -20px rgba(14, 165, 233, 0.4) !important;
+  transform: translateY(-1px) !important;
+}
+
+html.dark .btn-gradient-soft {
+  border-color: rgb(139 92 246 / 0.3) !important;
+  background:
+    linear-gradient(135deg, rgb(139 92 246 / 0.15), rgb(56 189 248 / 0.1)),
+    linear-gradient(135deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.01)) !important;
+  color: rgb(248 250 252) !important;
+  box-shadow: 0 16px 28px -24px rgba(139, 92, 246, 0.4) !important;
+}
+
+html.dark .btn-gradient-soft:hover {
+  background:
+    linear-gradient(135deg, rgb(139 92 246 / 0.22), rgb(56 189 248 / 0.16)),
+    linear-gradient(135deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.01)) !important;
+  box-shadow: 0 16px 32px -22px rgba(139, 92, 246, 0.55) !important;
+}
+
 .section-hero {
   position: relative;
   min-width: 0;
