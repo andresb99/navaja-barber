@@ -1,5 +1,8 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import Link from 'next/link';
+import { Button, Card, CardBody, Chip, Divider } from '@heroui/react';
 import { Container } from '@/components/heroui/container';
 import { cn } from '@/lib/cn';
 
@@ -101,16 +104,29 @@ export function MarketingHero({
     <Container variant="hero" className={cn(containerClassName, className)}>
       <div className={layoutClassName}>
         <div>
-          <p className="hero-eyebrow">{eyebrow}</p>
+          <Chip
+            variant="bordered"
+            size="sm"
+            classNames={{
+              base: 'border-white/60 bg-white/50 dark:border-white/10 dark:bg-white/5',
+              content:
+                'text-[0.68rem] font-bold uppercase tracking-[0.16em] text-slate/84 dark:text-slate-300',
+            }}
+          >
+            {eyebrow}
+          </Chip>
           <h1 className={titleClassName}>{title}</h1>
           <p className={descriptionClassName}>{description}</p>
 
           {actions?.length ? (
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               {actions.map((action, index) => (
-                <Link
+                <Button
                   key={`${action.href}-${index}`}
+                  as={Link}
                   href={action.href}
+                  radius="full"
+                  size="lg"
                   className={cn(
                     action.variant === 'secondary'
                       ? marketingCtaClassNames.heroSecondary
@@ -119,7 +135,7 @@ export function MarketingHero({
                   )}
                 >
                   {action.label}
-                </Link>
+                </Button>
               ))}
             </div>
           ) : null}
@@ -156,21 +172,29 @@ export function MarketingStatTile({
   detailClassName,
 }: MarketingStat) {
   return (
-    <div className={cn('stat-tile', className)}>
-      <p className={marketingStatLabelClassName}>{label}</p>
-      <p className={cn(marketingStatValueClassName, valueClassName)}>{value}</p>
-      {detail ? (
-        <p className={cn('mt-1 text-xs text-slate/70 dark:text-slate-300', detailClassName)}>
-          {detail}
-        </p>
-      ) : null}
-    </div>
+    <Card
+      shadow="sm"
+      classNames={{
+        base: cn('stat-tile border-1', className),
+        body: 'p-0',
+      }}
+    >
+      <CardBody>
+        <p className={marketingStatLabelClassName}>{label}</p>
+        <p className={cn(marketingStatValueClassName, valueClassName)}>{value}</p>
+        {detail ? (
+          <p className={cn('mt-1 text-xs text-slate/70 dark:text-slate-300', detailClassName)}>
+            {detail}
+          </p>
+        ) : null}
+      </CardBody>
+    </Card>
   );
 }
 
 export function MarketingPanel({
   eyebrow,
-  eyebrowClassName = 'hero-eyebrow',
+  eyebrowClassName,
   title,
   description,
   className,
@@ -182,14 +206,34 @@ export function MarketingPanel({
   const hasHeader = Boolean(eyebrow || title || description);
 
   return (
-    <div className={cn(marketingPanelClassName, className)}>
-      {eyebrow ? <p className={eyebrowClassName}>{eyebrow}</p> : null}
-      {title ? <h2 className={cn(eyebrow && 'mt-3', titleClassName)}>{title}</h2> : null}
-      {description ? <p className={descriptionClassName}>{description}</p> : null}
-      {children ? (
-        <div className={cn(hasHeader && 'mt-4', contentClassName)}>{children}</div>
-      ) : null}
-    </div>
+    <Card
+      shadow="none"
+      classNames={{
+        base: cn(marketingPanelClassName, className),
+        body: 'p-0',
+      }}
+    >
+      <CardBody>
+        {eyebrow ? (
+          <Chip
+            variant="bordered"
+            size="sm"
+            className={eyebrowClassName}
+            classNames={{
+              base: 'border-white/60 bg-white/50 dark:border-white/10 dark:bg-white/5',
+              content:
+                'text-[0.68rem] font-bold uppercase tracking-[0.16em] text-slate/84 dark:text-slate-300',
+            }}
+          >
+            {eyebrow}
+          </Chip>
+        ) : null}
+        {title ? <h2 className={cn(eyebrow && 'mt-3', titleClassName)}>{title}</h2> : null}
+        {description ? <p className={descriptionClassName}>{description}</p> : null}
+        {hasHeader && children ? <Divider className="my-4 bg-white/20 dark:bg-white/5" /> : null}
+        {children ? <div className={contentClassName}>{children}</div> : null}
+      </CardBody>
+    </Card>
   );
 }
 
@@ -219,14 +263,30 @@ export function MarketingSurfaceCard({
 
   if (href) {
     return (
-      <Link
+      <Card
+        as={Link}
         href={href}
-        className={cn(marketingSurfaceCardClassName, 'block no-underline', className)}
+        isPressable
+        shadow="sm"
+        classNames={{
+          base: cn(marketingSurfaceCardClassName, 'no-underline', className),
+          body: 'p-0',
+        }}
       >
-        {content}
-      </Link>
+        <CardBody>{content}</CardBody>
+      </Card>
     );
   }
 
-  return <div className={cn(marketingSurfaceCardClassName, className)}>{content}</div>;
+  return (
+    <Card
+      shadow="sm"
+      classNames={{
+        base: cn(marketingSurfaceCardClassName, className),
+        body: 'p-0',
+      }}
+    >
+      <CardBody>{content}</CardBody>
+    </Card>
+  );
 }

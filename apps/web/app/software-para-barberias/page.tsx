@@ -4,7 +4,8 @@ import {
   publicMarketingSoftwareHero,
   publicMarketingSoftwareSections,
 } from '@navaja/shared';
-import { MarketingHero, MarketingPanel, MarketingSurfaceCard } from '@/components/public/marketing';
+import { MarketingHero, MarketingPanel } from '@/components/public/marketing';
+import { MarketingFaqAccordion } from '@/components/public/marketing-faq';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 
 export const metadata: Metadata = buildSitePageMetadata({
@@ -43,15 +44,7 @@ export default function SoftwareParaBarberiasPage() {
         title="FAQ para barberias"
         titleClassName="font-[family-name:var(--font-heading)] text-3xl font-semibold text-ink dark:text-slate-100"
       >
-        <div className="grid gap-3 md:grid-cols-3">
-          {publicMarketingSoftwareFaqs.map((item) => (
-            <MarketingSurfaceCard
-              key={item.question}
-              title={item.question}
-              description={item.answer}
-            />
-          ))}
-        </div>
+        <MarketingFaqAccordion items={publicMarketingSoftwareFaqs} />
       </MarketingPanel>
     </section>
   );
