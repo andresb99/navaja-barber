@@ -3,13 +3,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BookingFlow } from '@/components/public/booking-flow';
 import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
-import { buildTenantPublicHref } from '@/lib/shop-links';
+import { buildTenantPublicHref, buildTenantRootHref } from '@/lib/shop-links';
 import { getShopMercadoPagoAccountSummary } from '@/lib/shop-payment-accounts.server';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 import { Container } from '@/components/heroui/container';
+import { ShopPageBreadcrumb as ShopBreadcrumb } from '@/components/public/shop-page-breadcrumb';
 
 interface ShopBookPageProps {
   params: Promise<{ slug: string }>;
@@ -114,7 +115,7 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
   const supportsOnlinePayment = Boolean(
     paymentAccount?.isActive && paymentAccount.status === 'connected',
   );
-  const profileHref = buildTenantPublicHref(shop.slug, routeContext.mode);
+  const profileHref = buildTenantRootHref(shop.slug);
 
   if (!hasActiveServices || !hasActiveStaff) {
     const emptyTitle = !hasActiveServices
@@ -126,6 +127,7 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
 
     return (
       <section className="space-y-6">
+        <ShopBreadcrumb shopName={shop.name} shopHref={profileHref} />
         <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
           <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
             <div>
@@ -200,6 +202,7 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
 
   return (
     <section className="space-y-6">
+      <ShopBreadcrumb shopName={shop.name} shopHref={profileHref} />
       <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div>

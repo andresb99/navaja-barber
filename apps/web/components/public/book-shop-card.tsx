@@ -6,7 +6,7 @@ import { Card, CardFooter, CardHeader } from '@heroui/card';
 import { ArrowUpRight, BadgeCheck, MessageSquareText, Star } from 'lucide-react';
 import { useRef } from 'react';
 import { MediaShowcase } from '@/components/public/media-showcase';
-import { buildShopHref } from '@/lib/shop-links';
+import { buildShopHref, buildTenantRootHref } from '@/lib/shop-links';
 import type { MarketplaceShop } from '@/lib/shops';
 
 interface BookShopCardProps {
@@ -47,7 +47,7 @@ function isInteractiveTarget(target: EventTarget | null) {
 }
 
 export function BookShopCard({ shop }: BookShopCardProps) {
-  const profileHref = buildShopHref(shop.slug);
+  const profileHref = buildTenantRootHref(shop.slug);
   const bookingHref = buildShopHref(shop.slug, 'book');
   const pointerStartRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
   const pointerMovedRef = useRef(false);

@@ -7,7 +7,7 @@ import { SelectItem } from '@heroui/select';
 import { LoaderCircle, LocateFixed } from 'lucide-react';
 import { SurfaceSelect } from '@/components/heroui/surface-select';
 import { CourseMediaCard } from '@/components/public/course-media-card';
-import { buildShopHref } from '@/lib/shop-links';
+import { buildShopHref, buildTenantRootHref } from '@/lib/shop-links';
 import type { MarketplaceShop } from '@/lib/shops';
 
 interface MarketplaceCourseCatalogItem {
@@ -213,7 +213,7 @@ export function CoursesMarketplaceCatalog({ items }: CoursesMarketplaceCatalogPr
             subPriceLabel={`Hasta 12 cuotas sin interes de ${formatCurrency(monthlyInstallment)}`}
             primaryHref={`/courses/${encodeURIComponent(course.id)}`}
             primaryLabel="Ver curso"
-            secondaryHref={buildShopHref(shop.slug, 'courses')}
+            secondaryHref={buildTenantRootHref(shop.slug, 'courses')}
             secondaryLabel="Ver academia"
           />
         );

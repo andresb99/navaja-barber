@@ -6,7 +6,9 @@ import { CourseReviewsSection } from '@/components/public/course-reviews-section
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
+import { buildTenantRootHref } from '@/lib/shop-links';
 import { Container } from '@/components/heroui/container';
+import { ShopPageBreadcrumb } from '@/components/public/shop-page-breadcrumb';
 
 interface CourseDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -155,6 +157,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
 
   return (
     <section className="space-y-10">
+      <ShopPageBreadcrumb shopName={shop.name} shopHref={buildTenantRootHref(shop.slug, 'courses')} />
       {/* ── Hero ─────────────────────────────────── */}
       <Container variant="hero" className="soft-panel overflow-hidden p-0">
         {imageUrl ? (

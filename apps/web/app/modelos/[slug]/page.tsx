@@ -4,10 +4,11 @@ import { notFound } from 'next/navigation';
 import { formatCurrency } from '@navaja/shared';
 import { getOpenModelCalls } from '@/lib/modelos';
 import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
-import { buildTenantModelRegistrationHref } from '@/lib/shop-links';
+import { buildTenantModelRegistrationHref, buildTenantRootHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 import { Container } from '@/components/heroui/container';
+import { ShopPageBreadcrumb } from '@/components/public/shop-page-breadcrumb';
 
 interface ShopModelosPageProps {
   params: Promise<{ slug: string }>;
@@ -42,6 +43,7 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
 
   return (
     <section className="space-y-6">
+      <ShopPageBreadcrumb shopName={shop.name} shopHref={buildTenantRootHref(shop.slug)} />
       <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>
