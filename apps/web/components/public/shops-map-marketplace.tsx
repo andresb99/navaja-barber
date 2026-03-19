@@ -2182,7 +2182,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   const mobileSheetClassName = cn(
     'pointer-events-auto relative z-10',
     isMobileViewportActive
-      ? 'mobile-marketplace-sheet flex w-full h-[calc(100svh-9.5rem)] max-h-[calc(100svh-9.5rem)] flex-col rounded-t-[2.25rem] rounded-b-none border border-slate-200/60 bg-white shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] dark:border-violet-500/15 dark:bg-[#0a0416]'
+      ? 'mobile-marketplace-sheet flex w-full h-[calc(100svh-9.5rem)] max-h-[calc(100svh-9.5rem)] flex-col rounded-t-[2.25rem] rounded-b-none border border-slate-200/60 bg-surface-sheet shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] dark:border-white/8'
       : 'relative z-10 rounded-[2.25rem] border border-white/70 bg-white/95 p-4 shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/94 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none xl:backdrop-blur-0 xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden',
     !isMobileViewportActive && '-mt-14 xl:mt-0',
     shouldHideMobileSheetForMapPreview && 'pointer-events-none opacity-0',
@@ -2195,7 +2195,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   if (isMobileViewport === null) {
     return (
       <div className="relative -mx-4 -mb-16 -mt-5 flex h-[calc(100dvh-4.75rem)] flex-col overflow-hidden sm:-mx-6 md:-mb-[4.5rem] md:-mt-7 xl:mx-0 xl:mb-0 xl:mt-0">
-        <div className="marketplace-map-shell relative flex h-full min-h-0 items-center justify-center overflow-hidden rounded-none border-0 bg-slate-100/60 p-0 shadow-none dark:bg-[#0a0416] xl:rounded-[1.4rem]">
+        <div className="marketplace-map-shell relative flex h-full min-h-0 items-center justify-center overflow-hidden rounded-none border-0 bg-slate-100/60 p-0 shadow-none dark:bg-page-bg xl:rounded-[1.4rem]">
           <div className="flex flex-col items-center gap-4">
             <div className="relative flex h-12 w-12 items-center justify-center">
               <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-violet-400 dark:border-t-violet-300" />
@@ -2390,24 +2390,22 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
           <div
             className={cn(
               isMobileViewport
-                ? 'mobile-sheet-surface mt-0 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-24 pt-5'
+                ? 'mobile-sheet-surface mt-0 min-h-0 flex-1 px-4 pb-4 pt-5'
                 : 'mt-5 xl:flex-1 xl:min-h-0',
               isMobileViewport &&
                 mobileSheetStage === 'collapsed' &&
                 'pointer-events-none opacity-0',
             )}
           >
-            {!isMobileViewport ? (
-              <ScrollShadow hideScrollBar size={20} className="h-full overflow-y-auto pb-8 pr-0.5">
-                <MarketplaceCardsSection
-                  showCardSkeletons={showCardSkeletons}
-                  filteredShops={filteredShops}
-                  selectedShopId={selectedShopCardId}
-                  activeSearchMode={activeSearchMode}
-                  onFocus={focusShop}
-                />
-              </ScrollShadow>
-            ) : (
+            <ScrollShadow
+              hideScrollBar
+              size={20}
+              className={cn(
+                isMobileViewport
+                  ? 'h-full overflow-y-auto overscroll-contain'
+                  : 'h-full overflow-y-auto pb-8 pr-0.5',
+              )}
+            >
               <MarketplaceCardsSection
                 showCardSkeletons={showCardSkeletons}
                 filteredShops={filteredShops}
@@ -2415,7 +2413,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                 activeSearchMode={activeSearchMode}
                 onFocus={focusShop}
               />
-            )}
+            </ScrollShadow>
           </div>
         </div>
       </div>
@@ -2521,7 +2519,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
           {(isViewportLoading || isApplyingSearch) && !showInitialMapOverlay ? (
             <div className="pointer-events-none absolute inset-x-0 top-[6.75rem] z-20 flex justify-center xl:top-3">
-              <div className="flex items-center gap-[5px] rounded-full border border-slate-200/80 bg-white px-3.5 py-2 shadow-[0_4px_16px_-6px_rgba(15,23,42,0.15)] dark:border-white/10 dark:bg-[#0a0416]/85">
+              <div className="flex items-center gap-[5px] rounded-full border border-slate-200/80 bg-white px-3.5 py-2 shadow-[0_4px_16px_-6px_rgba(15,23,42,0.15)] dark:border-white/10 dark:bg-page-bg/85">
                 <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-ink dark:bg-violet-400" />
                 <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-ink dark:bg-violet-400" />
                 <span className="map-loading-dot h-[7px] w-[7px] rounded-full bg-ink dark:bg-violet-400" />

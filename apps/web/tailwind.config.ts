@@ -18,6 +18,8 @@ const config: Config = {
   			slate: 'rgb(var(--slate) / <alpha-value>)',
   			focusLight: 'rgb(var(--focus-light) / <alpha-value>)',
   			focusDark: 'rgb(var(--focus-dark) / <alpha-value>)',
+  			'page-bg': 'rgb(var(--page-bg) / <alpha-value>)',
+  			'surface-sheet': 'rgb(var(--surface-sheet) / <alpha-value>)',
   			ring: 'hsl(var(--ring))',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',

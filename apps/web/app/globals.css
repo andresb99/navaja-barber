@@ -13,6 +13,8 @@
   --surface-muted: 239 228 205;
   --focus-light: 139 92 246;
   --focus-dark: 234 176 72;
+  --page-bg: 247 245 243;
+  --surface-sheet: 255 255 255;
   --brand-panel-aura-soft:
     radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.12), transparent 30%),
     radial-gradient(circle at 0% 100%, rgba(217, 70, 239, 0.08), transparent 26%);
@@ -79,7 +81,7 @@ body {
   @apply antialiased;
   position: relative;
   isolation: isolate;
-  background-color: #f7f5f3;
+  background-color: rgb(var(--page-bg));
   font-feature-settings:
     'liga' 1,
     'calt' 1,
@@ -89,7 +91,7 @@ body {
 }
 
 html.dark body {
-  background-color: #09090b;
+  background-color: rgb(var(--page-bg));
 }
 
 body::before {
@@ -155,7 +157,9 @@ p {
 
 html.dark {
   color-scheme: dark;
-  --brand-surface-dark: linear-gradient(180deg, rgb(24 24 27), rgb(9 9 11));
+  --page-bg: 9 9 11;
+  --surface-sheet: 9 9 11;
+  --brand-surface-dark: linear-gradient(180deg, rgb(24 24 27), rgb(var(--page-bg)));
   --brand-surface-dark-strong: linear-gradient(180deg, rgb(39 39 42), rgb(24 24 27));
   --brand-surface-dark-subtle: linear-gradient(180deg, rgb(24 24 27), rgb(9 9 11));
   --brand-panel-aura-soft:
@@ -1586,7 +1590,7 @@ html.dark .meta-chip[data-tone='danger'] {
 }
 
 .mobile-marketplace-sheet {
-  --mobile-sheet-bg: rgb(255 255 255);
+  --mobile-sheet-bg: rgb(var(--surface-sheet));
   position: relative;
   overflow: hidden;
   isolation: isolate;
@@ -1597,9 +1601,6 @@ html.dark .meta-chip[data-tone='danger'] {
   -webkit-backface-visibility: hidden;
 }
 
-html.dark .mobile-marketplace-sheet {
-  --mobile-sheet-bg: #0a0416;
-}
 
 .mobile-marketplace-sheet::before {
   content: '';

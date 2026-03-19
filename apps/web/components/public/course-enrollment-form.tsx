@@ -76,12 +76,14 @@ export function CourseEnrollmentForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="surface-card spotlight-card space-y-3">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-          Inscripcion
+    <form onSubmit={onSubmit} className="surface-card spotlight-card space-y-4">
+      <div className="border-b border-slate-100 pb-4 dark:border-slate-700/50">
+        <h3 className="font-[family-name:var(--font-heading)] text-lg font-bold text-ink dark:text-slate-100">
+          Reservar cupo
+        </h3>
+        <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+          Complet&aacute; tus datos para inscribirte.
         </p>
-        <p className="mt-2 font-medium text-ink dark:text-slate-100">Reservar cupo</p>
       </div>
       <Input
         label="Nombre y apellido"
@@ -106,8 +108,8 @@ export function CourseEnrollmentForm({
         required
       />
       {preferredPaymentMethod ? (
-        <p className="text-[11px] text-slate/70 dark:text-slate-400">
-          Metodo guardado: {preferredPaymentMethod}
+        <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">
+          M&eacute;todo guardado: <span className="font-medium text-ink dark:text-slate-200">{preferredPaymentMethod}</span>
         </p>
       ) : null}
       {error ? <p className="status-banner error text-xs">{error}</p> : null}
