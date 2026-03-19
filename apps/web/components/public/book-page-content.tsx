@@ -68,17 +68,29 @@ const panelInputWrapperCN =
   'h-10 min-h-0 rounded-xl border border-white/10 bg-white/[0.04] shadow-none transition-colors data-[hover=true]:border-white/16 data-[hover=true]:bg-white/[0.06] group-data-[focus=true]:border-violet-500/40 dark:border-white/10 dark:bg-white/[0.04]';
 
 const calendarCN = {
-  base: 'rounded-2xl border border-white/10 bg-zinc-950 shadow-[0_24px_48px_-16px_rgba(0,0,0,0.6)] p-3',
+  base: 'rounded-2xl border border-white/10 bg-zinc-950 shadow-[0_24px_48px_-16px_rgba(0,0,0,0.6)] p-2',
   headerWrapper: 'pb-2',
   title: 'text-sm font-semibold text-zinc-200',
   gridHeaderCell: 'text-[11px] font-medium text-zinc-500',
-  cell: 'text-sm',
+  // The <td> carries the range band — rounded only at the two endpoints
+  cell: [
+    'data-[selected=true]:bg-violet-500/[0.12]',
+    'data-[selection-start=true]:rounded-l-full',
+    'data-[selection-end=true]:rounded-r-full',
+  ].join(' '),
+  // The <button> only gets a filled circle for start / end
   cellButton: [
-    'h-8 w-8 rounded-xl text-zinc-300 text-sm',
-    'data-[today=true]:bg-white/8 data-[today=true]:font-semibold',
-    'data-[selected=true]:bg-violet-600 data-[selected=true]:text-white data-[selected=true]:font-semibold',
-    'data-[selection-start=true]:rounded-l-xl data-[selection-end=true]:rounded-r-xl',
-    'data-[hover=true]:bg-white/10',
+    'h-8 w-8 rounded-full text-zinc-400 text-sm transition-colors',
+    // in-range cells: no bg on the button (band lives on the <td>), just lighter text
+    'data-[selected=true]:text-zinc-200',
+    // start/end: solid violet circle — !important overrides the in-range rule above
+    'data-[selection-start=true]:!bg-violet-600 data-[selection-start=true]:!text-white data-[selection-start=true]:!font-semibold',
+    'data-[selection-end=true]:!bg-violet-600 data-[selection-end=true]:!text-white data-[selection-end=true]:!font-semibold',
+    // today: subtle ring
+    'data-[today=true]:font-semibold data-[today=true]:ring-1 data-[today=true]:ring-violet-500/50',
+    // hover
+    'data-[hover=true]:bg-white/10 data-[hover=true]:text-zinc-200',
+    // disabled
     'data-[disabled=true]:opacity-30 data-[disabled=true]:cursor-not-allowed',
   ].join(' '),
   prevButton: 'text-zinc-400 hover:text-zinc-200 hover:bg-white/8 rounded-lg',
