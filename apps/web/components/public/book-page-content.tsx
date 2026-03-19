@@ -7,7 +7,6 @@ import { DateRangePicker } from '@heroui/date-picker';
 import { TimeInput, type TimeInputValue } from '@heroui/date-input';
 import { Slider } from '@heroui/slider';
 import { Chip } from '@heroui/chip';
-import { Button } from '@heroui/button';
 import { Input } from '@heroui/input';
 import { Select, SelectItem } from '@heroui/select';
 import {
@@ -18,6 +17,7 @@ import {
   Clock,
   Search,
   SlidersHorizontal,
+  Sparkles,
   X,
 } from 'lucide-react';
 import { formatCurrency } from '@navaja/shared';
@@ -60,63 +60,29 @@ function formatTime(t: TimeInputValue): string {
   return `${String(t.hour).padStart(2, '0')}:${String(t.minute).padStart(2, '0')}`;
 }
 
-// ── Shared classNames ─────────────────────────────────────────────────────────
-const inputWrapperCN = [
-  'h-11 rounded-2xl shadow-none backdrop-blur-sm transition-colors',
-  // light
-  'border border-zinc-200 bg-white/80',
-  'data-[hover=true]:border-zinc-300 data-[hover=true]:bg-white',
-  'group-data-[focus=true]:border-violet-400 group-data-[focus=true]:bg-white',
-  // dark
-  'dark:border-white/8 dark:bg-zinc-900/70',
-  'dark:data-[hover=true]:border-white/14 dark:data-[hover=true]:bg-zinc-900/80',
-  'dark:group-data-[focus=true]:border-violet-500/40 dark:group-data-[focus=true]:bg-zinc-900/90',
-].join(' ');
-
-const panelInputWrapperCN = [
-  'h-10 min-h-0 rounded-xl shadow-none transition-colors',
-  // light
-  'border border-zinc-200 bg-white',
-  'data-[hover=true]:border-zinc-300',
-  'group-data-[focus=true]:border-violet-400',
-  // dark
-  'dark:border-white/10 dark:bg-white/[0.04]',
-  'dark:data-[hover=true]:border-white/16 dark:data-[hover=true]:bg-white/[0.06]',
-  'dark:group-data-[focus=true]:border-violet-500/40',
-].join(' ');
-
+// ── Calendar classNames (theme-aware) ─────────────────────────────────────────
 const calendarCN = {
   base: [
     'rounded-2xl border p-2',
-    // light
     'border-zinc-200 bg-white shadow-[0_16px_40px_-12px_rgba(0,0,0,0.12)]',
-    // dark
     'dark:border-white/10 dark:bg-zinc-950 dark:shadow-[0_24px_48px_-16px_rgba(0,0,0,0.6)]',
   ].join(' '),
   headerWrapper: 'pb-2',
   title: 'text-sm font-semibold text-zinc-800 dark:text-zinc-200',
   gridHeaderCell: 'text-[11px] font-medium text-zinc-400 dark:text-zinc-500',
-  // The <td> carries the range band — rounded only at the two endpoints
   cell: [
     'data-[selected=true]:bg-violet-500/[0.10] dark:data-[selected=true]:bg-violet-500/[0.12]',
     'data-[selection-start=true]:rounded-l-full',
     'data-[selection-end=true]:rounded-r-full',
   ].join(' '),
-  // The <button> only gets a filled circle for start / end
   cellButton: [
     'h-8 w-8 rounded-full text-sm transition-colors',
-    // default text
     'text-zinc-600 dark:text-zinc-400',
-    // in-range cells: no bg on the button (band lives on the <td>), just accent text
     'data-[selected=true]:text-violet-700 dark:data-[selected=true]:text-zinc-200',
-    // start/end: solid violet circle — !important overrides the in-range rule above
     'data-[selection-start=true]:!bg-violet-600 data-[selection-start=true]:!text-white data-[selection-start=true]:!font-semibold',
     'data-[selection-end=true]:!bg-violet-600 data-[selection-end=true]:!text-white data-[selection-end=true]:!font-semibold',
-    // today: subtle ring
     'data-[today=true]:font-semibold data-[today=true]:ring-1 data-[today=true]:ring-violet-500/50',
-    // hover
     'data-[hover=true]:bg-zinc-100 data-[hover=true]:text-zinc-800 dark:data-[hover=true]:bg-white/10 dark:data-[hover=true]:text-zinc-200',
-    // disabled
     'data-[disabled=true]:opacity-30 data-[disabled=true]:cursor-not-allowed',
   ].join(' '),
   prevButton:
@@ -125,7 +91,18 @@ const calendarCN = {
     'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-white/8 rounded-lg',
 };
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Panel filter input wrapper (theme-aware) ───────────────────────────────────
+const panelInputWrapperCN = [
+  'h-10 min-h-0 rounded-xl shadow-none transition-colors',
+  'border border-zinc-200 bg-zinc-50',
+  'data-[hover=true]:border-zinc-300 data-[hover=true]:bg-white',
+  'group-data-[focus=true]:border-violet-400 group-data-[focus=true]:bg-white',
+  'dark:border-white/10 dark:bg-white/[0.04]',
+  'dark:data-[hover=true]:border-white/16 dark:data-[hover=true]:bg-white/[0.06]',
+  'dark:group-data-[focus=true]:border-violet-500/40',
+].join(' ');
+
+// ── Main component ─────────────────────────────────────────────────────────────
 export function BookPageContent({ shops }: BookPageContentProps) {
   const priceMax = useMemo(() => getPriceMax(shops), [shops]);
 
@@ -231,21 +208,26 @@ export function BookPageContent({ shops }: BookPageContentProps) {
   const todayDate = today(getLocalTimeZone());
 
   return (
-    <div className="space-y-4">
-      {/* ── Search + Sort row ─────────────────────────────── */}
-      <div className="flex items-center gap-3">
-        <div className="flex-1">
+    <div className="space-y-3">
+
+      {/* ── Toolbar: Search + Sort + Filters ──────────────────────────────── */}
+      <div className="flex items-center gap-2">
+
+        {/* Search input */}
+        <div className="flex-1 min-w-0">
           <Input
             value={query}
             onValueChange={setQuery}
             placeholder="Busca por nombre o zona (ej. Pocitos, Navaja)"
-            startContent={<Search className="h-4 w-4 shrink-0 text-zinc-500" />}
+            startContent={
+              <Search className="h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500" />
+            }
             endContent={
               query ? (
                 <button
                   type="button"
                   onClick={() => setQuery('')}
-                  className="flex h-5 w-5 items-center justify-center rounded-full text-zinc-500 transition-colors hover:text-zinc-300"
+                  className="flex h-5 w-5 items-center justify-center rounded-full text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
                   aria-label="Limpiar busqueda"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -253,33 +235,63 @@ export function BookPageContent({ shops }: BookPageContentProps) {
               ) : null
             }
             classNames={{
-              inputWrapper: inputWrapperCN,
-              input: 'text-sm text-zinc-100 placeholder:text-zinc-500',
+              inputWrapper: [
+                'h-11 rounded-2xl shadow-none transition-all duration-200',
+                // light
+                'border border-zinc-200 bg-white',
+                'data-[hover=true]:border-zinc-300',
+                'group-data-[focus=true]:border-violet-400 group-data-[focus=true]:shadow-[0_0_0_3px_rgba(139,92,246,0.08)]',
+                // dark
+                'dark:border-white/10 dark:bg-zinc-900/80 dark:backdrop-blur-sm',
+                'dark:data-[hover=true]:border-white/16',
+                'dark:group-data-[focus=true]:border-violet-500/50 dark:group-data-[focus=true]:shadow-[0_0_0_3px_rgba(139,92,246,0.12)]',
+              ].join(' '),
+              input:
+                'text-sm text-zinc-800 placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-500',
             }}
           />
         </div>
 
-        <div className="w-[190px] shrink-0">
+        {/* Sort select */}
+        <div className="w-[175px] shrink-0">
           <Select
             selectedKeys={[sortKey]}
             onSelectionChange={(keys) => {
               const k = Array.from(keys)[0] as SortKey;
               if (k) setSortKey(k);
             }}
-            startContent={<ArrowDownUp className="h-3.5 w-3.5 shrink-0 text-zinc-500" />}
+            startContent={
+              <ArrowDownUp className="h-3.5 w-3.5 shrink-0 text-zinc-400 dark:text-zinc-500" />
+            }
             aria-label="Ordenar resultados"
             classNames={{
-              trigger:
-                'h-11 rounded-2xl border border-white/8 bg-zinc-900/70 shadow-none backdrop-blur-sm transition-colors data-[hover=true]:border-white/14 data-[hover=true]:bg-zinc-900/80 data-[open=true]:border-violet-500/40 dark:border-white/8 dark:bg-zinc-900/70',
-              value: 'text-sm text-zinc-100',
-              selectorIcon: 'text-zinc-500',
-              popoverContent:
-                'rounded-2xl border border-white/10 bg-zinc-900/95 shadow-[0_24px_48px_-16px_rgba(0,0,0,0.6)] backdrop-blur-xl p-1',
+              trigger: [
+                'h-11 rounded-2xl shadow-none transition-all duration-200',
+                // light
+                'border border-zinc-200 bg-white',
+                'data-[hover=true]:border-zinc-300',
+                'data-[open=true]:border-violet-400 data-[open=true]:shadow-[0_0_0_3px_rgba(139,92,246,0.08)]',
+                // dark
+                'dark:border-white/10 dark:bg-zinc-900/80 dark:backdrop-blur-sm',
+                'dark:data-[hover=true]:border-white/16',
+                'dark:data-[open=true]:border-violet-500/50',
+              ].join(' '),
+              value: 'text-sm font-medium text-zinc-700 dark:text-zinc-300',
+              selectorIcon: 'text-zinc-400 dark:text-zinc-500',
+              popoverContent: [
+                'rounded-2xl border p-1 shadow-xl',
+                'border-zinc-200 bg-white shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12)]',
+                'dark:border-white/10 dark:bg-zinc-900 dark:shadow-[0_24px_48px_-16px_rgba(0,0,0,0.6)] dark:backdrop-blur-xl',
+              ].join(' '),
               listboxWrapper: 'p-0',
             }}
             listboxProps={{
               itemClasses: {
-                base: 'rounded-xl px-3 py-2 text-sm text-zinc-300 data-[hover=true]:bg-white/8 data-[hover=true]:text-zinc-100 data-[selected=true]:text-violet-300',
+                base: [
+                  'rounded-xl px-3 py-2 text-sm transition-colors',
+                  'text-zinc-700 data-[hover=true]:bg-zinc-100 data-[selected=true]:text-violet-600 data-[selected=true]:bg-violet-50',
+                  'dark:text-zinc-300 dark:data-[hover=true]:bg-white/8 dark:data-[selected=true]:text-violet-300 dark:data-[selected=true]:bg-violet-500/10',
+                ].join(' '),
               },
             }}
           >
@@ -289,27 +301,28 @@ export function BookPageContent({ shops }: BookPageContentProps) {
           </Select>
         </div>
 
-        <Button
+        {/* Filters button */}
+        <button
           type="button"
-          onPress={() => setFiltersOpen((v) => !v)}
-          variant="bordered"
-          className={`h-11 shrink-0 rounded-2xl border px-4 text-sm font-medium transition-colors ${
+          onClick={() => setFiltersOpen((v) => !v)}
+          className={[
+            'flex h-11 shrink-0 items-center gap-2 rounded-2xl border px-4 text-sm font-medium transition-all duration-200',
             filtersOpen || filterCount > 0
-              ? 'border-violet-500/50 bg-violet-500/10 text-violet-300'
-              : 'border-white/8 bg-zinc-900/70 text-zinc-400 hover:border-white/14 hover:text-zinc-200'
-          }`}
-          startContent={<SlidersHorizontal className="h-4 w-4" />}
+              ? 'border-violet-300 bg-violet-50 text-violet-700 shadow-[0_0_0_3px_rgba(139,92,246,0.08)] dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-300 dark:shadow-none'
+              : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-800 dark:border-white/10 dark:bg-zinc-900/80 dark:text-zinc-400 dark:hover:border-white/16 dark:hover:text-zinc-200',
+          ].join(' ')}
         >
-          Filtros
+          <SlidersHorizontal className="h-4 w-4" />
+          <span>Filtros</span>
           {filterCount > 0 && (
-            <span className="ml-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-violet-500 text-[10px] font-bold text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-600 text-[10px] font-bold text-white">
               {filterCount}
             </span>
           )}
-        </Button>
+        </button>
       </div>
 
-      {/* ── Expandable filter panel ───────────────────────── */}
+      {/* ── Expandable filter panel ─────────────────────────────────────────── */}
       <AnimatePresence initial={false}>
         {filtersOpen && (
           <motion.div
@@ -317,19 +330,22 @@ export function BookPageContent({ shops }: BookPageContentProps) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.22, ease: [0.32, 0, 0.67, 0] }}
+            transition={{ duration: 0.24, ease: [0.32, 0, 0.67, 0] }}
             className="overflow-hidden"
           >
-            <div className="soft-panel rounded-[1.6rem] p-5 md:p-6 space-y-6">
+            <div className="soft-panel rounded-[1.4rem] p-5 md:p-6 space-y-5">
 
-              {/* Row 1: Disponibilidad | Horario | Otros filtros */}
-              <div className="grid gap-5 md:grid-cols-3">
+              {/* Row 1: three filter sections */}
+              <div className="grid gap-4 md:grid-cols-3">
 
-                {/* Date range */}
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                    Disponibilidad
-                  </p>
+                {/* Disponibilidad */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <CalendarDays className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+                    <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                      Disponibilidad
+                    </span>
+                  </div>
                   <DateRangePicker<CalendarDate>
                     value={dateRange ?? undefined}
                     onChange={(v) => setDateRange(v)}
@@ -340,11 +356,13 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                     classNames={{
                       base: 'w-full',
                       inputWrapper: panelInputWrapperCN,
-                      input: 'text-sm text-zinc-300',
+                      input: 'text-sm text-zinc-700 dark:text-zinc-300',
                       segment:
-                        'text-sm text-zinc-300 data-[placeholder=true]:text-zinc-600 focus:bg-violet-500/20 rounded',
-                      selectorButton: 'text-zinc-500 hover:text-zinc-300',
-                      selectorIcon: 'text-zinc-500',
+                        'text-sm text-zinc-700 data-[placeholder=true]:text-zinc-400 focus:bg-violet-500/15 rounded dark:text-zinc-300 dark:data-[placeholder=true]:text-zinc-600',
+                      selectorButton:
+                        'text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300',
+                      selectorIcon:
+                        'text-zinc-400 dark:text-zinc-500',
                     }}
                     calendarProps={{ classNames: calendarCN }}
                   />
@@ -352,18 +370,22 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                     <button
                       type="button"
                       onClick={() => setDateRange(null)}
-                      className="flex items-center gap-1 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
+                      className="flex items-center gap-1 text-[11px] text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
                     >
-                      <X className="h-3 w-3" /> Quitar fechas
+                      <X className="h-3 w-3" />
+                      Quitar fechas
                     </button>
                   )}
                 </div>
 
-                {/* Time */}
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                    Horario
-                  </p>
+                {/* Horario */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+                    <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                      Horario
+                    </span>
+                  </div>
                   <TimeInput
                     value={selectedTime}
                     onChange={(v) => setSelectedTime(v)}
@@ -374,130 +396,126 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                     classNames={{
                       base: 'w-full',
                       inputWrapper: panelInputWrapperCN,
-                      input: 'text-sm text-zinc-300',
+                      input: 'text-sm text-zinc-700 dark:text-zinc-300',
                       segment:
-                        'text-sm text-zinc-300 data-[placeholder=true]:text-zinc-600 focus:bg-violet-500/20 rounded',
+                        'text-sm text-zinc-700 data-[placeholder=true]:text-zinc-400 focus:bg-violet-500/15 rounded dark:text-zinc-300 dark:data-[placeholder=true]:text-zinc-600',
                     }}
                   />
                   {selectedTime && (
                     <button
                       type="button"
                       onClick={() => setSelectedTime(null)}
-                      className="flex items-center gap-1 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
+                      className="flex items-center gap-1 text-[11px] text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
                     >
-                      <X className="h-3 w-3" /> Quitar hora
+                      <X className="h-3 w-3" />
+                      Quitar hora
                     </button>
                   )}
                 </div>
 
-                {/* Quick toggles */}
-                <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                    Otros filtros
-                  </p>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <Chip
-                      variant={verifiedOnly ? 'solid' : 'bordered'}
+                {/* Otros filtros */}
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+                    <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+                      Otros filtros
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-0.5">
+                    {/* Verificadas toggle pill */}
+                    <button
+                      type="button"
                       onClick={() => setVerifiedOnly((v) => !v)}
-                      startContent={<BadgeCheck className="h-3.5 w-3.5" />}
-                      classNames={{
-                        base: `cursor-pointer transition-all ${
-                          verifiedOnly
-                            ? 'border-violet-500/50 bg-violet-500/15 text-violet-300'
-                            : 'border-white/10 bg-transparent text-zinc-400 hover:border-white/20 hover:text-zinc-200'
-                        }`,
-                        content: 'text-xs font-semibold',
-                      }}
+                      className={[
+                        'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all',
+                        verifiedOnly
+                          ? 'border-violet-300 bg-violet-50 text-violet-700 dark:border-violet-500/40 dark:bg-violet-500/15 dark:text-violet-300'
+                          : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-800 dark:border-white/10 dark:bg-transparent dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-zinc-200',
+                      ].join(' ')}
                     >
+                      <BadgeCheck className="h-3.5 w-3.5" />
                       Verificadas
-                    </Chip>
-                    <Chip
-                      variant={withServices ? 'solid' : 'bordered'}
+                    </button>
+
+                    {/* Con agenda activa toggle pill */}
+                    <button
+                      type="button"
                       onClick={() => setWithServices((v) => !v)}
-                      classNames={{
-                        base: `cursor-pointer transition-all ${
-                          withServices
-                            ? 'border-violet-500/50 bg-violet-500/15 text-violet-300'
-                            : 'border-white/10 bg-transparent text-zinc-400 hover:border-white/20 hover:text-zinc-200'
-                        }`,
-                        content: 'text-xs font-semibold',
-                      }}
+                      className={[
+                        'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all',
+                        withServices
+                          ? 'border-violet-300 bg-violet-50 text-violet-700 dark:border-violet-500/40 dark:bg-violet-500/15 dark:text-violet-300'
+                          : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-800 dark:border-white/10 dark:bg-transparent dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-zinc-200',
+                      ].join(' ')}
                     >
                       Con agenda activa
-                    </Chip>
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Row 2: Price range slider (full width) */}
-              <div className="space-y-1">
-                <Slider
-                  label="Precio desde"
-                  minValue={0}
-                  maxValue={priceMax}
-                  step={5000}
-                  value={priceRange}
-                  onChange={(v) => {
-                    if (Array.isArray(v)) {
-                      setPriceRange([v[0]!, v[1]!] as [number, number]);
-                    }
-                  }}
-                  getValue={(v) => {
-                    const arr = Array.isArray(v) ? v : [0, v];
-                    return `${formatCurrency(arr[0] ?? 0)} – ${formatCurrency(arr[1] ?? priceMax)}`;
-                  }}
-                  classNames={{
-                    base: 'w-full',
-                    label:
-                      'text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-500',
-                    value: 'text-[11px] font-semibold text-zinc-400',
-                    track: 'bg-zinc-700/50 border-zinc-700/50',
-                    filler: 'bg-gradient-to-r from-violet-600 to-violet-400',
-                    thumb: [
-                      'bg-white border-2 border-violet-500',
-                      'shadow-[0_2px_12px_rgba(139,92,246,0.45)]',
-                      'data-[dragging=true]:shadow-[0_4px_20px_rgba(139,92,246,0.6)]',
-                      'data-[dragging=true]:scale-110',
-                      'transition-[transform,box-shadow]',
-                    ].join(' '),
-                  }}
-                />
-                <div className="flex justify-between px-1 text-[10px] text-zinc-600">
-                  <span>{formatCurrency(0)}</span>
-                  <span>{formatCurrency(priceMax)}</span>
-                </div>
-              </div>
+              {/* Divider */}
+              <div className="h-px bg-zinc-100 dark:bg-white/[0.06]" />
 
+              {/* Row 2: Price range slider */}
+              <Slider
+                label="Precio desde"
+                minValue={0}
+                maxValue={priceMax}
+                step={5000}
+                value={priceRange}
+                onChange={(v) => {
+                  if (Array.isArray(v)) {
+                    setPriceRange([v[0]!, v[1]!] as [number, number]);
+                  }
+                }}
+                getValue={(v) => {
+                  const arr = Array.isArray(v) ? v : [0, v];
+                  return `${formatCurrency(arr[0] ?? 0)} – ${formatCurrency(arr[1] ?? priceMax)}`;
+                }}
+                classNames={{
+                  base: 'w-full',
+                  label:
+                    'text-xs font-semibold text-zinc-500 dark:text-zinc-400',
+                  value: 'text-xs font-semibold text-zinc-500 dark:text-zinc-400',
+                  track:
+                    'bg-zinc-200 border-zinc-200 dark:bg-zinc-700/50 dark:border-zinc-700/50',
+                  filler: 'bg-gradient-to-r from-violet-500 to-violet-400',
+                  thumb: [
+                    'bg-white border-2 border-violet-500',
+                    'shadow-[0_2px_8px_rgba(139,92,246,0.35)]',
+                    'data-[dragging=true]:shadow-[0_4px_16px_rgba(139,92,246,0.55)]',
+                    'data-[dragging=true]:scale-110',
+                    'transition-[transform,box-shadow]',
+                  ].join(' '),
+                }}
+              />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Active filters strip ──────────────────────────── */}
+      {/* ── Active filters strip ────────────────────────────────────────────── */}
       <AnimatePresence>
         {hasActiveFilters && (
           <motion.div
-            initial={{ opacity: 0, y: -6 }}
+            initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
+            exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.18 }}
-            className="flex flex-wrap items-center gap-2"
+            className="flex flex-wrap items-center gap-1.5"
           >
-            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-600">
-              Activos:
-            </span>
-
             {deferredQuery.trim() && (
               <Chip
                 size="sm"
                 onClose={() => setQuery('')}
                 classNames={{
-                  base: 'border border-white/10 bg-white/[0.06] text-zinc-300',
-                  content: 'text-xs',
-                  closeButton: 'text-zinc-500 hover:text-zinc-200',
+                  base: 'border border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300',
+                  content: 'text-xs font-medium px-1',
+                  closeButton: 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200',
                 }}
               >
-                "{deferredQuery.trim()}"
+                &quot;{deferredQuery.trim()}&quot;
               </Chip>
             )}
 
@@ -505,11 +523,11 @@ export function BookPageContent({ shops }: BookPageContentProps) {
               <Chip
                 size="sm"
                 onClose={() => setSortKey('default')}
-                startContent={<ArrowUpDown className="h-3 w-3" />}
+                startContent={<ArrowUpDown className="h-3 w-3 ml-1" />}
                 classNames={{
-                  base: 'border border-white/10 bg-white/[0.06] text-zinc-300',
-                  content: 'text-xs',
-                  closeButton: 'text-zinc-500 hover:text-zinc-200',
+                  base: 'border border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300',
+                  content: 'text-xs font-medium px-1',
+                  closeButton: 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200',
                 }}
               >
                 {SORT_OPTIONS.find((o) => o.key === sortKey)?.label}
@@ -520,11 +538,11 @@ export function BookPageContent({ shops }: BookPageContentProps) {
               <Chip
                 size="sm"
                 onClose={() => setDateRange(null)}
-                startContent={<CalendarDays className="h-3 w-3" />}
+                startContent={<CalendarDays className="h-3 w-3 ml-1" />}
                 classNames={{
-                  base: 'border border-sky-500/30 bg-sky-500/10 text-sky-300',
-                  content: 'text-xs',
-                  closeButton: 'text-sky-400/60 hover:text-sky-300',
+                  base: 'border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300',
+                  content: 'text-xs font-medium px-1',
+                  closeButton: 'text-violet-400 hover:text-violet-700 dark:text-violet-400/60 dark:hover:text-violet-300',
                 }}
               >
                 {dateRange.start.day}/{dateRange.start.month}
@@ -537,11 +555,11 @@ export function BookPageContent({ shops }: BookPageContentProps) {
               <Chip
                 size="sm"
                 onClose={() => setSelectedTime(null)}
-                startContent={<Clock className="h-3 w-3" />}
+                startContent={<Clock className="h-3 w-3 ml-1" />}
                 classNames={{
-                  base: 'border border-teal-500/30 bg-teal-500/10 text-teal-300',
-                  content: 'text-xs',
-                  closeButton: 'text-teal-400/60 hover:text-teal-300',
+                  base: 'border border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-500/30 dark:bg-teal-500/10 dark:text-teal-300',
+                  content: 'text-xs font-medium px-1',
+                  closeButton: 'text-teal-400 hover:text-teal-700 dark:text-teal-400/60 dark:hover:text-teal-300',
                 }}
               >
                 {formatTime(selectedTime)}
@@ -553,9 +571,9 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                 size="sm"
                 onClose={() => setPriceRange([0, priceMax])}
                 classNames={{
-                  base: 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-300',
-                  content: 'text-xs',
-                  closeButton: 'text-emerald-400/60 hover:text-emerald-300',
+                  base: 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300',
+                  content: 'text-xs font-medium px-1',
+                  closeButton: 'text-emerald-400 hover:text-emerald-700 dark:text-emerald-400/60 dark:hover:text-emerald-300',
                 }}
               >
                 {formatCurrency(priceRange[0])} – {formatCurrency(priceRange[1])}
@@ -566,11 +584,11 @@ export function BookPageContent({ shops }: BookPageContentProps) {
               <Chip
                 size="sm"
                 onClose={() => setVerifiedOnly(false)}
-                startContent={<BadgeCheck className="h-3 w-3" />}
+                startContent={<BadgeCheck className="h-3 w-3 ml-1" />}
                 classNames={{
-                  base: 'border border-violet-500/30 bg-violet-500/10 text-violet-300',
-                  content: 'text-xs',
-                  closeButton: 'text-violet-400/60 hover:text-violet-300',
+                  base: 'border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300',
+                  content: 'text-xs font-medium px-1',
+                  closeButton: 'text-violet-400 hover:text-violet-700 dark:text-violet-400/60 dark:hover:text-violet-300',
                 }}
               >
                 Verificadas
@@ -582,9 +600,9 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                 size="sm"
                 onClose={() => setWithServices(false)}
                 classNames={{
-                  base: 'border border-violet-500/30 bg-violet-500/10 text-violet-300',
-                  content: 'text-xs',
-                  closeButton: 'text-violet-400/60 hover:text-violet-300',
+                  base: 'border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300',
+                  content: 'text-xs font-medium px-1',
+                  closeButton: 'text-violet-400 hover:text-violet-700 dark:text-violet-400/60 dark:hover:text-violet-300',
                 }}
               >
                 Con agenda activa
@@ -594,7 +612,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
             <button
               type="button"
               onClick={clearAll}
-              className="ml-auto text-[11px] text-zinc-600 transition-colors hover:text-zinc-400"
+              className="ml-auto text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
             >
               Limpiar todo
             </button>
@@ -602,25 +620,30 @@ export function BookPageContent({ shops }: BookPageContentProps) {
         )}
       </AnimatePresence>
 
-      {/* ── Result count ──────────────────────────────────── */}
+      {/* ── Result count ────────────────────────────────────────────────────── */}
       <AnimatePresence mode="wait">
         {hasActiveFilters && (
-          <motion.p
+          <motion.div
             key={filtered.length}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="text-xs text-zinc-500"
           >
-            {filtered.length === 0
-              ? 'Ninguna barberia coincide'
-              : `${filtered.length} barberia${filtered.length !== 1 ? 's' : ''} encontrada${filtered.length !== 1 ? 's' : ''}`}
-          </motion.p>
+            {filtered.length > 0 ? (
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                {`${filtered.length} barberia${filtered.length !== 1 ? 's' : ''} encontrada${filtered.length !== 1 ? 's' : ''}`}
+              </p>
+            ) : (
+              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                Ninguna barberia coincide
+              </p>
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Grid ─────────────────────────────────────────── */}
+      {/* ── Grid ────────────────────────────────────────────────────────────── */}
       {filtered.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((shop, i) => (
@@ -638,16 +661,22 @@ export function BookPageContent({ shops }: BookPageContentProps) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="soft-panel rounded-[1.8rem] p-12 text-center"
+          className="soft-panel rounded-[1.4rem] p-12 text-center"
         >
-          <p className="text-base font-semibold text-ink dark:text-slate-200">Sin resultados</p>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="text-base font-semibold text-zinc-800 dark:text-zinc-200">
+            Sin resultados
+          </p>
+          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
             Proba con otro termino o ajusta los filtros
           </p>
           <button
             type="button"
             onClick={clearAll}
-            className="mt-4 rounded-full border border-white/10 px-5 py-2 text-xs font-semibold text-zinc-400 transition-colors hover:border-white/20 hover:text-zinc-200"
+            className={[
+              'mt-5 rounded-full border px-5 py-2 text-xs font-semibold transition-colors',
+              'border-zinc-200 text-zinc-600 hover:border-zinc-300 hover:text-zinc-800',
+              'dark:border-white/10 dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-zinc-200',
+            ].join(' ')}
           >
             Limpiar filtros
           </button>
