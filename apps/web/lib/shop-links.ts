@@ -1,3 +1,20 @@
+// Builds the full URL to a shop's tenant subdomain (e.g. barbertest.beardly.com).
+// Falls back to the platform profile path in local development.
+export function buildTenantRootHref(shopSlug: string): string {
+  const rootDomain = process.env.NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN ?? '';
+  const isLocalhost = rootDomain === 'localhost' || rootDomain === '';
+  if (isLocalhost) {
+    return `/shops/${normalizeShopSlug(shopSlug)}`;
+  }
+  return `https://${normalizeShopSlug(shopSlug)}.${rootDomain}`;
+}
+
+// Builds an absolute URL to the Beardly platform (used from tenant subdomains).
+export function buildPlatformUrl(path = '/'): string {
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '');
+  return appUrl ? `${appUrl}${path}` : path;
+}
+
 export function normalizeShopSlug(slug: string) {
   return slug
     .trim()

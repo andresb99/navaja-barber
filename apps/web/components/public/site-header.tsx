@@ -4,6 +4,7 @@ import NextLink from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type Key } from 'react';
 import {
+  ArrowLeft,
   Bell,
   CalendarClock,
   ChevronRight,
@@ -40,6 +41,7 @@ import {
   type SiteHeaderInitialState,
 } from '@/lib/site-header-state';
 import { STAFF_NAV_ITEMS } from '@/lib/staff-navigation';
+import { buildPlatformUrl } from '@/lib/shop-links';
 import { buildAdminHref, buildStaffHref } from '@/lib/workspace-routes';
 
 type NavRole = HeaderRole;
@@ -172,27 +174,19 @@ function getCurrentShopSlug(pathname: string): string | null {
 
 function buildPublicHeaderHref(
   segment: string,
-  shopSlug: string | null,
+  _shopSlug: string | null,
   mode: 'path' | 'custom_domain' | 'platform_subdomain',
 ) {
-  if (!shopSlug) {
-    if (!segment) {
-      return '/shops';
-    }
-
-    return `/${segment}`;
-  }
-
+  // Tenant domains: links are rooted at the tenant domain
   if (mode === 'custom_domain' || mode === 'platform_subdomain') {
     return segment ? `/${segment}` : '/';
   }
 
-  const basePath = `/shops/${shopSlug}`;
-  if (!segment) {
-    return basePath;
-  }
-
-  return `${basePath}/${segment}`;
+  // Path mode (beardly.com): always platform-level, never shop-prefixed.
+  // The /shops/[slug]/* sub-routes exist but they are platform pages, not
+  // a different nav context — so the nav links stay at the platform level.
+  if (!segment) return '/shops';
+  return `/${segment}`;
 }
 
 function getHomeHref(
@@ -200,19 +194,10 @@ function getHomeHref(
   shopSlug: string | null,
   mode: 'path' | 'custom_domain' | 'platform_subdomain',
 ) {
-  if (role === 'admin') {
-    return '/admin';
-  }
-
-  if (role === 'staff') {
-    return '/staff';
-  }
-
-  if (!shopSlug && mode === 'path') {
-    return '/';
-  }
-
-  return buildPublicHeaderHref('', shopSlug, mode);
+  if (role === 'admin') return '/admin';
+  if (role === 'staff') return '/staff';
+  if (mode === 'custom_domain' || mode === 'platform_subdomain') return '/';
+  return '/';
 }
 
 function areWorkspaceDirectoriesEqual(
@@ -359,19 +344,11 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
       }));
     }
 
-    return publicHeaderItems.map((item) => {
-      // "Barberias" (segment='') always links to the marketplace in path mode,
-      // even when inside a shop context — so users can always escape the tenant flow.
-      const href =
-        item.segment === '' && publicTenantMode === 'path'
-          ? '/shops'
-          : buildPublicHeaderHref(item.segment, currentShopSlug, publicTenantMode);
-      return {
-        href,
-        label: item.label,
-        key: `${item.segment || 'home'}:${item.label}`,
-      };
-    });
+    return publicHeaderItems.map((item) => ({
+      href: buildPublicHeaderHref(item.segment, currentShopSlug, publicTenantMode),
+      label: item.label,
+      key: `${item.segment || 'home'}:${item.label}`,
+    }));
   }, [activeWorkspaceSlug, currentShopSlug, navigationContext, publicTenantMode]);
   const homeHref = useMemo(
     () =>
@@ -678,6 +655,23 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
       </NavbarContent>
 
       <NavbarContent justify="end">
+        {/* Back to Beardly platform — shown only on tenant subdomains/custom domains */}
+        {navigationContext === 'public' &&
+        (publicTenantMode === 'platform_subdomain' || publicTenantMode === 'custom_domain') ? (
+          <NavbarItem className={headerActionVisibilityClassName}>
+            <Button
+              as="a"
+              href={buildPlatformUrl('/shops')}
+              variant="ghost"
+              size="sm"
+              className={actionButtonClassName}
+              startContent={<ArrowLeft className="h-3.5 w-3.5" />}
+            >
+              Beardly
+            </Button>
+          </NavbarItem>
+        ) : null}
+
         {!loading && role === 'guest' ? (
           <NavbarItem className={headerActionVisibilityClassName}>
             <Button
@@ -985,6 +979,20 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
             </NavbarMenuItem>
           );
         })}
+
+        {navigationContext === 'public' &&
+        (publicTenantMode === 'platform_subdomain' || publicTenantMode === 'custom_domain') ? (
+          <NavbarMenuItem>
+            <a
+              href={buildPlatformUrl('/shops')}
+              onClick={() => setIsMenuOpen(false)}
+              className="nav-link-pill flex w-full items-center justify-start gap-2 no-underline"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Ir a Beardly
+            </a>
+          </NavbarMenuItem>
+        ) : null}
 
         {!loading && hasWorkspaceAccess && navigationContext === 'public' ? (
           <NavbarMenuItem>

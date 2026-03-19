@@ -30,7 +30,7 @@ import {
 import { formatCurrency } from '@navaja/shared';
 import type { MarketplaceSearchMode, MarketplaceShop } from '@/lib/shops';
 import { cn } from '@/lib/cn';
-import { buildShopHref } from '@/lib/shop-links';
+import { buildShopHref, buildTenantRootHref } from '@/lib/shop-links';
 import { MediaShowcase } from '@/components/public/media-showcase';
 import {
   type GoogleAutocompleteService,
@@ -553,13 +553,13 @@ const MarketplaceShopCard = memo(
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Link
-                href={buildShopHref(shop.slug)}
+              <a
+                href={buildTenantRootHref(shop.slug)}
                 className="action-secondary rounded-full px-4 py-2 text-sm font-semibold"
                 onClick={(event) => event.stopPropagation()}
               >
                 Ver perfil
-              </Link>
+              </a>
               <Link
                 href={buildShopHref(shop.slug, 'book')}
                 className="action-primary inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold"
@@ -2627,13 +2627,13 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                      <Link
-                        href={buildShopHref(mapPreviewShop.slug)}
+                      <a
+                        href={buildTenantRootHref(mapPreviewShop.slug)}
                         className="action-secondary rounded-full px-4 py-2 text-sm font-semibold"
                         onClick={(event) => event.stopPropagation()}
                       >
                         Ver perfil
-                      </Link>
+                      </a>
                       <Link
                         href={buildShopHref(mapPreviewShop.slug, 'book')}
                         className="action-primary inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-semibold"
