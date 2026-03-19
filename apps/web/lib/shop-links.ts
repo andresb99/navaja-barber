@@ -3,10 +3,19 @@
 // Pass an optional section (e.g. 'courses') to append it as a path segment.
 export function buildTenantRootHref(shopSlug: string, section?: string): string {
   const rootDomain = process.env.NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN ?? '';
-  const isLocalhost = rootDomain === 'localhost' || rootDomain === '';
-  const base = isLocalhost
-    ? `/shops/${normalizeShopSlug(shopSlug)}`
-    : `https://${normalizeShopSlug(shopSlug)}.${rootDomain}`;
+  const normalizedSlug = normalizeShopSlug(shopSlug);
+
+  let base: string;
+  if (!rootDomain) {
+    // Unconfigured — fall back to platform path
+    base = `/shops/${normalizedSlug}`;
+  } else if (rootDomain === 'localhost') {
+    // Dev: modern browsers resolve *.localhost natively
+    base = `http://${normalizedSlug}.localhost:3000`;
+  } else {
+    base = `https://${normalizedSlug}.${rootDomain}`;
+  }
+
   return section ? `${base}/${section}` : base;
 }
 
