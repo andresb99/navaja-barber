@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
-import { BookShopCard } from '@/components/public/book-shop-card';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
+import { BookPageContent } from '@/components/public/book-page-content';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
 import { Container } from '@/components/heroui/container';
@@ -35,8 +35,7 @@ export default async function BookPage() {
               Selecciona una barberia y entra a su agenda
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
-              Cada reserva sigue siendo tenant-safe, pero primero eliges la barberia desde una vista
-              global.
+              Busca por nombre o zona, filtra por calificacion y reserva directo en tu barberia.
             </p>
           </div>
 
@@ -67,11 +66,7 @@ export default async function BookPage() {
         </div>
       </Container>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {shops.map((shop) => (
-          <BookShopCard key={shop.id} shop={shop} />
-        ))}
-      </div>
+      <BookPageContent shops={shops} />
     </section>
   );
 }
