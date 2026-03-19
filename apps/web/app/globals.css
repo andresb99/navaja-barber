@@ -488,6 +488,7 @@ html.dark .soft-panel {
 
 .login-input-field {
   color: rgb(15, 23, 42) !important;
+  font-size: 16px !important;
 }
 
 .login-social-btn {
