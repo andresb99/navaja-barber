@@ -61,40 +61,68 @@ function formatTime(t: TimeInputValue): string {
 }
 
 // ── Shared classNames ─────────────────────────────────────────────────────────
-const inputWrapperCN =
-  'h-11 rounded-2xl border border-white/8 bg-zinc-900/70 shadow-none backdrop-blur-sm transition-colors data-[hover=true]:border-white/14 data-[hover=true]:bg-zinc-900/80 group-data-[focus=true]:border-violet-500/40 group-data-[focus=true]:bg-zinc-900/90 dark:border-white/8 dark:bg-zinc-900/70';
+const inputWrapperCN = [
+  'h-11 rounded-2xl shadow-none backdrop-blur-sm transition-colors',
+  // light
+  'border border-zinc-200 bg-white/80',
+  'data-[hover=true]:border-zinc-300 data-[hover=true]:bg-white',
+  'group-data-[focus=true]:border-violet-400 group-data-[focus=true]:bg-white',
+  // dark
+  'dark:border-white/8 dark:bg-zinc-900/70',
+  'dark:data-[hover=true]:border-white/14 dark:data-[hover=true]:bg-zinc-900/80',
+  'dark:group-data-[focus=true]:border-violet-500/40 dark:group-data-[focus=true]:bg-zinc-900/90',
+].join(' ');
 
-const panelInputWrapperCN =
-  'h-10 min-h-0 rounded-xl border border-white/10 bg-white/[0.04] shadow-none transition-colors data-[hover=true]:border-white/16 data-[hover=true]:bg-white/[0.06] group-data-[focus=true]:border-violet-500/40 dark:border-white/10 dark:bg-white/[0.04]';
+const panelInputWrapperCN = [
+  'h-10 min-h-0 rounded-xl shadow-none transition-colors',
+  // light
+  'border border-zinc-200 bg-white',
+  'data-[hover=true]:border-zinc-300',
+  'group-data-[focus=true]:border-violet-400',
+  // dark
+  'dark:border-white/10 dark:bg-white/[0.04]',
+  'dark:data-[hover=true]:border-white/16 dark:data-[hover=true]:bg-white/[0.06]',
+  'dark:group-data-[focus=true]:border-violet-500/40',
+].join(' ');
 
 const calendarCN = {
-  base: 'rounded-2xl border border-white/10 bg-zinc-950 shadow-[0_24px_48px_-16px_rgba(0,0,0,0.6)] p-2',
+  base: [
+    'rounded-2xl border p-2',
+    // light
+    'border-zinc-200 bg-white shadow-[0_16px_40px_-12px_rgba(0,0,0,0.12)]',
+    // dark
+    'dark:border-white/10 dark:bg-zinc-950 dark:shadow-[0_24px_48px_-16px_rgba(0,0,0,0.6)]',
+  ].join(' '),
   headerWrapper: 'pb-2',
-  title: 'text-sm font-semibold text-zinc-200',
-  gridHeaderCell: 'text-[11px] font-medium text-zinc-500',
+  title: 'text-sm font-semibold text-zinc-800 dark:text-zinc-200',
+  gridHeaderCell: 'text-[11px] font-medium text-zinc-400 dark:text-zinc-500',
   // The <td> carries the range band — rounded only at the two endpoints
   cell: [
-    'data-[selected=true]:bg-violet-500/[0.12]',
+    'data-[selected=true]:bg-violet-500/[0.10] dark:data-[selected=true]:bg-violet-500/[0.12]',
     'data-[selection-start=true]:rounded-l-full',
     'data-[selection-end=true]:rounded-r-full',
   ].join(' '),
   // The <button> only gets a filled circle for start / end
   cellButton: [
-    'h-8 w-8 rounded-full text-zinc-400 text-sm transition-colors',
-    // in-range cells: no bg on the button (band lives on the <td>), just lighter text
-    'data-[selected=true]:text-zinc-200',
+    'h-8 w-8 rounded-full text-sm transition-colors',
+    // default text
+    'text-zinc-600 dark:text-zinc-400',
+    // in-range cells: no bg on the button (band lives on the <td>), just accent text
+    'data-[selected=true]:text-violet-700 dark:data-[selected=true]:text-zinc-200',
     // start/end: solid violet circle — !important overrides the in-range rule above
     'data-[selection-start=true]:!bg-violet-600 data-[selection-start=true]:!text-white data-[selection-start=true]:!font-semibold',
     'data-[selection-end=true]:!bg-violet-600 data-[selection-end=true]:!text-white data-[selection-end=true]:!font-semibold',
     // today: subtle ring
     'data-[today=true]:font-semibold data-[today=true]:ring-1 data-[today=true]:ring-violet-500/50',
     // hover
-    'data-[hover=true]:bg-white/10 data-[hover=true]:text-zinc-200',
+    'data-[hover=true]:bg-zinc-100 data-[hover=true]:text-zinc-800 dark:data-[hover=true]:bg-white/10 dark:data-[hover=true]:text-zinc-200',
     // disabled
     'data-[disabled=true]:opacity-30 data-[disabled=true]:cursor-not-allowed',
   ].join(' '),
-  prevButton: 'text-zinc-400 hover:text-zinc-200 hover:bg-white/8 rounded-lg',
-  nextButton: 'text-zinc-400 hover:text-zinc-200 hover:bg-white/8 rounded-lg',
+  prevButton:
+    'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-white/8 rounded-lg',
+  nextButton:
+    'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-white/8 rounded-lg',
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
