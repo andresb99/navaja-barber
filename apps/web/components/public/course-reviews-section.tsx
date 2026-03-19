@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button, Input, Textarea } from '@heroui/react';
-import { ScrollShadow } from '@heroui/scroll-shadow';
 
 interface CourseReview {
   id: string;
@@ -261,13 +260,13 @@ export function CourseReviewsSection({ courseId, reviews: initialReviews }: Cour
           </p>
         </div>
       ) : (
-        <ScrollShadow hideScrollBar size={20} className="max-h-[520px] overflow-y-auto">
+        <div className="max-h-[520px] overflow-y-auto [scrollbar-width:none]">
           <div className="space-y-3 pr-0.5">
             {reviews.map((review, i) => (
               <ReviewCard key={review.id} review={review} index={i} />
             ))}
           </div>
-        </ScrollShadow>
+        </div>
       )}
     </div>
   );
