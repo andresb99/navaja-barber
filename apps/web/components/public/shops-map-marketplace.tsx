@@ -870,7 +870,14 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       return;
     }
 
-    const syncViewportHeight = () => {
+    let rafId = 0;
+
+    const measureAndUpdate = () => {
+      // Skip updates during active drag — the sheet position is controlled imperatively
+      if (isMobileSheetDraggingRef.current) {
+        return;
+      }
+
       const nextViewportHeight = Math.round(
         window.visualViewport?.height ||
           window.innerHeight ||
@@ -886,7 +893,19 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       setMobileViewportHeight(nextContentHeight > 0 ? nextContentHeight : null);
     };
 
-    syncViewportHeight();
+    // Debounce via RAF so rapid consecutive events (e.g. theme change triggering
+    // visualViewport events before layout settles) only fire once per frame.
+    const syncViewportHeight = () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        measureAndUpdate();
+      });
+    };
+
+    measureAndUpdate();
 
     const visualViewport = window.visualViewport;
     window.addEventListener('resize', syncViewportHeight, { passive: true });
@@ -894,6 +913,9 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     visualViewport?.addEventListener('scroll', syncViewportHeight);
 
     return () => {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
       window.removeEventListener('resize', syncViewportHeight);
       visualViewport?.removeEventListener('resize', syncViewportHeight);
       visualViewport?.removeEventListener('scroll', syncViewportHeight);
