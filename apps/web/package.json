@@ -28,6 +28,7 @@
 		"@heroui/date-picker": "^2.3.33",
 		"@heroui/divider": "^2.2.24",
 		"@heroui/input": "^2.4.32",
+		"@heroui/link": "^2.2.26",
 		"@heroui/navbar": "^2.2.29",
 		"@heroui/react": "^2.8.9",
 		"@heroui/select": "^2.4.32",

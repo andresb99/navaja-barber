@@ -1,11 +1,6 @@
+import NextLink from 'next/link';
 import { redirect } from 'next/navigation';
-import {
-  publicMarketingHomeCapabilityGroups,
-  publicMarketingHomeHero,
-  publicMarketingHomeKeyRoutes,
-  publicMarketingHomeOperationalStages,
-} from '@navaja/shared';
-import { MarketingHero, MarketingPanel, MarketingSurfaceCard } from '@/components/public/marketing';
+import { Link } from '@heroui/link';
 import {
   getAccessibleWorkspacesForCurrentUser,
   getFavoriteWorkspaceForCurrentUser,
@@ -45,66 +40,50 @@ export default async function HomePage() {
   }
 
   return (
-    <section className="space-y-8 pb-10">
-      <MarketingHero
-        eyebrow={publicMarketingHomeHero.eyebrow}
-        title={publicMarketingHomeHero.title}
-        description={publicMarketingHomeHero.description}
-        actions={publicMarketingHomeHero.actions}
-        stats={publicMarketingHomeHero.stats}
-        containerClassName="px-6 py-8 md:px-8 md:py-10"
-        layoutClassName="relative z-10 grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end"
-        titleClassName="mt-3 max-w-4xl font-[family-name:var(--font-heading)] text-4xl font-bold tracking-tight text-ink md:text-[3.3rem] dark:text-slate-100"
-        descriptionClassName="mt-4 max-w-3xl text-base text-slate/80 dark:text-slate-300"
-        statsClassName="grid gap-3 sm:grid-cols-3 lg:grid-cols-1"
-      />
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        {publicMarketingHomeCapabilityGroups.map((group) => (
-          <MarketingPanel key={group.title} title={group.title}>
-            <div className="space-y-3">
-              {group.points.map((point) => (
-                <MarketingSurfaceCard
-                  key={point}
-                  description={point}
-                  descriptionClassName="text-sm text-slate/85 dark:text-slate-300"
-                />
-              ))}
-            </div>
-          </MarketingPanel>
-        ))}
+    <div className="relative flex min-h-[calc(100vh-72px)] items-center justify-center overflow-hidden px-6">
+      {/* Background aura */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/8 blur-[140px] dark:bg-violet-500/6" />
+        <div className="absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-purple-400/6 blur-[100px] dark:bg-purple-400/5" />
+        <div className="absolute bottom-0 left-0 h-[300px] w-[300px] rounded-full bg-brass/4 blur-[80px] dark:bg-brass/3" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-        <MarketingPanel
-          eyebrow="Pensado para el dia a dia"
-          title="Menos huecos en agenda. Menos friccion en cobros. Mas control operativo."
-          titleClassName="mt-3 font-[family-name:var(--font-heading)] text-3xl font-semibold text-ink dark:text-slate-100"
-        >
-          <div className="grid gap-3 md:grid-cols-2">
-            {publicMarketingHomeOperationalStages.map((stage) => (
-              <MarketingSurfaceCard
-                key={stage.title}
-                title={stage.title}
-                description={stage.description}
-              />
-            ))}
-          </div>
-        </MarketingPanel>
+      <div className="relative z-10 text-center">
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate/50 dark:text-slate-500">
+          Marketplace de barberias · Uruguay
+        </p>
 
-        <MarketingPanel eyebrow="Rutas clave">
-          <div className="space-y-3">
-            {publicMarketingHomeKeyRoutes.map((route) => (
-              <MarketingSurfaceCard
-                key={route.href}
-                href={route.href}
-                title={route.title}
-                description={route.description}
-              />
-            ))}
-          </div>
-        </MarketingPanel>
+        <h1 className="mt-5 font-[family-name:var(--font-heading)] text-5xl font-bold tracking-tight text-ink md:text-6xl lg:text-[4.5rem] dark:text-slate-100">
+          Encuentra tu
+          <br />
+          barbería.
+        </h1>
+
+        <p className="mx-auto mt-5 max-w-sm text-base text-slate/50 dark:text-slate-500">
+          Barberias verificadas con reservas online, reseñas reales y horarios actualizados.
+        </p>
+
+        <div className="mt-8">
+          <NextLink
+            href="/shops"
+            className="action-primary inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-8 py-3 text-sm font-semibold"
+          >
+            Ver barberias en el mapa
+            <span aria-hidden="true">→</span>
+          </NextLink>
+        </div>
+
+        <p className="mt-6 text-xs text-slate/50 dark:text-slate-500">
+          ¿Tienes una barbería?{' '}
+          <Link
+            href="/software-para-barberias"
+            underline="always"
+            className="!text-xs text-slate/50 transition-colors hover:text-slate/80 dark:text-slate-500 dark:hover:text-slate-300"
+          >
+            Conoce la plataforma
+          </Link>
+        </p>
       </div>
-    </section>
+    </div>
   );
 }
