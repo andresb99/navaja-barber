@@ -359,11 +359,19 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
       }));
     }
 
-    return publicHeaderItems.map((item) => ({
-      href: buildPublicHeaderHref(item.segment, currentShopSlug, publicTenantMode),
-      label: item.label,
-      key: `${item.segment || 'home'}:${item.label}`,
-    }));
+    return publicHeaderItems.map((item) => {
+      // "Barberias" (segment='') always links to the marketplace in path mode,
+      // even when inside a shop context — so users can always escape the tenant flow.
+      const href =
+        item.segment === '' && publicTenantMode === 'path'
+          ? '/shops'
+          : buildPublicHeaderHref(item.segment, currentShopSlug, publicTenantMode);
+      return {
+        href,
+        label: item.label,
+        key: `${item.segment || 'home'}:${item.label}`,
+      };
+    });
   }, [activeWorkspaceSlug, currentShopSlug, navigationContext, publicTenantMode]);
   const homeHref = useMemo(
     () =>
