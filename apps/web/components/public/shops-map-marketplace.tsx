@@ -14,7 +14,7 @@ import {
   type FormEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import { Button, Card, CardBody, CardFooter, CardHeader, Skeleton } from '@heroui/react';
+import { Button, Card, CardBody, CardFooter, CardHeader, ScrollShadow, Skeleton } from '@heroui/react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowUpRight,
@@ -2398,23 +2398,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
             )}
           >
             {!isMobileViewport ? (
-              <div
-                className="h-full overflow-y-auto pb-8 pr-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                style={{
-                  background: isDarkTheme
-                    ? `linear-gradient(#09090b 30%, rgba(9,9,11,0)) center top,
-                       linear-gradient(rgba(9,9,11,0), #09090b 70%) center bottom,
-                       radial-gradient(farthest-side at 50% 0%, rgba(255,255,255,0.06), transparent) center top,
-                       radial-gradient(farthest-side at 50% 100%, rgba(255,255,255,0.06), transparent) center bottom`
-                    : `linear-gradient(#f7f5f3 30%, rgba(247,245,243,0)) center top,
-                       linear-gradient(rgba(247,245,243,0), #f7f5f3 70%) center bottom,
-                       radial-gradient(farthest-side at 50% 0%, rgba(0,0,0,0.06), transparent) center top,
-                       radial-gradient(farthest-side at 50% 100%, rgba(0,0,0,0.06), transparent) center bottom`,
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: '100% 48px, 100% 48px, 100% 14px, 100% 14px',
-                  backgroundAttachment: 'local, local, scroll, scroll',
-                }}
-              >
+              <ScrollShadow hideScrollBar className="h-full overflow-y-auto pb-8 pr-0.5">
                 <MarketplaceCardsSection
                   showCardSkeletons={showCardSkeletons}
                   filteredShops={filteredShops}
@@ -2422,7 +2406,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
                   activeSearchMode={activeSearchMode}
                   onFocus={focusShop}
                 />
-              </div>
+              </ScrollShadow>
             ) : (
               <MarketplaceCardsSection
                 showCardSkeletons={showCardSkeletons}
