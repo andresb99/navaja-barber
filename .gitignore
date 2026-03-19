@@ -26,5 +26,7 @@ web-dev.log
 AGENTS.md
 CLAUDE.md
 .claude/
+.mcp.json
+**/.mcp.json
 
 
