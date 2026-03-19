@@ -68,7 +68,7 @@ const roleLabel: Record<Exclude<NavRole, 'guest'>, string> = {
 };
 
 const publicHeaderItems = [
-  { segment: '', label: 'Inicio' },
+  { segment: '', label: 'Barberias' },
   { segment: 'book', label: 'Agendar' },
   { segment: 'courses', label: 'Cursos' },
   { segment: 'modelos', label: 'Modelos' },
@@ -206,6 +206,10 @@ function getHomeHref(
 
   if (role === 'staff') {
     return '/staff';
+  }
+
+  if (!shopSlug && mode === 'path') {
+    return '/';
   }
 
   return buildPublicHeaderHref('', shopSlug, mode);

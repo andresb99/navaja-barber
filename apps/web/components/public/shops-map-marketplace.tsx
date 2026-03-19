@@ -729,6 +729,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   const [isMobileViewport, setIsMobileViewport] = useState<boolean | null>(null);
   const [mobileViewportHeight, setMobileViewportHeight] = useState<number | null>(null);
   const [mobileSheetStage, setMobileSheetStage] = useState<MobileSheetStage>('collapsed');
+  const [mobileSheetTransitionReady, setMobileSheetTransitionReady] = useState(false);
   const mobileSheetDragOffsetRef = useRef(0);
   const isMobileSheetDraggingRef = useRef(false);
   const [mobileSheetDragSnapshot, setMobileSheetDragSnapshot] = useState<{ dragging: boolean; offset: number }>({ dragging: false, offset: 0 });
@@ -852,6 +853,15 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       mediaQuery.removeEventListener('change', syncViewport);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isMobileViewport) {
+      setMobileSheetTransitionReady(false);
+      return;
+    }
+    const raf = requestAnimationFrame(() => setMobileSheetTransitionReady(true));
+    return () => cancelAnimationFrame(raf);
+  }, [isMobileViewport]);
 
   useEffect(() => {
     if (isMobileViewport === true || isMobileViewport === null) {
@@ -2184,28 +2194,26 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     shouldHideMobileSheetForMapPreview && 'pointer-events-none opacity-0',
     !isMobileSheetDraggingRef.current &&
       isMobileViewportActive &&
+      mobileSheetTransitionReady &&
       'transition-transform duration-300 ease-out',
   );
 
   if (isMobileViewport === null) {
     return (
       <div className="relative -mx-4 -mb-16 -mt-5 flex h-[calc(100dvh-4.75rem)] flex-col overflow-hidden sm:-mx-6 md:-mb-[4.5rem] md:-mt-7 xl:mx-0 xl:mb-0 xl:mt-0">
-        <div className="marketplace-map-shell relative h-full min-h-0 overflow-hidden rounded-none border-0 bg-transparent p-0 shadow-none">
-          <Skeleton className="h-full w-full rounded-none bg-slate-200/88 dark:bg-slate-800/72 xl:rounded-[1.4rem]" />
-          <div className="pointer-events-none absolute inset-x-3 top-3 z-20 xl:hidden">
-            <div className="rounded-[1.7rem] border border-white/75 bg-white/94 p-3 shadow-[0_20px_42px_-28px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/92">
-              <Skeleton className="h-11 w-full rounded-2xl bg-slate-200/88 dark:bg-slate-800/72" />
+        <div className="marketplace-map-shell relative flex h-full min-h-0 items-center justify-center overflow-hidden rounded-none border-0 bg-slate-100/60 p-0 shadow-none dark:bg-[#0a0416] xl:rounded-[1.4rem]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative flex h-12 w-12 items-center justify-center">
+              <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-violet-400 dark:border-t-violet-300" />
+              <MapPinned className="h-5 w-5 text-violet-400 dark:text-violet-300" />
             </div>
-          </div>
-          <div
-            className={cn(
-              'pointer-events-none absolute inset-x-3 bottom-4 z-20 rounded-[1.25rem] border px-4 py-3 shadow-[0_20px_40px_-28px_rgba(15,23,42,0.38)] xl:inset-x-auto xl:left-4 xl:w-[21rem]',
-              loadingPillClassName,
-            )}
-          >
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <LoaderCircle className="h-4 w-4 animate-spin" />
-              Cargando mapa y barberias...
+            <div className="text-center">
+              <p className="text-sm font-semibold text-ink dark:text-white">
+                Cargando barberias
+              </p>
+              <p className="mt-1 text-xs text-slate/60 dark:text-slate-400">
+                Preparando el mapa...
+              </p>
             </div>
           </div>
         </div>
