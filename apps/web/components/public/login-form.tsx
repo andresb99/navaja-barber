@@ -81,7 +81,7 @@ function PasswordToggle({ visible, onToggle }: { visible: boolean; onToggle: () 
     <button
       type="button"
       onClick={onToggle}
-      className="mb-0.5 flex self-center text-slate/40 transition-colors hover:text-slate/70 focus:outline-none dark:text-violet-200/40 dark:hover:text-violet-200/70"
+      className="mb-0.5 flex self-center text-slate/40 transition-colors hover:text-slate/70 focus:outline-none dark:text-zinc-500 dark:hover:text-zinc-300"
       aria-label={visible ? 'Ocultar contrasena' : 'Mostrar contrasena'}
     >
       {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -511,190 +511,21 @@ export function LoginForm({
     `relative z-10 flex min-h-[2.5rem] items-center justify-center gap-1.5 px-3 py-2 text-center text-[0.82rem] font-semibold leading-tight transition-all duration-200 sm:gap-2 sm:px-4 ${
       isActive
         ? 'text-ink dark:text-white'
-        : 'text-slate/54 hover:text-ink dark:text-violet-200/60 dark:hover:text-violet-100'
+        : 'text-slate/54 hover:text-ink dark:text-zinc-400 dark:hover:text-white'
     }`;
 
   return (
     <div
-      className={
-        showPlans
-          ? 'grid gap-5 lg:grid-cols-[0.92fr_1.08fr] xl:gap-6'
-          : 'mx-auto w-full max-w-[28rem]'
-      }
+      className="mx-auto w-full max-w-[28rem]"
     >
-      {/* Left panel - plans (only visible in register mode) */}
-      {showPlans ? (
-        <aside className="login-plans-panel page-enter relative order-last overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-white to-slate-50/80 p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:from-transparent dark:via-transparent dark:to-transparent dark:text-white dark:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] lg:order-first md:p-8">
-          <div className="relative flex h-full flex-col">
-            <p className="hero-eyebrow w-fit">
-              <Sparkles className="h-3.5 w-3.5" />
-              Planes de suscripcion
-            </p>
-            <p className="login-plans-text-muted mt-4 text-sm text-slate/70">
-              Los planes de {APP_NAME} empiezan desde{' '}
-              {formatUyuCents(getSubscriptionPlanDescriptor('free').monthlyPriceCents)} / mes
-            </p>
-            <h1 className="mt-7 text-balance text-3xl font-[family-name:var(--font-heading)] font-semibold leading-[1.07] tracking-tight text-ink dark:text-white md:text-[2.15rem]">
-              Elige el mejor plan para tu barberia
-            </h1>
-            <p className="login-plans-text-muted mt-3 max-w-md text-sm text-slate/65">
-              Compara precios, funcionalidades y cambia entre pago mensual o anual en cuotas.
-            </p>
-
-            <div className="mt-5 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 p-2 dark:border-white/12 dark:bg-white/[0.03]">
-              <p className="login-plans-text-muted mb-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-500/70 dark:text-slate/60">
-                Ahorra hasta {maxAnnualSavingsPercent}%
-              </p>
-              <div className="relative grid grid-cols-2 items-stretch rounded-full border border-slate-200 bg-slate-100/80 p-1 dark:border-white/12 dark:bg-black/20">
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.1)] transition-transform duration-300 dark:bg-gradient-to-r dark:from-violet-600/80 dark:to-fuchsia-600/80 dark:shadow-[0_0_12px_rgba(139,92,246,0.4)] ${
-                    billingMode === 'monthly' ? 'translate-x-0' : 'translate-x-full'
-                  }`}
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  radius="full"
-                  variant="light"
-                  className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
-                    billingMode === 'monthly'
-                      ? 'login-billing-active !text-ink dark:!text-white'
-                      : 'login-billing-inactive !text-slate/54 hover:!text-ink dark:!text-violet-200/60 dark:hover:!text-violet-100'
-                  }`}
-                  aria-pressed={billingMode === 'monthly'}
-                  onPress={() => {
-                    setBillingMode('monthly');
-                  }}
-                >
-                  Mensual
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  radius="full"
-                  variant="light"
-                  className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
-                    billingMode === 'annual_installments'
-                      ? 'login-billing-active !text-ink dark:!text-white'
-                      : 'login-billing-inactive !text-slate/54 hover:!text-ink dark:!text-violet-200/60 dark:hover:!text-violet-100'
-                  }`}
-                  aria-pressed={billingMode === 'annual_installments'}
-                  onPress={() => {
-                    setBillingMode('annual_installments');
-                  }}
-                >
-                  Anual en cuotas
-                </Button>
-              </div>
-            </div>
-
-            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {planOptions.map((plan, index) => {
-                const isLastOddMobileCard =
-                  planOptions.length > 1 &&
-                  planOptions.length % 2 === 1 &&
-                  index === planOptions.length - 1;
-
-                return (
-                  <Button
-                    key={`plan-option-${plan.id}`}
-                    type="button"
-                    variant="light"
-                    onPress={() => handleSelectPlanId(plan.id)}
-                    className={`min-h-[3rem] rounded-[1rem] border px-3 py-2 text-left transition ${isLastOddMobileCard ? 'col-span-2 sm:col-span-1' : ''} ${
-                      plan.isSelected
-                        ? 'border-violet-400 bg-violet-50 shadow-[0_0_0_1px_rgba(139,92,246,0.15),0_4px_16px_-8px_rgba(139,92,246,0.25)] dark:border-violet-300/45 dark:bg-violet-400/15 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)]'
-                        : 'border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:shadow-[0_2px_6px_-2px_rgba(15,23,42,0.1)] dark:border-white/12 dark:bg-white/[0.03] dark:shadow-none dark:hover:bg-white/[0.07]'
-                    }`}
-                  >
-                    <p
-                      className={`text-sm font-semibold ${
-                        plan.isSelected ? '!text-violet-800 login-plan-btn-name-selected' : '!text-ink/80 login-plan-btn-name'
-                      }`}
-                    >
-                      {plan.name}
-                    </p>
-                    <p className="login-plan-btn-price mt-1 text-[11px] text-slate/60">{plan.optionPrice}</p>
-                  </Button>
-                );
-              })}
-            </div>
-
-            <article className="mt-3 rounded-[1.35rem] border border-violet-300/60 bg-gradient-to-br from-violet-50 to-white p-4 shadow-[0_2px_12px_-4px_rgba(139,92,246,0.18)] dark:border-violet-300/28 dark:from-violet-950/80 dark:to-violet-950/60 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.25)]">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="login-plan-detail-name text-2xl font-semibold leading-tight text-ink dark:text-white">
-                    {selectedPlan?.name}
-                  </p>
-                  <p className="login-plans-text-muted mt-1 text-xs text-slate/60">{selectedPlan?.description}</p>
-                </div>
-                {selectedPlan?.badge ? (
-                  <span className="login-plan-badge inline-flex shrink-0 rounded-full border border-violet-400/40 bg-violet-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-700 dark:border-violet-300/45 dark:bg-violet-400/18 dark:text-violet-100">
-                    {selectedPlan.badge}
-                  </span>
-                ) : null}
-              </div>
-
-              <div className="mt-3 border-t border-violet-200/60 pt-3 dark:border-white/10">
-                <p className="login-plan-detail-price text-4xl font-semibold leading-none tracking-[-0.02em] text-ink dark:text-white">
-                  {billingMode === 'monthly'
-                    ? `${formatUyuCents(selectedPlan?.monthlyPriceCents || 0)} / mes`
-                    : (selectedPlan?.annualInstallmentCents || 0) > 0
-                      ? `12x ${formatUyuCents(selectedPlan?.annualInstallmentCents || 0)} / mes`
-                      : 'Gratis'}
-                </p>
-                <p className="login-plans-text-muted mt-2 text-sm text-slate/60 dark:text-white/68">
-                  {billingMode === 'monthly'
-                    ? 'Facturacion mes a mes'
-                    : (selectedPlan?.annualInstallmentCents || 0) > 0
-                      ? `Precio total anual ${formatUyuCents((selectedPlan?.annualInstallmentCents || 0) * 12)}`
-                      : 'Sin costo anual'}
-                </p>
-              </div>
-
-              <ul className="mt-4 space-y-1.5">
-                {selectedPlanFeatures.map((feature) => (
-                  <li
-                    key={`${selectedPlan?.id || 'plan'}-${feature}`}
-                    className="login-plans-feature-item flex items-start gap-2 text-sm text-ink/80"
-                  >
-                    <span className="mt-[0.1rem] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-200">
-                      <Check className="h-3 w-3" />
-                    </span>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                type="button"
-                variant="light"
-                className="login-cta-btn mt-4 w-full rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition"
-                onPress={handleSelectPlanCta}
-              >
-                {planSelectionIntent?.planId === selectedPlanId ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Check className="h-3.5 w-3.5" />
-                    {selectedPlan?.name} seleccionado
-                  </span>
-                ) : (
-                  `Elegir ${selectedPlan?.name}`
-                )}
-              </Button>
-            </article>
-          </div>
-        </aside>
-      ) : null}
-
-      {/* Right panel - auth form */}
-      <div className="login-right-panel flex flex-col rounded-[2rem] border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:shadow-[0_0_80px_-20px_rgba(139,92,246,0.3)] md:p-8">
+      {/* Auth form */}
+      <div className="login-right-panel flex flex-col rounded-[2rem] border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-white/10 dark:shadow-[0_8px_32px_-12px_rgba(0,0,0,0.8)] md:p-8">
         {/* Mode switcher - 2 tabs: login/register */}
         {mode !== 'recover' && mode !== 'reset' ? (
-          <div className="relative rounded-[1.2rem] border border-slate-200 bg-slate-100/80 p-1 dark:border-violet-500/15 dark:bg-[rgba(139,92,246,0.06)]">
+          <div className="relative rounded-[1.2rem] border border-slate-200 bg-slate-100/80 p-1 dark:border-white/10 dark:bg-white/[0.03]">
             <span
               aria-hidden="true"
-              className={`pointer-events-none absolute bottom-1 top-1 rounded-[0.85rem] bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.1)] transition-all duration-300 dark:bg-gradient-to-r dark:from-violet-600/80 dark:to-fuchsia-600/80 dark:shadow-[0_0_12px_rgba(139,92,246,0.4)] ${
+              className={`pointer-events-none absolute bottom-1 top-1 rounded-[0.85rem] bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.1)] transition-all duration-300 dark:bg-gradient-to-r dark:from-violet-600/90 dark:to-indigo-500/90 dark:shadow-[0_0_12px_rgba(139,92,246,0.3)] dark:border dark:border-white/10 ${
                 mode === 'login'
                   ? 'left-1 w-[calc(50%-0.375rem)]'
                   : 'left-[calc(50%+0.125rem)] w-[calc(50%-0.375rem)]'
@@ -732,7 +563,7 @@ export function LoginForm({
           <h2 className="font-[family-name:var(--font-heading)] text-3xl font-semibold text-ink dark:text-white">
             {titleByMode[mode]}
           </h2>
-          <p className="mt-1.5 text-sm text-slate/70 dark:text-violet-200/70">{subtitleByMode[mode]}</p>
+          <p className="mt-1.5 text-sm text-slate/70 dark:text-zinc-400">{subtitleByMode[mode]}</p>
         </div>
 
         {/* Banners */}
@@ -750,7 +581,7 @@ export function LoginForm({
         {/* Form card */}
         <div
           key={mode}
-          className="page-enter mt-5 flex flex-col gap-5 rounded-[1.65rem] border border-slate-200/40 bg-slate-50/40 p-5 dark:border-[rgba(139,92,246,0.15)] dark:bg-[rgba(139,92,246,0.06)] md:p-6"
+          className="page-enter mt-5 flex flex-col gap-5 sm:gap-6"
         >
           {/* Recover mode */}
           {mode === 'recover' ? (
@@ -838,7 +669,7 @@ export function LoginForm({
                   type="button"
                   variant="bordered"
                   radius="lg"
-                  className="border-slate-200/70 py-3 text-sm font-semibold text-sky-600 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 dark:border-violet-500/30 dark:text-violet-300 dark:hover:border-violet-400/50 dark:hover:bg-violet-500/10"
+                  className="border-slate-200/70 py-3 text-sm font-semibold text-sky-600 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:bg-white/5"
                   onClick={() => {
                     setMode('recover');
                   }}
@@ -898,7 +729,7 @@ export function LoginForm({
                   {...(mode === 'register' ? { minLength: 8 } : {})}
                 />
                 {mode === 'register' ? (
-                  <p className="pl-1 text-xs text-slate/50 dark:text-violet-200/50">Minimo 8 caracteres.</p>
+                  <p className="pl-1 text-xs text-slate/50 dark:text-zinc-500">Minimo 8 caracteres.</p>
                 ) : null}
               </div>
 
@@ -924,7 +755,7 @@ export function LoginForm({
                 <Button
                   type="button"
                   variant="light"
-                  className="w-full text-sm font-semibold text-sky-600 transition-all duration-200 hover:text-sky-500 dark:text-violet-400 dark:hover:text-violet-300"
+                  className="w-full text-sm font-semibold text-sky-600 transition-all duration-200 hover:text-sky-500 dark:text-zinc-300 dark:hover:text-white"
                   isLoading={activeAction === 'magic-link'}
                   isDisabled={isBusy || !email}
                   onClick={(event) => {
@@ -937,11 +768,11 @@ export function LoginForm({
 
               {/* Social divider */}
               <div className="relative flex items-center gap-3 py-1">
-                <div className="h-px flex-1 bg-slate-200/60 dark:bg-violet-500/15" />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/40 dark:text-violet-200/40">
+                <div className="h-px flex-1 bg-slate-200/60 dark:bg-white/10" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate/40 dark:text-zinc-500">
                   o continua con
                 </span>
-                <div className="h-px flex-1 bg-slate-200/60 dark:bg-violet-500/15" />
+                <div className="h-px flex-1 bg-slate-200/60 dark:bg-white/10" />
               </div>
 
               {/* Social buttons */}
@@ -995,7 +826,7 @@ export function LoginForm({
               {mode === 'login' ? (
                 <button
                   type="button"
-                  className="block w-full text-center text-xs text-slate/50 transition-colors hover:text-sky-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 disabled:pointer-events-none dark:text-violet-200/50 dark:hover:text-violet-300"
+                  className="block w-full text-center text-xs text-slate/50 transition-colors hover:text-sky-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-500 disabled:pointer-events-none dark:text-zinc-400 dark:hover:text-white"
                   disabled={isBusy}
                   onClick={() => {
                     if (!isBusy) {
