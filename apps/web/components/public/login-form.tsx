@@ -4,7 +4,8 @@ import Link from 'next/link';
 import {
   Check,
   ChevronRight,
-  KeyRound,
+  Eye,
+  EyeOff,
   LogIn,
   Sparkles,
   UserPlus,
@@ -75,6 +76,19 @@ export function mapAuthError(message: string) {
   return message;
 }
 
+function PasswordToggle({ visible, onToggle }: { visible: boolean; onToggle: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="mb-0.5 flex self-center text-slate/40 transition-colors hover:text-slate/70 focus:outline-none dark:text-violet-200/40 dark:hover:text-violet-200/70"
+      aria-label={visible ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+    >
+      {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  );
+}
+
 export function LoginForm({
   initialMode = 'login',
   nextPath = '/',
@@ -87,8 +101,11 @@ export function LoginForm({
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [activeAction, setActiveAction] = useState<AuthAction | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(initialMessage);
@@ -418,7 +435,7 @@ export function LoginForm({
   }
 
   const titleByMode: Record<AuthMode, string> = {
-    login: 'Ingresar',
+    login: 'Bienvenido de vuelta',
     register: 'Crear cuenta',
     recover: 'Recuperar acceso',
     reset: 'Nueva contrasena',
@@ -431,6 +448,7 @@ export function LoginForm({
     reset: 'Define una nueva contrasena para tu cuenta.',
   };
 
+  const showPlans = mode === 'register';
   const isPasswordMode = mode === 'login' || mode === 'register';
   const selectedPlan = useMemo(
     () => getSubscriptionPlanDescriptor(selectedPlanId),
@@ -459,7 +477,6 @@ export function LoginForm({
     [billingMode, selectedPlan],
   );
   const maxAnnualSavingsPercent = getMaxAnnualSavingsPercent();
-  const planCtaLabel = selectedPlan?.name || 'plan';
   const handleSelectPlanCta = useCallback(() => {
     if (isBusy) {
       return;
@@ -470,13 +487,8 @@ export function LoginForm({
       billingMode,
     });
     setError(null);
-    setMessage(
-      selectedPlanId === 'free'
-        ? 'Plan Free seleccionado. Crea tu cuenta para empezar.'
-        : `Plan ${planCtaLabel} seleccionado. Crea tu cuenta y luego activa la suscripcion desde tu panel.`,
-    );
-    setMode('register');
-  }, [billingMode, isBusy, planCtaLabel, selectedPlanId]);
+    setMessage(null);
+  }, [billingMode, isBusy, selectedPlanId]);
   const handleModeChange = useCallback(
     (nextMode: AuthMode) => {
       if (!isBusy) {
@@ -493,225 +505,230 @@ export function LoginForm({
     label: 'login-input-label',
     input: 'login-input-field',
   };
+
+  /* Mode switcher: only login/register as primary tabs */
   const modeButtonClassName = (isActive: boolean) =>
-    `relative z-10 flex min-h-[2.5rem] items-center justify-center gap-1.5 px-2 py-2 text-center text-[0.75rem] font-semibold leading-tight transition-all duration-200 sm:gap-2 sm:px-3 sm:text-[0.82rem] ${
+    `relative z-10 flex min-h-[2.5rem] items-center justify-center gap-1.5 px-3 py-2 text-center text-[0.82rem] font-semibold leading-tight transition-all duration-200 sm:gap-2 sm:px-4 ${
       isActive
         ? 'text-ink dark:text-white'
         : 'text-slate/54 hover:text-ink dark:text-violet-200/60 dark:hover:text-violet-100'
     }`;
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] xl:gap-6">
-      {/* Left panel - plans */}
-      <aside className="login-plans-panel relative order-last overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-white to-slate-50/80 p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:from-transparent dark:via-transparent dark:to-transparent dark:text-white dark:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] lg:order-first md:p-8">
-        <div className="relative flex h-full flex-col">
-          <p className="hero-eyebrow w-fit">
-            <Sparkles className="h-3.5 w-3.5" />
-            Planes de suscripcion
-          </p>
-          <p className="login-plans-text-muted mt-4 text-sm text-slate/70">
-            Los planes de {APP_NAME} empiezan desde{' '}
-            {formatUyuCents(getSubscriptionPlanDescriptor('free').monthlyPriceCents)} / mes
-          </p>
-          <h1 className="mt-7 text-balance text-3xl font-[family-name:var(--font-heading)] font-semibold leading-[1.07] tracking-tight text-ink dark:text-white md:text-[2.15rem]">
-            Elige el mejor plan para tu barberia
-          </h1>
-          <p className="login-plans-text-muted mt-3 max-w-md text-sm text-slate/65">
-            Compara precios, funcionalidades y cambia entre pago mensual o anual en cuotas.
-          </p>
-
-          <div className="mt-5 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 p-2 dark:border-white/12 dark:bg-white/[0.03]">
-            <p className="login-plans-text-muted mb-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-500/70 dark:text-slate/60">
-              Ahorra hasta {maxAnnualSavingsPercent}%
+    <div
+      className={
+        showPlans
+          ? 'grid gap-5 lg:grid-cols-[0.92fr_1.08fr] xl:gap-6'
+          : 'mx-auto w-full max-w-[28rem]'
+      }
+    >
+      {/* Left panel - plans (only visible in register mode) */}
+      {showPlans ? (
+        <aside className="login-plans-panel page-enter relative order-last overflow-hidden rounded-[2rem] border border-slate-200 bg-gradient-to-br from-white via-white to-slate-50/80 p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:from-transparent dark:via-transparent dark:to-transparent dark:text-white dark:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_12px_32px_-12px_rgba(0,0,0,0.6)] lg:order-first md:p-8">
+          <div className="relative flex h-full flex-col">
+            <p className="hero-eyebrow w-fit">
+              <Sparkles className="h-3.5 w-3.5" />
+              Planes de suscripcion
             </p>
-            <div className="relative grid grid-cols-2 items-stretch rounded-full border border-slate-200 bg-slate-100/80 p-1 dark:border-white/12 dark:bg-black/20">
-              <span
-                aria-hidden="true"
-                className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.1)] transition-transform duration-300 dark:bg-gradient-to-r dark:from-violet-600/80 dark:to-fuchsia-600/80 dark:shadow-[0_0_12px_rgba(139,92,246,0.4)] ${
-                  billingMode === 'monthly' ? 'translate-x-0' : 'translate-x-full'
-                }`}
-              />
-              <Button
-                type="button"
-                size="sm"
-                radius="full"
-                variant="light"
-                className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
-                  billingMode === 'monthly'
-                    ? 'login-billing-active !text-ink dark:!text-white'
-                    : 'login-billing-inactive !text-slate/54 hover:!text-ink dark:!text-violet-200/60 dark:hover:!text-violet-100'
-                }`}
-                aria-pressed={billingMode === 'monthly'}
-                onPress={() => {
-                  setBillingMode('monthly');
-                }}
-              >
-                Mensual
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                radius="full"
-                variant="light"
-                className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
-                  billingMode === 'annual_installments'
-                    ? 'login-billing-active !text-ink dark:!text-white'
-                    : 'login-billing-inactive !text-slate/54 hover:!text-ink dark:!text-violet-200/60 dark:hover:!text-violet-100'
-                }`}
-                aria-pressed={billingMode === 'annual_installments'}
-                onPress={() => {
-                  setBillingMode('annual_installments');
-                }}
-              >
-                Anual en cuotas
-              </Button>
-            </div>
-          </div>
+            <p className="login-plans-text-muted mt-4 text-sm text-slate/70">
+              Los planes de {APP_NAME} empiezan desde{' '}
+              {formatUyuCents(getSubscriptionPlanDescriptor('free').monthlyPriceCents)} / mes
+            </p>
+            <h1 className="mt-7 text-balance text-3xl font-[family-name:var(--font-heading)] font-semibold leading-[1.07] tracking-tight text-ink dark:text-white md:text-[2.15rem]">
+              Elige el mejor plan para tu barberia
+            </h1>
+            <p className="login-plans-text-muted mt-3 max-w-md text-sm text-slate/65">
+              Compara precios, funcionalidades y cambia entre pago mensual o anual en cuotas.
+            </p>
 
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {planOptions.map((plan, index) => {
-              const isLastOddMobileCard =
-                planOptions.length > 1 &&
-                planOptions.length % 2 === 1 &&
-                index === planOptions.length - 1;
-
-              return (
-                <Button
-                  key={`plan-option-${plan.id}`}
-                  type="button"
-                  variant="light"
-                  onPress={() => handleSelectPlanId(plan.id)}
-                  className={`rounded-[1rem] border px-3 py-2 text-left transition ${isLastOddMobileCard ? 'col-span-2 sm:col-span-1' : ''} ${
-                    plan.isSelected
-                      ? 'border-violet-400 bg-violet-50 shadow-[0_0_0_1px_rgba(139,92,246,0.15),0_4px_16px_-8px_rgba(139,92,246,0.25)] dark:border-violet-300/45 dark:bg-violet-400/15 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)]'
-                      : 'border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:shadow-[0_2px_6px_-2px_rgba(15,23,42,0.1)] dark:border-white/12 dark:bg-white/[0.03] dark:shadow-none dark:hover:bg-white/[0.07]'
+            <div className="mt-5 w-full rounded-[1.25rem] border border-slate-200 bg-slate-50 p-2 dark:border-white/12 dark:bg-white/[0.03]">
+              <p className="login-plans-text-muted mb-2 text-right text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-500/70 dark:text-slate/60">
+                Ahorra hasta {maxAnnualSavingsPercent}%
+              </p>
+              <div className="relative grid grid-cols-2 items-stretch rounded-full border border-slate-200 bg-slate-100/80 p-1 dark:border-white/12 dark:bg-black/20">
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute bottom-1 left-1 top-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.1)] transition-transform duration-300 dark:bg-gradient-to-r dark:from-violet-600/80 dark:to-fuchsia-600/80 dark:shadow-[0_0_12px_rgba(139,92,246,0.4)] ${
+                    billingMode === 'monthly' ? 'translate-x-0' : 'translate-x-full'
                   }`}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  radius="full"
+                  variant="light"
+                  className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
+                    billingMode === 'monthly'
+                      ? 'login-billing-active !text-ink dark:!text-white'
+                      : 'login-billing-inactive !text-slate/54 hover:!text-ink dark:!text-violet-200/60 dark:hover:!text-violet-100'
+                  }`}
+                  aria-pressed={billingMode === 'monthly'}
+                  onPress={() => {
+                    setBillingMode('monthly');
+                  }}
                 >
-                  <p
-                    className={`text-sm font-semibold ${
-                      plan.isSelected ? '!text-violet-800 login-plan-btn-name-selected' : '!text-ink/80 login-plan-btn-name'
+                  Mensual
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  radius="full"
+                  variant="light"
+                  className={`relative z-10 h-auto min-h-[2.75rem] rounded-full px-2 py-2 text-center text-[11px] font-semibold leading-tight whitespace-normal transition sm:px-3 sm:text-xs ${
+                    billingMode === 'annual_installments'
+                      ? 'login-billing-active !text-ink dark:!text-white'
+                      : 'login-billing-inactive !text-slate/54 hover:!text-ink dark:!text-violet-200/60 dark:hover:!text-violet-100'
+                  }`}
+                  aria-pressed={billingMode === 'annual_installments'}
+                  onPress={() => {
+                    setBillingMode('annual_installments');
+                  }}
+                >
+                  Anual en cuotas
+                </Button>
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {planOptions.map((plan, index) => {
+                const isLastOddMobileCard =
+                  planOptions.length > 1 &&
+                  planOptions.length % 2 === 1 &&
+                  index === planOptions.length - 1;
+
+                return (
+                  <Button
+                    key={`plan-option-${plan.id}`}
+                    type="button"
+                    variant="light"
+                    onPress={() => handleSelectPlanId(plan.id)}
+                    className={`min-h-[3rem] rounded-[1rem] border px-3 py-2 text-left transition ${isLastOddMobileCard ? 'col-span-2 sm:col-span-1' : ''} ${
+                      plan.isSelected
+                        ? 'border-violet-400 bg-violet-50 shadow-[0_0_0_1px_rgba(139,92,246,0.15),0_4px_16px_-8px_rgba(139,92,246,0.25)] dark:border-violet-300/45 dark:bg-violet-400/15 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.3)]'
+                        : 'border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] hover:border-slate-300 hover:shadow-[0_2px_6px_-2px_rgba(15,23,42,0.1)] dark:border-white/12 dark:bg-white/[0.03] dark:shadow-none dark:hover:bg-white/[0.07]'
                     }`}
                   >
-                    {plan.name}
+                    <p
+                      className={`text-sm font-semibold ${
+                        plan.isSelected ? '!text-violet-800 login-plan-btn-name-selected' : '!text-ink/80 login-plan-btn-name'
+                      }`}
+                    >
+                      {plan.name}
+                    </p>
+                    <p className="login-plan-btn-price mt-1 text-[11px] text-slate/60">{plan.optionPrice}</p>
+                  </Button>
+                );
+              })}
+            </div>
+
+            <article className="mt-3 rounded-[1.35rem] border border-violet-300/60 bg-gradient-to-br from-violet-50 to-white p-4 shadow-[0_2px_12px_-4px_rgba(139,92,246,0.18)] dark:border-violet-300/28 dark:from-violet-950/80 dark:to-violet-950/60 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.25)]">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="login-plan-detail-name text-2xl font-semibold leading-tight text-ink dark:text-white">
+                    {selectedPlan?.name}
                   </p>
-                  <p className="login-plan-btn-price mt-1 text-[11px] text-slate/60">{plan.optionPrice}</p>
-                </Button>
-              );
-            })}
-          </div>
-
-          <article className="mt-3 rounded-[1.35rem] border border-violet-300/60 bg-gradient-to-br from-violet-50 to-white p-4 shadow-[0_2px_12px_-4px_rgba(139,92,246,0.18)] dark:border-violet-300/28 dark:from-violet-950/80 dark:to-violet-950/60 dark:shadow-[0_4px_16px_-8px_rgba(139,92,246,0.25)]">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="login-plan-detail-name text-2xl font-semibold leading-tight text-ink dark:text-white">
-                  {selectedPlan?.name}
-                </p>
-                <p className="login-plans-text-muted mt-1 text-xs text-slate/60">{selectedPlan?.description}</p>
-              </div>
-              {selectedPlan?.badge ? (
-                <span className="login-plan-badge inline-flex shrink-0 rounded-full border border-violet-400/40 bg-violet-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-700 dark:border-violet-300/45 dark:bg-violet-400/18 dark:text-violet-100">
-                  {selectedPlan.badge}
-                </span>
-              ) : null}
-            </div>
-
-            <div className="mt-3 border-t border-violet-200/60 pt-3 dark:border-white/10">
-              <p className="login-plan-detail-price text-4xl font-semibold leading-none tracking-[-0.02em] text-ink dark:text-white">
-                {billingMode === 'monthly'
-                  ? `${formatUyuCents(selectedPlan?.monthlyPriceCents || 0)} / mes`
-                  : (selectedPlan?.annualInstallmentCents || 0) > 0
-                    ? `12x ${formatUyuCents(selectedPlan?.annualInstallmentCents || 0)} / mes`
-                    : 'Gratis'}
-              </p>
-              <p className="login-plans-text-muted mt-2 text-sm text-slate/60 dark:text-white/68">
-                {billingMode === 'monthly'
-                  ? 'Facturacion mes a mes'
-                  : (selectedPlan?.annualInstallmentCents || 0) > 0
-                    ? `Precio total anual ${formatUyuCents((selectedPlan?.annualInstallmentCents || 0) * 12)}`
-                    : 'Sin costo anual'}
-              </p>
-            </div>
-
-            <ul className="mt-4 space-y-1.5">
-              {selectedPlanFeatures.map((feature) => (
-                <li
-                  key={`${selectedPlan?.id || 'plan'}-${feature}`}
-                  className="login-plans-feature-item flex items-start gap-2 text-sm text-ink/80"
-                >
-                  <span className="mt-[0.1rem] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-200">
-                    <Check className="h-3 w-3" />
+                  <p className="login-plans-text-muted mt-1 text-xs text-slate/60">{selectedPlan?.description}</p>
+                </div>
+                {selectedPlan?.badge ? (
+                  <span className="login-plan-badge inline-flex shrink-0 rounded-full border border-violet-400/40 bg-violet-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-violet-700 dark:border-violet-300/45 dark:bg-violet-400/18 dark:text-violet-100">
+                    {selectedPlan.badge}
                   </span>
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
+                ) : null}
+              </div>
 
-            <Button
-              type="button"
-              variant="light"
-              className="login-cta-btn mt-4 w-full rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition"
-              onPress={handleSelectPlanCta}
-            >
-              Elegir {selectedPlan?.name}
-            </Button>
-          </article>
-        </div>
-      </aside>
+              <div className="mt-3 border-t border-violet-200/60 pt-3 dark:border-white/10">
+                <p className="login-plan-detail-price text-4xl font-semibold leading-none tracking-[-0.02em] text-ink dark:text-white">
+                  {billingMode === 'monthly'
+                    ? `${formatUyuCents(selectedPlan?.monthlyPriceCents || 0)} / mes`
+                    : (selectedPlan?.annualInstallmentCents || 0) > 0
+                      ? `12x ${formatUyuCents(selectedPlan?.annualInstallmentCents || 0)} / mes`
+                      : 'Gratis'}
+                </p>
+                <p className="login-plans-text-muted mt-2 text-sm text-slate/60 dark:text-white/68">
+                  {billingMode === 'monthly'
+                    ? 'Facturacion mes a mes'
+                    : (selectedPlan?.annualInstallmentCents || 0) > 0
+                      ? `Precio total anual ${formatUyuCents((selectedPlan?.annualInstallmentCents || 0) * 12)}`
+                      : 'Sin costo anual'}
+                </p>
+              </div>
+
+              <ul className="mt-4 space-y-1.5">
+                {selectedPlanFeatures.map((feature) => (
+                  <li
+                    key={`${selectedPlan?.id || 'plan'}-${feature}`}
+                    className="login-plans-feature-item flex items-start gap-2 text-sm text-ink/80"
+                  >
+                    <span className="mt-[0.1rem] inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-200">
+                      <Check className="h-3 w-3" />
+                    </span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button
+                type="button"
+                variant="light"
+                className="login-cta-btn mt-4 w-full rounded-xl px-3 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition"
+                onPress={handleSelectPlanCta}
+              >
+                {planSelectionIntent?.planId === selectedPlanId ? (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5" />
+                    {selectedPlan?.name} seleccionado
+                  </span>
+                ) : (
+                  `Elegir ${selectedPlan?.name}`
+                )}
+              </Button>
+            </article>
+          </div>
+        </aside>
+      ) : null}
 
       {/* Right panel - auth form */}
       <div className="login-right-panel flex flex-col rounded-[2rem] border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-violet-500/15 dark:shadow-[0_0_80px_-20px_rgba(139,92,246,0.3)] md:p-8">
-        {/* Mode switcher */}
-        <div className="relative rounded-[1.2rem] border border-slate-200 bg-slate-100/80 p-1 dark:border-violet-500/15 dark:bg-[rgba(139,92,246,0.06)]">
-          {/* Sliding active pill */}
-          <span
-            aria-hidden="true"
-            className={`pointer-events-none absolute bottom-1 top-1 rounded-[0.85rem] bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.1)] dark:bg-gradient-to-r dark:from-violet-600/80 dark:to-fuchsia-600/80 dark:shadow-[0_0_12px_rgba(139,92,246,0.4)] transition-all duration-300 ${
-              mode === 'login'
-                ? 'left-1 w-[calc(33.333%-0.375rem)]'
-                : mode === 'register'
-                  ? 'left-[calc(33.333%+0.125rem)] w-[calc(33.333%-0.375rem)]'
-                  : 'left-[calc(66.666%+0.25rem)] w-[calc(33.333%-0.625rem)]'
-            }`}
-          />
-          <div className="grid grid-cols-3">
-            <Button
-              type="button"
-              variant="light"
-              className={modeButtonClassName(mode === 'login')}
-              data-testid="auth-mode-login"
-              data-active={String(mode === 'login')}
-              onPress={() => handleModeChange('login')}
-            >
-              <LogIn className="h-3.5 w-3.5 opacity-90" />
-              Ingresar
-            </Button>
-            <Button
-              type="button"
-              variant="light"
-              className={modeButtonClassName(mode === 'register')}
-              data-testid="auth-mode-register"
-              data-active={String(mode === 'register')}
-              onPress={() => handleModeChange('register')}
-            >
-              <UserPlus className="h-3.5 w-3.5 opacity-90" />
-              Registro
-            </Button>
-            <Button
-              type="button"
-              variant="light"
-              className={modeButtonClassName(mode === 'recover')}
-              data-testid="auth-mode-recover"
-              data-active={String(mode === 'recover')}
-              onPress={() => handleModeChange('recover')}
-            >
-              <KeyRound className="h-3.5 w-3.5 opacity-90" />
-              Recuperar
-            </Button>
+        {/* Mode switcher - 2 tabs: login/register */}
+        {mode !== 'recover' && mode !== 'reset' ? (
+          <div className="relative rounded-[1.2rem] border border-slate-200 bg-slate-100/80 p-1 dark:border-violet-500/15 dark:bg-[rgba(139,92,246,0.06)]">
+            <span
+              aria-hidden="true"
+              className={`pointer-events-none absolute bottom-1 top-1 rounded-[0.85rem] bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.1)] transition-all duration-300 dark:bg-gradient-to-r dark:from-violet-600/80 dark:to-fuchsia-600/80 dark:shadow-[0_0_12px_rgba(139,92,246,0.4)] ${
+                mode === 'login'
+                  ? 'left-1 w-[calc(50%-0.375rem)]'
+                  : 'left-[calc(50%+0.125rem)] w-[calc(50%-0.375rem)]'
+              }`}
+            />
+            <div className="grid grid-cols-2">
+              <Button
+                type="button"
+                variant="light"
+                className={modeButtonClassName(mode === 'login')}
+                data-testid="auth-mode-login"
+                data-active={String(mode === 'login')}
+                onPress={() => handleModeChange('login')}
+              >
+                <LogIn className="h-3.5 w-3.5 opacity-90" />
+                Ingresar
+              </Button>
+              <Button
+                type="button"
+                variant="light"
+                className={modeButtonClassName(mode === 'register')}
+                data-testid="auth-mode-register"
+                data-active={String(mode === 'register')}
+                onPress={() => handleModeChange('register')}
+              >
+                <UserPlus className="h-3.5 w-3.5 opacity-90" />
+                Crear cuenta
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : null}
 
         {/* Title */}
-        <div className="mt-6">
+        <div className={mode !== 'recover' && mode !== 'reset' ? 'mt-6' : ''}>
           <h2 className="font-[family-name:var(--font-heading)] text-3xl font-semibold text-ink dark:text-white">
             {titleByMode[mode]}
           </h2>
@@ -761,6 +778,13 @@ export function LoginForm({
                   ? 'Enviando enlace...'
                   : 'Enviar enlace de recuperacion'}
               </Button>
+              <button
+                type="button"
+                className="block w-full text-center text-sm font-medium text-slate/60 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 dark:text-violet-200/60 dark:hover:text-violet-100"
+                onClick={() => handleModeChange('login')}
+              >
+                Volver a ingresar
+              </button>
             </form>
           ) : null}
 
@@ -774,7 +798,7 @@ export function LoginForm({
               ) : null}
               <Input
                 id="newPassword"
-                type="password"
+                type={showNewPassword ? 'text' : 'password'}
                 label="Nueva contrasena"
                 labelPlacement="inside"
                 variant="flat"
@@ -782,12 +806,13 @@ export function LoginForm({
                 classNames={inputClassNames}
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
+                endContent={<PasswordToggle visible={showNewPassword} onToggle={() => setShowNewPassword((v) => !v)} />}
                 required
                 minLength={8}
               />
               <Input
                 id="confirmPassword"
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 label="Confirmar contrasena"
                 labelPlacement="inside"
                 variant="flat"
@@ -795,6 +820,7 @@ export function LoginForm({
                 classNames={inputClassNames}
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
+                endContent={<PasswordToggle visible={showConfirmPassword} onToggle={() => setShowConfirmPassword((v) => !v)} />}
                 required
                 minLength={8}
               />
@@ -859,7 +885,7 @@ export function LoginForm({
               <div className="space-y-1">
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   label="Contrasena"
                   labelPlacement="inside"
                   variant="flat"
@@ -867,6 +893,7 @@ export function LoginForm({
                   classNames={inputClassNames}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
+                  endContent={<PasswordToggle visible={showPassword} onToggle={() => setShowPassword((v) => !v)} />}
                   required
                   {...(mode === 'register' ? { minLength: 8 } : {})}
                 />
@@ -968,7 +995,7 @@ export function LoginForm({
               {mode === 'login' ? (
                 <button
                   type="button"
-                  className="block w-full text-center text-xs text-slate/50 transition-all duration-200 hover:text-sky-600 disabled:pointer-events-none dark:text-violet-200/50 dark:hover:text-violet-300"
+                  className="block w-full text-center text-xs text-slate/50 transition-colors hover:text-sky-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 disabled:pointer-events-none dark:text-violet-200/50 dark:hover:text-violet-300"
                   disabled={isBusy}
                   onClick={() => {
                     if (!isBusy) {
@@ -984,14 +1011,14 @@ export function LoginForm({
           ) : null}
         </div>
 
-        {/* Guest link - bottom of right panel */}
+        {/* Guest link */}
         <div className="mt-5 flex justify-center">
           <Link
             href="/book"
-            className="inline-flex items-center gap-1 text-xs text-slate/40 transition-all duration-200 hover:text-sky-600 dark:text-violet-100/65 dark:hover:text-violet-100/90"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate/60 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 dark:text-violet-200/70 dark:hover:text-violet-100"
           >
-            Seguir como invitado
-            <ChevronRight className="h-3 w-3" />
+            Continuar sin cuenta
+            <ChevronRight className="h-3.5 w-3.5" />
           </Link>
         </div>
       </div>
