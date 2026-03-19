@@ -620,23 +620,17 @@ const MarketplaceCardsSection = memo(
             transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
             className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3"
           >
-            {filteredShops.map(({ shop, distanceKm }, index) => {
+            {filteredShops.map(({ shop, distanceKm }) => {
               const isActive = shop.id === selectedShopId;
 
               return (
-                <motion.div
+                <MarketplaceShopCard
                   key={shop.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.04, ease: [0.4, 0, 0.2, 1] }}
-                >
-                  <MarketplaceShopCard
-                    shop={shop}
-                    distanceKm={distanceKm}
-                    isActive={isActive}
-                    onFocus={onFocus}
-                  />
-                </motion.div>
+                  shop={shop}
+                  distanceKm={distanceKm}
+                  isActive={isActive}
+                  onFocus={onFocus}
+                />
               );
             })}
           </motion.div>
