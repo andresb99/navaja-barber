@@ -24,11 +24,13 @@ export function normalizeShopSlug(slug: string) {
 }
 
 export function buildShopHref(slug: string, section?: 'book' | 'jobs' | 'courses' | 'modelos') {
-  const basePath = `/shops/${normalizeShopSlug(slug)}`;
-  if (!section) {
-    return basePath;
-  }
-  return `${basePath}/${section}`;
+  const normalizedSlug = normalizeShopSlug(slug);
+  if (!section) return `/shops/${normalizedSlug}`;
+  if (section === 'book') return `/book/${normalizedSlug}`;
+  if (section === 'modelos') return `/modelos/${normalizedSlug}`;
+  if (section === 'jobs') return `/jobs/${normalizedSlug}`;
+  // courses listing stays scoped to the shop
+  return `/shops/${normalizedSlug}/courses`;
 }
 
 export function buildTenantPublicHref(
@@ -57,11 +59,8 @@ export function buildTenantCourseHref(
     return buildTenantPublicHref(shopSlug, mode, 'courses');
   }
 
-  if (mode === 'custom_domain' || mode === 'platform_subdomain') {
-    return `/courses/${encodeURIComponent(normalizedCourseId)}`;
-  }
-
-  return `/shops/${normalizeShopSlug(shopSlug)}/courses/${encodeURIComponent(normalizedCourseId)}`;
+  // Course IDs are globally unique — /courses/[id] works in all modes
+  return `/courses/${encodeURIComponent(normalizedCourseId)}`;
 }
 
 export function buildTenantModelRegistrationHref(
@@ -72,7 +71,7 @@ export function buildTenantModelRegistrationHref(
   const basePath =
     mode === 'custom_domain' || mode === 'platform_subdomain'
       ? '/modelos/registro'
-      : `${buildShopHref(shopSlug, 'modelos')}/registro`;
+      : `/modelos/${normalizeShopSlug(shopSlug)}/registro`;
   const normalizedSessionId = String(sessionId || '').trim();
 
   if (!normalizedSessionId) {

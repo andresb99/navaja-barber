@@ -211,7 +211,7 @@ export function CoursesMarketplaceCatalog({ items }: CoursesMarketplaceCatalogPr
             metaRows={metaRows}
             priceLabel={priceLabel}
             subPriceLabel={`Hasta 12 cuotas sin interes de ${formatCurrency(monthlyInstallment)}`}
-            primaryHref={`${buildShopHref(shop.slug, 'courses')}/${encodeURIComponent(course.id)}`}
+            primaryHref={`/courses/${encodeURIComponent(course.id)}`}
             primaryLabel="Ver curso"
             secondaryHref={buildShopHref(shop.slug, 'courses')}
             secondaryLabel="Ver academia"
