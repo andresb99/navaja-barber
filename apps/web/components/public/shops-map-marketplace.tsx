@@ -2173,7 +2173,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     'marketplace-map-shell relative overflow-hidden',
     isMobileViewport
       ? 'h-full min-h-full max-h-full rounded-none border-0 bg-transparent p-0 shadow-none backdrop-blur-0'
-      : 'h-[20rem] rounded-[2rem] border border-white/70 bg-white/88 p-2 shadow-[0_24px_44px_-30px_rgba(15,23,42,0.22)] md:h-[26rem] dark:border-white/10 dark:bg-slate-950/78 xl:h-full',
+      : 'h-[20rem] rounded-[2rem] border border-white/70 bg-white/88 p-2 shadow-[0_24px_44px_-30px_rgba(15,23,42,0.22)] md:h-[26rem] dark:border-white/10 dark:bg-slate-950/78 xl:h-full xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none',
   );
   const showInitialMapOverlay = !mapError && (!isMapReady || !hasMapSettled);
   const loadingPillClassName = isDarkTheme
@@ -2420,7 +2420,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
         </div>
       </div>
 
-      <div className="order-1 h-full min-h-0 xl:order-2 xl:h-full xl:w-full">
+      <div className="order-1 h-full min-h-0 xl:order-2 xl:h-full xl:w-full xl:pb-[1.75rem]">
         <div className={mobileMapShellClassName}>
           <div className="pointer-events-none absolute inset-x-3 top-3 z-20 xl:hidden">
             <form
