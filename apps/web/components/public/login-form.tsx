@@ -81,7 +81,7 @@ function PasswordToggle({ visible, onToggle }: { visible: boolean; onToggle: () 
     <button
       type="button"
       onClick={onToggle}
-      className="mb-0.5 flex self-center text-slate/40 transition-colors hover:text-slate/70 focus:outline-none dark:text-zinc-500 dark:hover:text-zinc-300"
+      className="flex h-full items-center text-slate/40 transition-colors hover:text-slate/70 focus:outline-none dark:text-zinc-500 dark:hover:text-zinc-300"
       aria-label={visible ? 'Ocultar contrasena' : 'Mostrar contrasena'}
     >
       {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
