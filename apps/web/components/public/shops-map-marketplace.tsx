@@ -2261,7 +2261,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
               ) : null}
             </div>
 
-            <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="mt-4 grid items-center gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
               <div className="places-search-shell relative z-40">
                 <div
                   className="places-search-input-shell"
