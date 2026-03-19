@@ -14,7 +14,7 @@ import {
   type FormEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react';
-import { Button, Card, CardBody, CardFooter, CardHeader, Skeleton } from '@heroui/react';
+import { Button, Card, CardBody, CardFooter, CardHeader, ScrollShadow, Skeleton } from '@heroui/react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowUpRight,
@@ -2173,7 +2173,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     'marketplace-map-shell relative overflow-hidden',
     isMobileViewport
       ? 'h-full min-h-full max-h-full rounded-none border-0 bg-transparent p-0 shadow-none backdrop-blur-0'
-      : 'h-[20rem] rounded-[2rem] border border-white/70 bg-white/88 p-2 shadow-[0_24px_44px_-30px_rgba(15,23,42,0.22)] md:h-[26rem] dark:border-white/10 dark:bg-slate-950/78 xl:h-[calc(100vh-8rem)] xl:min-h-[44rem]',
+      : 'h-[20rem] rounded-[2rem] border border-white/70 bg-white/88 p-2 shadow-[0_24px_44px_-30px_rgba(15,23,42,0.22)] md:h-[26rem] dark:border-white/10 dark:bg-slate-950/78 xl:h-full',
   );
   const showInitialMapOverlay = !mapError && (!isMapReady || !hasMapSettled);
   const loadingPillClassName = isDarkTheme
@@ -2183,7 +2183,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
     'pointer-events-auto relative z-10',
     isMobileViewportActive
       ? 'mobile-marketplace-sheet flex w-full h-[calc(100svh-9.5rem)] max-h-[calc(100svh-9.5rem)] flex-col rounded-t-[2.25rem] rounded-b-none border border-slate-200/60 bg-white shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] dark:border-violet-500/15 dark:bg-[#0a0416]'
-      : 'relative z-10 rounded-[2.25rem] border border-white/70 bg-white/95 p-4 shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/94 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none xl:backdrop-blur-0',
+      : 'relative z-10 rounded-[2.25rem] border border-white/70 bg-white/95 p-4 shadow-[0_-28px_48px_-32px_rgba(15,23,42,0.32)] backdrop-blur-xl dark:border-white/10 dark:bg-slate-950/94 xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none xl:backdrop-blur-0 xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden',
     !isMobileViewportActive && '-mt-14 xl:mt-0',
     shouldHideMobileSheetForMapPreview && 'pointer-events-none opacity-0',
     !isMobileSheetDraggingRef.current &&
@@ -2218,11 +2218,11 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   return (
     <div
       ref={mobileStageRef}
-      className="shops-marketplace-stage relative -mx-4 -mb-16 -mt-5 flex h-[calc(100dvh-4.75rem)] flex-col gap-4 overflow-hidden sm:-mx-6 md:-mb-[4.5rem] md:-mt-7 xl:mx-0 xl:mb-0 xl:mt-0 xl:grid xl:h-auto xl:min-h-0 xl:overflow-visible xl:grid-cols-[minmax(0,1.02fr)_minmax(28rem,0.98fr)] xl:gap-6 xl:items-start"
+      className="shops-marketplace-stage relative -mx-4 -mb-16 -mt-5 flex h-[calc(100dvh-4.75rem)] flex-col gap-4 overflow-hidden sm:-mx-6 md:-mb-[4.5rem] md:-mt-7 xl:mx-0 xl:mb-0 xl:mt-0 xl:grid xl:h-[calc(100dvh-6.25rem)] xl:overflow-hidden xl:grid-cols-[minmax(0,1.02fr)_minmax(28rem,0.98fr)] xl:gap-6 xl:items-stretch"
       style={mobileStageStyle}
     >
-      <div className="pointer-events-none absolute inset-0 z-20 flex items-end overflow-hidden xl:pointer-events-auto xl:relative xl:inset-auto xl:block xl:overflow-visible xl:order-1 xl:pr-4">
-        <div className="hidden space-y-5 xl:block">
+      <div className="pointer-events-none absolute inset-0 z-20 flex items-end overflow-hidden xl:pointer-events-auto xl:relative xl:inset-auto xl:flex xl:flex-col xl:overflow-hidden xl:order-1 xl:pr-4">
+        <div className="hidden space-y-5 xl:block xl:shrink-0">
           <div className="px-1">
             <div className="flex flex-wrap items-center gap-3">
               <div className="hero-eyebrow">
@@ -2391,24 +2391,36 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
             className={cn(
               isMobileViewport
                 ? 'mobile-sheet-surface mt-0 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-24 pt-5'
-                : 'mt-5',
+                : 'mt-5 xl:flex-1 xl:min-h-0',
               isMobileViewport &&
                 mobileSheetStage === 'collapsed' &&
                 'pointer-events-none opacity-0',
             )}
           >
-            <MarketplaceCardsSection
-              showCardSkeletons={showCardSkeletons}
-              filteredShops={filteredShops}
-              selectedShopId={selectedShopCardId}
-              activeSearchMode={activeSearchMode}
-              onFocus={focusShop}
-            />
+            {!isMobileViewport ? (
+              <ScrollShadow hideScrollBar className="h-full overflow-y-auto pb-8 pr-0.5">
+                <MarketplaceCardsSection
+                  showCardSkeletons={showCardSkeletons}
+                  filteredShops={filteredShops}
+                  selectedShopId={selectedShopCardId}
+                  activeSearchMode={activeSearchMode}
+                  onFocus={focusShop}
+                />
+              </ScrollShadow>
+            ) : (
+              <MarketplaceCardsSection
+                showCardSkeletons={showCardSkeletons}
+                filteredShops={filteredShops}
+                selectedShopId={selectedShopCardId}
+                activeSearchMode={activeSearchMode}
+                onFocus={focusShop}
+              />
+            )}
           </div>
         </div>
       </div>
 
-      <div className="order-1 h-full min-h-0 xl:order-2 xl:h-auto xl:sticky xl:top-[6.25rem] xl:self-start xl:w-full">
+      <div className="order-1 h-full min-h-0 xl:order-2 xl:h-full xl:w-full">
         <div className={mobileMapShellClassName}>
           <div className="pointer-events-none absolute inset-x-3 top-3 z-20 xl:hidden">
             <form
