@@ -22,6 +22,22 @@ const shopWithNoServices: MarketplaceShop = {
 
 const shops = [...mockMarketplaceShops, shopWithNoServices];
 
+// Extra fixture: price above the slider step (5000 cents) for price-range tests
+const shopWithHighPrice: MarketplaceShop = {
+  ...mockMarketplaceShops[0]!,
+  id: 'high-price-id',
+  name: 'Navaja Premium',
+  slug: 'navaja-premium',
+  minServicePriceCents: 600000, // well above step=5000, priceMax becomes 600000
+  averageRating: 4.9,
+  isVerified: true,
+  activeServiceCount: 3,
+  city: 'Montevideo',
+  region: 'Montevideo',
+  locationLabel: 'Pocitos',
+};
+const shopsWithPriceVariety = [...mockMarketplaceShops, shopWithNoServices, shopWithHighPrice];
+
 function getSearchInput() {
   return screen.getByPlaceholderText(/Busca por nombre o zona/i);
 }
@@ -115,16 +131,45 @@ describe('BookPageContent', () => {
     it('is closed by default — section labels are not visible', () => {
       render(<BookPageContent shops={shops} />);
 
-      expect(screen.queryByText(/calificaci.n m.nima/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/disponibilidad/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/horario/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/otros filtros/i)).not.toBeInTheDocument();
     });
 
-    it('opens when the Filtros button is clicked', () => {
+    it('opens when the Filtros button is clicked and shows all sections', () => {
       render(<BookPageContent shops={shops} />);
       openFilterPanel();
 
-      expect(screen.getByText(/calificaci.n m.nima/i)).toBeInTheDocument();
+      expect(screen.getByText(/disponibilidad/i)).toBeInTheDocument();
+      expect(screen.getByText(/horario/i)).toBeInTheDocument();
       expect(screen.getByText(/otros filtros/i)).toBeInTheDocument();
+      expect(screen.getByText(/precio desde/i)).toBeInTheDocument();
+    });
+
+    it('shows the DateRangePicker for availability', () => {
+      render(<BookPageContent shops={shops} />);
+      openFilterPanel();
+
+      expect(
+        screen.getByRole('group', { name: /filtrar por rango de fechas/i }),
+      ).toBeInTheDocument();
+    });
+
+    it('shows the TimeInput for time filtering', () => {
+      render(<BookPageContent shops={shops} />);
+      openFilterPanel();
+
+      expect(
+        screen.getByRole('group', { name: /filtrar por horario disponible/i }),
+      ).toBeInTheDocument();
+    });
+
+    it('shows the price range slider with two thumbs', () => {
+      render(<BookPageContent shops={shops} />);
+      openFilterPanel();
+
+      // HeroUI Slider renders two input[type=range] with role="slider" for dual-thumb range
+      expect(screen.getAllByRole('slider')).toHaveLength(2);
     });
 
     it('shows a badge count when filters inside the panel are active', () => {
@@ -133,85 +178,39 @@ describe('BookPageContent', () => {
 
       fireEvent.click(screen.getByText('Verificadas'));
 
-      // The badge "1" should now be visible inside the Filtros button
       expect(screen.getByText('1')).toBeInTheDocument();
     });
   });
 
-  describe('rating filter', () => {
-    it('filters to shops with 4+ stars', () => {
-      render(<BookPageContent shops={shops} />);
-      openFilterPanel();
-
-      fireEvent.click(screen.getByText('4+ estrellas'));
-
-      // Centro (4.8) and Pocitos (4.4) pass; Sin Agenda (null) does not
-      expect(screen.getByRole('heading', { name: 'Navaja Centro' })).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: 'Navaja Pocitos' })).toBeInTheDocument();
-      expect(screen.queryByRole('heading', { name: 'Navaja Sin Agenda' })).not.toBeInTheDocument();
-    });
-
-    it('applies 3+ stars filter', () => {
-      render(<BookPageContent shops={shops} />);
-      openFilterPanel();
-
-      fireEvent.click(screen.getByText('3+ estrellas'));
-
-      expect(screen.getByRole('heading', { name: 'Navaja Centro' })).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: 'Navaja Pocitos' })).toBeInTheDocument();
-      expect(screen.queryByRole('heading', { name: 'Navaja Sin Agenda' })).not.toBeInTheDocument();
-    });
-
-    it('toggles 4+ stars filter off, restoring all shops', () => {
-      render(<BookPageContent shops={shops} />);
-      openFilterPanel();
-
-      // Activate
-      fireEvent.click(screen.getByText('4+ estrellas'));
-      expect(screen.queryByRole('heading', { name: 'Navaja Sin Agenda' })).not.toBeInTheDocument();
-
-      // Deactivate by clicking the panel chip again (index 0 = panel chip, index 1 = active strip chip)
-      fireEvent.click(screen.getAllByText(/4\+ estrellas/i)[0]!);
-      expect(screen.getByRole('heading', { name: 'Navaja Sin Agenda' })).toBeInTheDocument();
-    });
-
-    it('switches between rating chips without stacking', () => {
-      render(<BookPageContent shops={shops} />);
-      openFilterPanel();
-
-      fireEvent.click(screen.getByText('4+ estrellas'));
-      // Now switch to 3+: "3+ estrellas" only appears once (in panel) at this point
-      fireEvent.click(screen.getByText('3+ estrellas'));
-
-      // 3+ is active — Pocitos (4.4) still passes
-      expect(screen.getByRole('heading', { name: 'Navaja Pocitos' })).toBeInTheDocument();
-      expect(screen.queryByRole('heading', { name: 'Navaja Sin Agenda' })).not.toBeInTheDocument();
-    });
-  });
-
   describe('price range filter', () => {
-    it('filters out null-price shops when any price range is active', () => {
-      render(<BookPageContent shops={shops} />);
+    // Note: Slider step=5000 cents — values snap to nearest multiple of 5000.
+    // shopsWithPriceVariety includes a shop with price 600000 cents (priceMax=600000)
+    // so low=5000 reliably excludes Centro (900) + Pocitos (1100) and includes Premium (600000).
+
+    it('filters out null-price shops when the price filter is active', () => {
+      render(<BookPageContent shops={shopsWithPriceVariety} />);
       openFilterPanel();
 
-      // Move low thumb above zero → price filter becomes active
+      // Move low thumb to first valid step above 0 → isPriceFiltered = true
       const [lowSlider] = screen.getAllByRole('slider');
-      fireEvent.change(lowSlider!, { target: { value: '200' } });
+      fireEvent.change(lowSlider!, { target: { value: '5000' } });
 
-      // Sin Agenda has null price — must be excluded when price filter is active
+      // Sin Agenda (null price) must be excluded when any price filter is active
       expect(screen.queryByRole('heading', { name: 'Navaja Sin Agenda' })).not.toBeInTheDocument();
     });
 
     it('excludes shops whose price is below the low threshold', () => {
-      render(<BookPageContent shops={shops} />);
+      render(<BookPageContent shops={shopsWithPriceVariety} />);
       openFilterPanel();
 
-      // Set low price to 1000 cents → Centro (900) excluded, Pocitos (1100) included
+      // Set low to 5000: Centro (900) + Pocitos (1100) both < 5000 → excluded
+      // Premium (600000) >= 5000 → included
       const [lowSlider] = screen.getAllByRole('slider');
-      fireEvent.change(lowSlider!, { target: { value: '1000' } });
+      fireEvent.change(lowSlider!, { target: { value: '5000' } });
 
-      expect(screen.getByRole('heading', { name: 'Navaja Pocitos' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Navaja Premium' })).toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Navaja Centro' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Navaja Pocitos' })).not.toBeInTheDocument();
     });
   });
 
@@ -254,16 +253,16 @@ describe('BookPageContent', () => {
   });
 
   describe('combined filters', () => {
-    it('applies search + rating together', () => {
+    it('applies search + verified filter together', () => {
       render(<BookPageContent shops={shops} />);
       openFilterPanel();
 
-      fireEvent.change(getSearchInput(), { target: { value: 'montevideo' } });
-      fireEvent.click(screen.getByText('4+ estrellas'));
+      fireEvent.change(getSearchInput(), { target: { value: 'navaja' } });
+      fireEvent.click(screen.getByText('Verificadas'));
 
-      // Centro (4.8, Montevideo) ✓ — Pocitos (4.4, Montevideo) ✓ — Sin Agenda (null) excluded
+      // Only Centro is verified and matches "navaja"
       expect(screen.getByRole('heading', { name: 'Navaja Centro' })).toBeInTheDocument();
-      expect(screen.getByRole('heading', { name: 'Navaja Pocitos' })).toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Navaja Pocitos' })).not.toBeInTheDocument();
     });
 
     it('applies verified + active services and yields only matching shops', () => {
@@ -333,7 +332,7 @@ describe('BookPageContent', () => {
 
       fireEvent.change(getSearchInput(), { target: { value: 'centro' } });
       fireEvent.click(screen.getByText('Verificadas'));
-      fireEvent.click(screen.getByText('4+ estrellas'));
+      fireEvent.click(screen.getByText('Con agenda activa'));
 
       fireEvent.click(screen.getByText(/limpiar todo/i));
 
@@ -349,16 +348,6 @@ describe('BookPageContent', () => {
       fireEvent.change(getSearchInput(), { target: { value: 'pocitos' } });
 
       expect(screen.getByText(/"pocitos"/i)).toBeInTheDocument();
-    });
-
-    it('shows a rating chip when a rating filter is active', () => {
-      render(<BookPageContent shops={shops} />);
-      openFilterPanel();
-
-      fireEvent.click(screen.getByText('4+ estrellas'));
-
-      // "4+ estrellas" chip should now appear in the active strip
-      expect(screen.getAllByText(/4\+ estrellas/i)).toHaveLength(2); // panel + strip
     });
 
     it('shows a verified chip when verified filter is active', () => {
