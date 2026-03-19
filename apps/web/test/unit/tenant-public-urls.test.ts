@@ -66,7 +66,7 @@ describe('tenant public urls', () => {
           requestOrigin: 'https://navaja-git-feature-123.vercel.app',
         },
       ),
-    ).toBe('/shops/navaja/book');
+    ).toBe('/book/navaja');
   });
 
   it('redirects legacy public shop paths to the canonical host url', () => {

@@ -32,6 +32,7 @@ export default defineConfig({
       all: true,
       include: [
         'app/book/page.tsx',
+        'components/public/book-page-content.tsx',
         'app/courses/page.tsx',
         'app/jobs/page.tsx',
         'app/modelos/page.tsx',

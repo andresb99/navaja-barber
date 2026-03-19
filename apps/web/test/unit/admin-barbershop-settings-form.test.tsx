@@ -50,7 +50,7 @@ describe('AdminBarbershopSettingsForm', () => {
     );
     expect(screen.getByRole('button', { name: 'Ver reservas' })).toHaveAttribute(
       'href',
-      '/shops/navaja-club/book',
+      '/book/navaja-club',
     );
   });
 
@@ -67,7 +67,7 @@ describe('AdminBarbershopSettingsForm', () => {
     );
     expect(screen.getByRole('button', { name: 'Ver reservas' })).toHaveAttribute(
       'href',
-      '/shops/nueva-barberia/book',
+      '/book/nueva-barberia',
     );
   });
 });
