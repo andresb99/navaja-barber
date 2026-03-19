@@ -2398,7 +2398,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
             )}
           >
             {!isMobileViewport ? (
-              <ScrollShadow hideScrollBar className="h-full overflow-y-auto pb-8 pr-0.5">
+              <ScrollShadow hideScrollBar size={20} className="h-full overflow-y-auto pb-8 pr-0.5">
                 <MarketplaceCardsSection
                   showCardSkeletons={showCardSkeletons}
                   filteredShops={filteredShops}
