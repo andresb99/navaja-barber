@@ -40,7 +40,7 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="relative flex min-h-[calc(100vh-72px)] items-center justify-center overflow-hidden px-6">
+    <div className="relative flex min-h-[calc(100vh-72px)] items-center justify-center overflow-hidden px-6 pb-36">
       {/* Background aura */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <div className="absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-500/8 blur-[140px] dark:bg-violet-500/6" />
@@ -49,8 +49,8 @@ export default async function HomePage() {
       </div>
 
       <div className="relative z-10 text-center">
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate/50 dark:text-slate-500">
-          Marketplace de barberias · Uruguay
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate/50 dark:text-white/55">
+          Beardly · Uruguay
         </p>
 
         <h1 className="mt-5 font-[family-name:var(--font-heading)] text-5xl font-bold tracking-tight text-ink md:text-6xl lg:text-[4.5rem] dark:text-slate-100">
@@ -59,7 +59,7 @@ export default async function HomePage() {
           barbería.
         </h1>
 
-        <p className="mx-auto mt-5 max-w-sm text-base text-slate/50 dark:text-slate-500">
+        <p className="mx-auto mt-5 max-w-sm text-base text-slate/50 dark:text-white/60">
           Barberias verificadas con reservas online, reseñas reales y horarios actualizados.
         </p>
 
@@ -73,12 +73,12 @@ export default async function HomePage() {
           </NextLink>
         </div>
 
-        <p className="mt-6 text-xs text-slate/50 dark:text-slate-500">
+        <p className="mt-6 text-xs text-slate/50 dark:text-white/55">
           ¿Tienes una barbería?{' '}
           <Link
             href="/software-para-barberias"
             underline="always"
-            className="!text-xs text-slate/50 transition-colors hover:text-slate/80 dark:text-slate-500 dark:hover:text-slate-300"
+            className="!text-xs text-slate/50 transition-colors hover:text-slate/80 dark:text-white/55 dark:hover:text-white/80"
           >
             Conoce la plataforma
           </Link>
