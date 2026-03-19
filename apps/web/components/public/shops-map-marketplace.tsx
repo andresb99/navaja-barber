@@ -2218,10 +2218,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   return (
     <div
       ref={mobileStageRef}
-      className="shops-marketplace-stage relative -mx-4 -mb-16 -mt-5 flex h-[calc(100dvh-4.75rem)] flex-col gap-4 overflow-hidden sm:-mx-6 md:-mb-[4.5rem] md:-mt-7 xl:mx-0 xl:mb-0 xl:mt-0 xl:grid xl:h-[calc(100dvh-6.25rem)] xl:overflow-hidden xl:grid-cols-[minmax(0,1.02fr)_minmax(28rem,0.98fr)] xl:gap-6 xl:items-stretch"
+      className="shops-marketplace-stage relative -mx-4 -mb-16 -mt-5 flex h-[calc(100dvh-4.75rem)] flex-col gap-4 overflow-hidden sm:-mx-6 md:-mb-[4.5rem] md:-mt-7 xl:mx-0 xl:-mb-[4.5rem] xl:mt-0 xl:grid xl:h-[calc(100dvh-6.5rem)] xl:overflow-hidden xl:grid-cols-[minmax(0,1.02fr)_minmax(28rem,0.98fr)] xl:gap-6 xl:items-stretch"
       style={mobileStageStyle}
     >
-      <div className="pointer-events-none absolute inset-0 z-20 flex items-end overflow-hidden xl:pointer-events-auto xl:relative xl:inset-auto xl:flex xl:flex-col xl:overflow-hidden xl:order-1 xl:pr-4">
+      <div className="pointer-events-none absolute inset-0 z-20 flex items-end overflow-hidden xl:pointer-events-auto xl:relative xl:inset-auto xl:flex xl:flex-col xl:order-1 xl:pr-4">
         <div className="hidden space-y-5 xl:block xl:shrink-0">
           <div className="px-1">
             <div className="flex flex-wrap items-center gap-3">
