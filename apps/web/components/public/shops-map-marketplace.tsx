@@ -1513,7 +1513,6 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
       sheet.style.willChange = '';
       sheet.style.transition = '';
-      sheet.style.transform = '';
 
       mobileSheetDragOffsetRef.current = 0;
       isMobileSheetDraggingRef.current = false;
@@ -1524,15 +1523,22 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       activeDragCleanupRef.current = null;
     };
 
+    const settleToStage = (nextStage: MobileSheetStage) => {
+      teardown();
+      // Set the transform directly on the DOM so it's correct even if React
+      // skips re-rendering (e.g. when nextStage equals the current stage).
+      const nextTranslate = getMobileSheetStageTranslate(nextStage, sheetHeight);
+      sheet.style.transform = `translateY(${nextTranslate}%)`;
+      setMobileSheetDragSnapshot({ dragging: false, offset: 0 });
+      setMobileSheetStage(nextStage);
+    };
+
     const handlePointerEnd = (endEvent?: PointerEvent) => {
       const finalOffset = endEvent ? endEvent.clientY - startY : 0;
       const clampedOffset = Math.min(Math.max(finalOffset, minOffset), maxOffset);
       const translatePercent = stageTranslate + (clampedOffset / sheetHeight) * 100;
       const nextStage = resolveVelocitySnap(translatePercent, velocityPxPerMs, sheetHeight);
-
-      teardown();
-      setMobileSheetDragSnapshot({ dragging: false, offset: 0 });
-      setMobileSheetStage(nextStage);
+      settleToStage(nextStage);
     };
 
     // Stored so a new drag can abort this one, resolving the stage from current offset
@@ -1540,10 +1546,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       const currentOffset = mobileSheetDragOffsetRef.current;
       const translatePercent = stageTranslate + (currentOffset / sheetHeight) * 100;
       const nextStage = resolveVelocitySnap(translatePercent, 0, sheetHeight);
-
-      teardown();
-      setMobileSheetDragSnapshot({ dragging: false, offset: 0 });
-      setMobileSheetStage(nextStage);
+      settleToStage(nextStage);
     };
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
