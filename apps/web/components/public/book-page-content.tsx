@@ -57,7 +57,11 @@ function getPriceMax(shops: MarketplaceShop[]): number {
 }
 
 function formatTime(t: TimeInputValue): string {
-  return `${String(t.hour).padStart(2, '0')}:${String(t.minute).padStart(2, '0')}`;
+  const h = t.hour;
+  const m = String(t.minute).padStart(2, '0');
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${m} ${period}`;
 }
 
 // ── Calendar classNames (theme-aware) ─────────────────────────────────────────
@@ -392,7 +396,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                     granularity="minute"
                     placeholderValue={new Time(9, 0)}
                     aria-label="Filtrar por horario disponible"
-                    hourCycle={24}
+                    hourCycle={12}
                     classNames={{
                       base: 'w-full',
                       inputWrapper: panelInputWrapperCN,
