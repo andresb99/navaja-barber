@@ -204,12 +204,11 @@ export function BookPageContent({ shops }: BookPageContentProps) {
   }, [shops, deferredQuery, sortKey, dateRange, openNow, verifiedOnly, withServices, parsedWorkingHours]);
 
   const todayDate = useMemo(() => today(getLocalTimeZone()), []);
-
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 px-4 md:px-6">
 
       {/* ── Search + DateRangePicker row ──────────────────────────────────── */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className={[
           'relative group min-w-0 flex-1 rounded-2xl border transition-all duration-150',
           'border-[rgba(148,163,184,0.3)] bg-[rgba(241,245,249,0.6)]',
@@ -251,7 +250,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
           )}
         </div>
 
-        <div className="heroui-native flex-1 md:flex-none md:w-72">
+        <div className="heroui-native sm:flex-none sm:w-72">
           <DateRangePicker
             label="Disponibilidad"
             value={dateRange}
@@ -276,7 +275,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
       </div>
 
       {/* ── Controls row: sort + quick filters ────────────────────────────── */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-wrap items-center gap-2">
         {/* Sort Select */}
         <div className="w-[165px] shrink-0">
           <Select

@@ -79,7 +79,6 @@
 
 body {
   @apply antialiased;
-  position: relative;
   isolation: isolate;
   background-color: rgb(var(--page-bg));
   font-feature-settings:
