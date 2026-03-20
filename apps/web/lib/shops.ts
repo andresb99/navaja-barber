@@ -56,6 +56,13 @@ interface ShopGalleryRow {
   created_at: string | null;
 }
 
+interface ShopWorkingHoursRow {
+  shop_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+}
+
 export type MarketplaceSearchMode = 'all' | 'name' | 'area' | 'nearby';
 
 export interface MarketplaceShop {
@@ -79,6 +86,8 @@ export interface MarketplaceShop {
   averageRating: number | null;
   activeServiceCount: number;
   minServicePriceCents: number | null;
+  /** Distinct working-hour ranges aggregated across all staff for this shop. */
+  workingHours: { dayOfWeek: number; startTime: string; endTime: string }[];
   customDomain: string | null;
   domainStatus: string | null;
   plan: string | null;
@@ -95,6 +104,7 @@ function buildMarketplaceShop(
   services: ShopServiceRow[],
   galleryImages: ShopGalleryRow[],
   subscription: ShopSubscriptionRow | undefined,
+  workingHoursRows: ShopWorkingHoursRow[],
 ): MarketplaceShop {
   const validRatings = reviews
     .map((item) => Number(item.rating))
@@ -133,6 +143,11 @@ function buildMarketplaceShop(
     averageRating: reviewCount > 0 ? ratingTotal / reviewCount : null,
     activeServiceCount: validPrices.length,
     minServicePriceCents: validPrices.length > 0 ? Math.min(...validPrices) : null,
+    workingHours: workingHoursRows.map((wh) => ({
+      dayOfWeek: wh.day_of_week,
+      startTime: wh.start_time,
+      endTime: wh.end_time,
+    })),
     customDomain: shop.custom_domain,
     domainStatus: shop.domain_status,
     plan: subscription?.plan || 'free',
@@ -426,7 +441,7 @@ export async function listMarketplaceShopsInBounds(
     return [];
   }
 
-  const [{ data: reviews }, { data: services }, { data: galleryImages }, { data: subscriptions }] =
+  const [{ data: reviews }, { data: services }, { data: galleryImages }, { data: subscriptions }, { data: workingHours }] =
     await Promise.all([
       supabase
         .from('appointment_reviews')
@@ -446,11 +461,16 @@ export async function listMarketplaceShopsInBounds(
         .order('sort_order')
         .order('created_at'),
       supabase.from('subscriptions').select('shop_id, plan, status').in('shop_id', activeShopIds),
+      supabase
+        .from('working_hours')
+        .select('shop_id, day_of_week, start_time, end_time')
+        .in('shop_id', activeShopIds),
     ]);
 
   const reviewsByShopId = new Map<string, ShopReviewRow[]>();
   const servicesByShopId = new Map<string, ShopServiceRow[]>();
   const galleryByShopId = new Map<string, ShopGalleryRow[]>();
+  const workingHoursByShopId = new Map<string, ShopWorkingHoursRow[]>();
   const subscriptionsByShopId = new Map<string, ShopSubscriptionRow>(
     ((subscriptions || []) as ShopSubscriptionRow[]).map((item) => [String(item.shop_id), item]),
   );
@@ -476,6 +496,13 @@ export async function listMarketplaceShopsInBounds(
     galleryByShopId.set(shopId, current);
   });
 
+  ((workingHours || []) as ShopWorkingHoursRow[]).forEach((item) => {
+    const shopId = String(item.shop_id);
+    const current = workingHoursByShopId.get(shopId) || [];
+    current.push(item);
+    workingHoursByShopId.set(shopId, current);
+  });
+
   return activeShopIds
     .map((shopId) => {
       const shop = shopById.get(shopId);
@@ -490,6 +517,7 @@ export async function listMarketplaceShopsInBounds(
         servicesByShopId.get(shopId) || [],
         galleryByShopId.get(shopId) || [],
         subscriptionsByShopId.get(shopId),
+        workingHoursByShopId.get(shopId) || [],
       );
     })
     .filter((item): item is MarketplaceShop => item !== null);
@@ -517,7 +545,7 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
   }
 
   const shopIds = shops.map((item) => String(item.id));
-  const [{ data: locations }, { data: reviews }, { data: services }, { data: galleryImages }, { data: subscriptions }] =
+  const [{ data: locations }, { data: reviews }, { data: services }, { data: galleryImages }, { data: subscriptions }, { data: workingHours }] =
     await Promise.all([
       supabase
         .from('shop_locations')
@@ -542,6 +570,10 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
         .order('sort_order')
         .order('created_at'),
       supabase.from('subscriptions').select('shop_id, plan, status').in('shop_id', shopIds),
+      supabase
+        .from('working_hours')
+        .select('shop_id, day_of_week, start_time, end_time')
+        .in('shop_id', shopIds),
     ]);
 
   const locationsByShopId = new Map(
@@ -550,6 +582,7 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
   const reviewsByShopId = new Map<string, ShopReviewRow[]>();
   const servicesByShopId = new Map<string, ShopServiceRow[]>();
   const galleryByShopId = new Map<string, ShopGalleryRow[]>();
+  const workingHoursByShopId = new Map<string, ShopWorkingHoursRow[]>();
   const subscriptionsByShopId = new Map<string, ShopSubscriptionRow>(
     ((subscriptions || []) as ShopSubscriptionRow[]).map((item) => [String(item.shop_id), item]),
   );
@@ -575,6 +608,13 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
     galleryByShopId.set(shopId, current);
   });
 
+  ((workingHours || []) as ShopWorkingHoursRow[]).forEach((item) => {
+    const shopId = String(item.shop_id);
+    const current = workingHoursByShopId.get(shopId) || [];
+    current.push(item);
+    workingHoursByShopId.set(shopId, current);
+  });
+
   return (shops as ShopRow[]).map((shop) =>
     buildMarketplaceShop(
       shop,
@@ -583,6 +623,7 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
       servicesByShopId.get(shop.id) || [],
       galleryByShopId.get(shop.id) || [],
       subscriptionsByShopId.get(shop.id),
+      workingHoursByShopId.get(shop.id) || [],
     ),
   );
 });

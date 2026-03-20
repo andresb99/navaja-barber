@@ -168,7 +168,20 @@ export function BookPageContent({ shops }: BookPageContentProps) {
       }
 
       if (dateRange !== null && shop.activeServiceCount === 0) return false;
-      if (selectedTime !== null && shop.activeServiceCount === 0) return false;
+
+      if (selectedTime !== null) {
+        const selectedMinutes = selectedTime.hour * 60 + selectedTime.minute;
+        const targetDayOfWeek = dateRange !== null ? dateRange.start.dayOfWeek : null;
+        const hasMatchingHours = shop.workingHours.some((wh) => {
+          if (targetDayOfWeek !== null && wh.dayOfWeek !== targetDayOfWeek) return false;
+          const [startH = 0, startM = 0] = wh.startTime.split(':').map(Number);
+          const [endH = 0, endM = 0] = wh.endTime.split(':').map(Number);
+          const startMinutes = startH * 60 + startM;
+          const endMinutes = endH * 60 + endM;
+          return selectedMinutes >= startMinutes && selectedMinutes < endMinutes;
+        });
+        if (!hasMatchingHours) return false;
+      }
 
       if (verifiedOnly && !shop.isVerified) return false;
       if (withServices && shop.activeServiceCount === 0) return false;
