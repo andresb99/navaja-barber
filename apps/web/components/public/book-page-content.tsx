@@ -1,12 +1,10 @@
 'use client';
 
-import { useCallback, useDeferredValue, useMemo, useState } from 'react';
+import { memo, useCallback, useDeferredValue, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { type CalendarDate, today, getLocalTimeZone } from '@internationalized/date';
 import { DateRangePicker } from '@heroui/date-picker';
-import { Slider } from '@heroui/slider';
 import { Chip } from '@heroui/chip';
-import { Input } from '@heroui/input';
 import { Select, SelectItem } from '@heroui/select';
 import {
   ArrowDownUp,
@@ -14,11 +12,8 @@ import {
   BadgeCheck,
   CalendarDays,
   Search,
-  SlidersHorizontal,
-  Sparkles,
   X,
 } from 'lucide-react';
-import { formatCurrency } from '@navaja/shared';
 import { BookShopCard } from '@/components/public/book-shop-card';
 import type { MarketplaceShop } from '@/lib/shops';
 
@@ -45,105 +40,78 @@ function normalize(str: string) {
     .replace(/[\u0300-\u036f]/g, '');
 }
 
-function getPriceMax(shops: MarketplaceShop[]): number {
-  const prices = shops
-    .map((s) => s.minServicePriceCents)
-    .filter((p): p is number => p !== null && p > 0);
-  if (!prices.length) return 500000;
-  const max = Math.max(...prices);
-  return Math.ceil(max / 10000) * 10000;
-}
-
-// ── Calendar classNames (theme-aware) ─────────────────────────────────────────
-const calendarCN = {
-  base: [
-    'rounded-2xl border p-2',
-    'border-zinc-200 bg-white shadow-[0_16px_40px_-12px_rgba(0,0,0,0.12)]',
-    'dark:border-white/10 dark:bg-zinc-950 dark:shadow-[0_24px_48px_-16px_rgba(0,0,0,0.6)]',
-  ].join(' '),
-  headerWrapper: 'pb-2',
-  title: 'text-sm font-semibold text-zinc-800 dark:text-zinc-200',
-  gridHeaderCell: 'text-[11px] font-medium text-zinc-400 dark:text-zinc-500',
-  cell: [
-    'data-[selected=true]:bg-violet-500/[0.10] dark:data-[selected=true]:bg-violet-500/[0.12]',
-    'data-[selection-start=true]:rounded-l-full',
-    'data-[selection-end=true]:rounded-r-full',
-  ].join(' '),
-  cellButton: [
-    'h-8 w-8 rounded-full text-sm transition-colors',
-    'text-zinc-600 dark:text-zinc-400',
-    'data-[selected=true]:text-violet-700 dark:data-[selected=true]:text-zinc-200',
-    'data-[selection-start=true]:!bg-violet-600 data-[selection-start=true]:!text-white data-[selection-start=true]:!font-semibold',
-    'data-[selection-end=true]:!bg-violet-600 data-[selection-end=true]:!text-white data-[selection-end=true]:!font-semibold',
-    'data-[today=true]:font-semibold data-[today=true]:ring-1 data-[today=true]:ring-violet-500/50',
-    'data-[hover=true]:bg-zinc-100 data-[hover=true]:text-zinc-800 dark:data-[hover=true]:bg-white/10 dark:data-[hover=true]:text-zinc-200',
-    'data-[disabled=true]:opacity-30 data-[disabled=true]:cursor-not-allowed',
-  ].join(' '),
-  prevButton:
-    'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-white/8 rounded-lg',
-  nextButton:
-    'text-zinc-500 hover:text-zinc-800 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-zinc-200 dark:hover:bg-white/8 rounded-lg',
-};
-
-// ── Panel filter input wrapper (theme-aware) ───────────────────────────────────
-const panelInputWrapperCN = [
-  'h-10 min-h-0 rounded-xl shadow-none transition-colors',
-  'border border-zinc-200 bg-zinc-50',
-  'data-[hover=true]:border-zinc-300 data-[hover=true]:bg-white',
-  'group-data-[focus=true]:border-violet-400 group-data-[focus=true]:bg-white',
-  'dark:border-white/10 dark:bg-white/[0.04]',
-  'dark:data-[hover=true]:border-white/16 dark:data-[hover=true]:bg-white/[0.06]',
-  'dark:group-data-[focus=true]:border-violet-500/40',
-].join(' ');
+// ── Toggle pill (memoized — only re-renders when active/onClick changes) ────────
+const TogglePill = memo(function TogglePill({
+  active,
+  onClick,
+  children,
+  accent = 'violet',
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  accent?: 'violet' | 'emerald';
+}) {
+  const activeClass =
+    accent === 'emerald'
+      ? 'border-emerald-300/60 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300'
+      : 'border-focusLight/30 bg-focusLight/[0.07] text-violet-700 dark:border-focusLight/25 dark:bg-focusLight/10 dark:text-violet-300';
+  const idleClass =
+    'border-[rgba(148,163,184,0.3)] bg-[rgba(241,245,249,0.6)] text-slate/60 hover:border-[rgba(148,163,184,0.5)] hover:text-ink/75 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/45 dark:hover:border-white/25 dark:hover:text-white/70';
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        'inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[13px] font-medium transition-all',
+        active ? activeClass : idleClass,
+      ].join(' ')}
+    >
+      {children}
+    </button>
+  );
+});
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export function BookPageContent({ shops }: BookPageContentProps) {
-  const priceMax = useMemo(() => getPriceMax(shops), [shops]);
-
   const [query, setQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('default');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, priceMax]);
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
   const [openNow, setOpenNow] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [withServices, setWithServices] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
-
   const deferredQuery = useDeferredValue(query);
 
   const clearAll = useCallback(() => {
     setQuery('');
     setSortKey('default');
-    setPriceRange([0, priceMax]);
     setDateRange(null);
     setOpenNow(false);
     setVerifiedOnly(false);
     setWithServices(false);
-  }, [priceMax]);
+  }, []);
 
-  // Derived booleans — memoized so they don't recreate on every render
-  const isPriceFiltered = useMemo(
-    () => priceRange[0] > 0 || priceRange[1] < priceMax,
-    [priceRange, priceMax],
-  );
+  // Stable callbacks — prevent TogglePill from re-rendering unnecessarily
+  const toggleOpenNow = useCallback(() => setOpenNow((v) => !v), []);
+  const toggleVerifiedOnly = useCallback(() => setVerifiedOnly((v) => !v), []);
+  const toggleWithServices = useCallback(() => setWithServices((v) => !v), []);
+  const handleDateChange = useCallback((v: DateRange) => {
+    setDateRange(v);
+  }, []);
+  const handleSortChange = useCallback((keys: Iterable<React.Key>) => {
+    const k = Array.from(keys)[0] as SortKey;
+    if (k) setSortKey(k);
+  }, []);
 
   const hasActiveFilters = useMemo(
     () =>
       Boolean(deferredQuery.trim()) ||
       sortKey !== 'default' ||
-      isPriceFiltered ||
       dateRange !== null ||
       openNow ||
       verifiedOnly ||
       withServices,
-    [deferredQuery, sortKey, isPriceFiltered, dateRange, openNow, verifiedOnly, withServices],
-  );
-
-  const filterCount = useMemo(
-    () =>
-      [isPriceFiltered, dateRange !== null, openNow, verifiedOnly, withServices].filter(Boolean)
-        .length,
-    [isPriceFiltered, dateRange, openNow, verifiedOnly, withServices],
+    [deferredQuery, sortKey, dateRange, openNow, verifiedOnly, withServices],
   );
 
   // Pre-parse workingHours time strings once per shops load, not on every filter run
@@ -165,14 +133,13 @@ export function BookPageContent({ shops }: BookPageContentProps) {
   const filtered = useMemo(() => {
     const q = normalize(deferredQuery.trim());
 
-    // Hoist time computation outside the per-shop loop
     let currentMinutes = 0;
     let isoDayOfWeek = 0;
     if (openNow) {
       const now = new Date();
       currentMinutes = now.getHours() * 60 + now.getMinutes();
-      const jsDay = now.getDay(); // 0=Sun, 1=Mon…6=Sat
-      isoDayOfWeek = jsDay === 0 ? 7 : jsDay; // → ISO 1=Mon…7=Sun
+      const jsDay = now.getDay();
+      isoDayOfWeek = jsDay === 0 ? 7 : jsDay;
     }
 
     let result = shops.filter((shop) => {
@@ -182,12 +149,6 @@ export function BookPageContent({ shops }: BookPageContentProps) {
         const inRegion = normalize(shop.region || '').includes(q);
         const inLocation = normalize(shop.locationLabel || '').includes(q);
         if (!inName && !inCity && !inRegion && !inLocation) return false;
-      }
-
-      if (isPriceFiltered) {
-        const price = shop.minServicePriceCents;
-        if (price === null) return false;
-        if (price < priceRange[0] || price > priceRange[1]) return false;
       }
 
       if (dateRange !== null && shop.activeServiceCount === 0) return false;
@@ -240,94 +201,120 @@ export function BookPageContent({ shops }: BookPageContentProps) {
     }
 
     return result;
-  }, [shops, deferredQuery, sortKey, priceRange, isPriceFiltered, dateRange, openNow, verifiedOnly, withServices, parsedWorkingHours]);
+  }, [shops, deferredQuery, sortKey, dateRange, openNow, verifiedOnly, withServices, parsedWorkingHours]);
 
   const todayDate = useMemo(() => today(getLocalTimeZone()), []);
 
   return (
     <div className="space-y-3">
 
-      {/* ── Toolbar: Search + Sort + Filters ──────────────────────────────── */}
-      <div className="flex items-center gap-2">
-
-        {/* Search input */}
-        <div className="flex-1 min-w-0">
-          <Input
+      {/* ── Search + DateRangePicker row ──────────────────────────────────── */}
+      <div className="flex items-center gap-3">
+        <div className={[
+          'relative group min-w-0 flex-1 rounded-2xl border transition-all duration-150',
+          'border-[rgba(148,163,184,0.3)] bg-[rgba(241,245,249,0.6)]',
+          'hover:border-[rgba(148,163,184,0.5)]',
+          'focus-within:border-focusLight/40 focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgb(var(--focus-light)/0.08)]',
+          'dark:border-white/10 dark:bg-white/[0.04]',
+          'dark:hover:border-white/25',
+          'dark:focus-within:border-focusLight/30 dark:focus-within:bg-transparent dark:focus-within:shadow-[0_0_0_3px_rgb(var(--focus-light)/0.10)]',
+        ].join(' ')}>
+          <Search className={[
+            'pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] transition-colors',
+            'text-slate/30 group-focus-within:text-focusLight/70',
+            'dark:text-zinc-500 dark:group-focus-within:text-focusLight/60',
+          ].join(' ')} />
+          <input
+            data-slot="input"
             value={query}
-            onValueChange={setQuery}
-            placeholder="Busca por nombre o zona (ej. Pocitos, Navaja)"
-            startContent={
-              <Search className="h-4 w-4 shrink-0 text-zinc-400 dark:text-zinc-500" />
-            }
-            endContent={
-              query ? (
-                <button
-                  type="button"
-                  onClick={() => setQuery('')}
-                  className="flex h-5 w-5 items-center justify-center rounded-full text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
-                  aria-label="Limpiar busqueda"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              ) : null
-            }
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar barberia..."
+            className={[
+              'h-12 w-full rounded-2xl bg-transparent pl-11 pr-10 text-[15px] outline-none',
+              'text-ink placeholder:text-slate/35',
+              'dark:text-zinc-100 dark:placeholder:text-zinc-500',
+            ].join(' ')}
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className={[
+                'absolute right-3.5 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-full transition-colors',
+                'text-slate/35 hover:bg-ink/[0.06] hover:text-slate/70',
+                'dark:text-zinc-500 dark:hover:bg-white/[0.08] dark:hover:text-zinc-300',
+              ].join(' ')}
+              aria-label="Limpiar busqueda"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        <div className="heroui-native flex-1 md:flex-none md:w-72">
+          <DateRangePicker
+            label="Disponibilidad"
+            value={dateRange}
+            onChange={(v) => handleDateChange(v as DateRange)}
+            minValue={todayDate}
+            className="w-full"
+            radius="lg"
+            size="sm"
             classNames={{
               inputWrapper: [
-                'h-11 rounded-2xl shadow-none transition-all duration-200',
-                // light
-                'border border-zinc-200 bg-white',
-                'data-[hover=true]:border-zinc-300',
-                'group-data-[focus=true]:border-violet-400 group-data-[focus=true]:shadow-[0_0_0_3px_rgba(139,92,246,0.08)]',
-                // dark
-                'dark:border-white/10 dark:bg-zinc-900/80 dark:backdrop-blur-sm',
-                'dark:data-[hover=true]:border-white/16',
-                'dark:group-data-[focus=true]:border-violet-500/50 dark:group-data-[focus=true]:shadow-[0_0_0_3px_rgba(139,92,246,0.12)]',
+                'border transition-all duration-150',
+                'border-[rgba(148,163,184,0.3)] bg-[rgba(241,245,249,0.6)]',
+                'hover:border-[rgba(148,163,184,0.5)]',
+                'group-data-[focus=true]:border-focusLight/40 group-data-[focus=true]:bg-white',
+                'dark:border-white/10 dark:bg-white/[0.04]',
+                'dark:hover:border-white/25',
+                'dark:group-data-[focus=true]:border-focusLight/30',
               ].join(' '),
-              input:
-                'text-sm text-zinc-800 placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-500',
             }}
           />
         </div>
+      </div>
 
-        {/* Sort select */}
-        <div className="w-[175px] shrink-0">
+      {/* ── Controls row: sort + quick filters ────────────────────────────── */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {/* Sort Select */}
+        <div className="w-[165px] shrink-0">
           <Select
             selectedKeys={[sortKey]}
-            onSelectionChange={(keys) => {
-              const k = Array.from(keys)[0] as SortKey;
-              if (k) setSortKey(k);
-            }}
+            onSelectionChange={handleSortChange}
             startContent={
-              <ArrowDownUp className="h-3.5 w-3.5 shrink-0 text-zinc-400 dark:text-zinc-500" />
+              <ArrowDownUp className="h-3.5 w-3.5 shrink-0 opacity-50" />
             }
             aria-label="Ordenar resultados"
             classNames={{
+              base: 'w-full',
               trigger: [
-                'h-11 rounded-2xl shadow-none transition-all duration-200',
-                // light
-                'border border-zinc-200 bg-white',
-                'data-[hover=true]:border-zinc-300',
-                'data-[open=true]:border-violet-400 data-[open=true]:shadow-[0_0_0_3px_rgba(139,92,246,0.08)]',
-                // dark
-                'dark:border-white/10 dark:bg-zinc-900/80 dark:backdrop-blur-sm',
-                'dark:data-[hover=true]:border-white/16',
-                'dark:data-[open=true]:border-violet-500/50',
+                'h-9 min-h-0 rounded-full border px-3.5 gap-2 shadow-none transition-all duration-150',
+                'border-[rgba(148,163,184,0.3)] bg-[rgba(241,245,249,0.6)]',
+                'data-[hover=true]:border-[rgba(148,163,184,0.5)]',
+                'data-[open=true]:border-focusLight/40 data-[open=true]:bg-focusLight/[0.06]',
+                'dark:border-white/10 dark:bg-white/[0.04]',
+                'dark:data-[hover=true]:border-white/25',
+                'dark:data-[open=true]:border-focusLight/30 dark:data-[open=true]:bg-focusLight/[0.08]',
+                'focus-visible:ring-0 focus-visible:outline-none',
               ].join(' '),
-              value: 'text-sm font-medium text-zinc-700 dark:text-zinc-300',
-              selectorIcon: 'text-zinc-400 dark:text-zinc-500',
+              value: 'text-[13px] font-medium text-ink/60 dark:text-white/55',
+              selectorIcon: 'text-slate/30 dark:text-white/25 w-3.5 h-3.5',
               popoverContent: [
-                'rounded-2xl border p-1 shadow-xl',
-                'border-zinc-200 bg-white shadow-[0_8px_32px_-8px_rgba(0,0,0,0.12)]',
-                'dark:border-white/10 dark:bg-zinc-900 dark:shadow-[0_24px_48px_-16px_rgba(0,0,0,0.6)] dark:backdrop-blur-xl',
+                'rounded-xl border p-1 mt-1.5',
+                'border-ink/[0.07] bg-white shadow-[0_8px_32px_-8px_rgb(var(--ink)/0.14),0_2px_8px_-4px_rgb(var(--ink)/0.07)]',
+                'dark:border-white/[0.09] dark:bg-zinc-900 dark:shadow-[0_24px_48px_-16px_rgba(0,0,0,0.7)]',
               ].join(' '),
               listboxWrapper: 'p-0',
             }}
             listboxProps={{
               itemClasses: {
                 base: [
-                  'rounded-xl px-3 py-2 text-sm transition-colors',
-                  'text-zinc-700 data-[hover=true]:bg-zinc-100 data-[selected=true]:text-violet-600 data-[selected=true]:bg-violet-50',
-                  'dark:text-zinc-300 dark:data-[hover=true]:bg-white/8 dark:data-[selected=true]:text-violet-300 dark:data-[selected=true]:bg-violet-500/10',
+                  'rounded-lg px-3 py-2 text-sm transition-colors',
+                  'text-ink/70 data-[hover=true]:bg-ink/[0.04] data-[hover=true]:text-ink/90',
+                  'data-[selected=true]:font-semibold data-[selected=true]:text-violet-700 data-[selected=true]:bg-focusLight/[0.08]',
+                  'dark:text-white/55 dark:data-[hover=true]:bg-white/[0.05] dark:data-[hover=true]:text-white/90',
+                  'dark:data-[selected=true]:text-violet-300 dark:data-[selected=true]:bg-focusLight/10',
                 ].join(' '),
               },
             }}
@@ -338,179 +325,19 @@ export function BookPageContent({ shops }: BookPageContentProps) {
           </Select>
         </div>
 
-        {/* Filters button */}
-        <button
-          type="button"
-          onClick={() => setFiltersOpen((v) => !v)}
-          className={[
-            'flex h-11 shrink-0 items-center gap-2 rounded-2xl border px-4 text-sm font-medium transition-all duration-200',
-            filtersOpen || filterCount > 0
-              ? 'border-violet-300 bg-violet-50 text-violet-700 shadow-[0_0_0_3px_rgba(139,92,246,0.08)] dark:border-violet-500/40 dark:bg-violet-500/10 dark:text-violet-300 dark:shadow-none'
-              : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-800 dark:border-white/10 dark:bg-zinc-900/80 dark:text-zinc-400 dark:hover:border-white/16 dark:hover:text-zinc-200',
-          ].join(' ')}
-        >
-          <SlidersHorizontal className="h-4 w-4" />
-          <span>Filtros</span>
-          {filterCount > 0 && (
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-600 text-[10px] font-bold text-white">
-              {filterCount}
-            </span>
-          )}
-        </button>
+        {/* Quick toggle pills */}
+        <TogglePill active={openNow} onClick={toggleOpenNow} accent="emerald">
+          <span className={`h-2 w-2 rounded-full transition-colors ${openNow ? 'bg-emerald-500' : 'bg-slate/25 dark:bg-white/20'}`} />
+          Abierto ahora
+        </TogglePill>
+        <TogglePill active={verifiedOnly} onClick={toggleVerifiedOnly}>
+          <BadgeCheck className="h-3.5 w-3.5" />
+          Verificadas
+        </TogglePill>
+        <TogglePill active={withServices} onClick={toggleWithServices}>
+          Con agenda activa
+        </TogglePill>
       </div>
-
-      {/* ── Expandable filter panel ─────────────────────────────────────────── */}
-      <AnimatePresence initial={false}>
-        {filtersOpen && (
-          <motion.div
-            key="filter-panel"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.24, ease: [0.32, 0, 0.67, 0] }}
-            className="overflow-hidden"
-          >
-            <div className="soft-panel rounded-[1.4rem] p-5 md:p-6 space-y-5">
-
-              {/* Row 1: two filter sections */}
-              <div className="grid gap-4 md:grid-cols-2">
-
-                {/* Disponibilidad */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <CalendarDays className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
-                    <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                      Disponibilidad
-                    </span>
-                  </div>
-                  <DateRangePicker<CalendarDate>
-                    value={dateRange ?? undefined}
-                    onChange={(v) => setDateRange(v)}
-                    minValue={todayDate}
-                    granularity="day"
-                    aria-label="Filtrar por rango de fechas"
-                    showMonthAndYearPickers
-                    classNames={{
-                      base: 'w-full',
-                      inputWrapper: panelInputWrapperCN,
-                      input: 'text-sm text-zinc-700 dark:text-zinc-300',
-                      segment:
-                        'text-sm text-zinc-700 data-[placeholder=true]:text-zinc-400 focus:bg-violet-500/15 rounded dark:text-zinc-300 dark:data-[placeholder=true]:text-zinc-600',
-                      selectorButton:
-                        'text-zinc-400 hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300',
-                      selectorIcon:
-                        'text-zinc-400 dark:text-zinc-500',
-                    }}
-                    calendarProps={{ classNames: calendarCN }}
-                  />
-                  {dateRange && (
-                    <button
-                      type="button"
-                      onClick={() => setDateRange(null)}
-                      className="flex items-center gap-1 text-[11px] text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
-                    >
-                      <X className="h-3 w-3" />
-                      Quitar fechas
-                    </button>
-                  )}
-                </div>
-
-                {/* Otros filtros */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
-                    <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                      Otros filtros
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 pt-0.5">
-                    {/* Verificadas toggle pill */}
-                    <button
-                      type="button"
-                      onClick={() => setVerifiedOnly((v) => !v)}
-                      className={[
-                        'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all',
-                        verifiedOnly
-                          ? 'border-violet-300 bg-violet-50 text-violet-700 dark:border-violet-500/40 dark:bg-violet-500/15 dark:text-violet-300'
-                          : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-800 dark:border-white/10 dark:bg-transparent dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-zinc-200',
-                      ].join(' ')}
-                    >
-                      <BadgeCheck className="h-3.5 w-3.5" />
-                      Verificadas
-                    </button>
-
-                    {/* Con agenda activa toggle pill */}
-                    <button
-                      type="button"
-                      onClick={() => setWithServices((v) => !v)}
-                      className={[
-                        'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all',
-                        withServices
-                          ? 'border-violet-300 bg-violet-50 text-violet-700 dark:border-violet-500/40 dark:bg-violet-500/15 dark:text-violet-300'
-                          : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-800 dark:border-white/10 dark:bg-transparent dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-zinc-200',
-                      ].join(' ')}
-                    >
-                      Con agenda activa
-                    </button>
-
-                    {/* Abierto ahora toggle pill */}
-                    <button
-                      type="button"
-                      onClick={() => setOpenNow((v) => !v)}
-                      className={[
-                        'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all',
-                        openNow
-                          ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/15 dark:text-emerald-300'
-                          : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-800 dark:border-white/10 dark:bg-transparent dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-zinc-200',
-                      ].join(' ')}
-                    >
-                      <span className={`h-1.5 w-1.5 rounded-full ${openNow ? 'bg-emerald-500' : 'bg-zinc-400'}`} />
-                      Abierto ahora
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="h-px bg-zinc-100 dark:bg-white/[0.06]" />
-
-              {/* Row 2: Price range slider */}
-              <Slider
-                label="Precio desde"
-                minValue={0}
-                maxValue={priceMax}
-                step={5000}
-                value={priceRange}
-                onChange={(v) => {
-                  if (Array.isArray(v)) {
-                    setPriceRange([v[0]!, v[1]!] as [number, number]);
-                  }
-                }}
-                getValue={(v) => {
-                  const arr = Array.isArray(v) ? v : [0, v];
-                  return `${formatCurrency(arr[0] ?? 0)} – ${formatCurrency(arr[1] ?? priceMax)}`;
-                }}
-                classNames={{
-                  base: 'w-full',
-                  label:
-                    'text-xs font-semibold text-zinc-500 dark:text-zinc-400',
-                  value: 'text-xs font-semibold text-zinc-500 dark:text-zinc-400',
-                  track:
-                    'bg-zinc-200 border-zinc-200 dark:bg-zinc-700/50 dark:border-zinc-700/50',
-                  filler: 'bg-gradient-to-r from-violet-500 to-violet-400',
-                  thumb: [
-                    'bg-white border-2 border-violet-500',
-                    'shadow-[0_2px_8px_rgba(139,92,246,0.35)]',
-                    'data-[dragging=true]:shadow-[0_4px_16px_rgba(139,92,246,0.55)]',
-                    'data-[dragging=true]:scale-110',
-                    'transition-[transform,box-shadow]',
-                  ].join(' '),
-                }}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── Active filters strip ────────────────────────────────────────────── */}
       <AnimatePresence>
@@ -527,9 +354,9 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                 size="sm"
                 onClose={() => setQuery('')}
                 classNames={{
-                  base: 'border border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300',
+                  base: 'border border-ink/[0.09] bg-ink/[0.04] text-ink/70 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300',
                   content: 'text-xs font-medium px-1',
-                  closeButton: 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200',
+                  closeButton: 'text-slate/40 hover:text-slate/80 dark:text-zinc-500 dark:hover:text-zinc-200',
                 }}
               >
                 &quot;{deferredQuery.trim()}&quot;
@@ -542,9 +369,9 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                 onClose={() => setSortKey('default')}
                 startContent={<ArrowUpDown className="h-3 w-3 ml-1" />}
                 classNames={{
-                  base: 'border border-zinc-200 bg-zinc-100 text-zinc-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300',
+                  base: 'border border-ink/[0.09] bg-ink/[0.04] text-ink/70 dark:border-white/10 dark:bg-white/[0.06] dark:text-zinc-300',
                   content: 'text-xs font-medium px-1',
-                  closeButton: 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200',
+                  closeButton: 'text-slate/40 hover:text-slate/80 dark:text-zinc-500 dark:hover:text-zinc-200',
                 }}
               >
                 {SORT_OPTIONS.find((o) => o.key === sortKey)?.label}
@@ -557,9 +384,9 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                 onClose={() => setDateRange(null)}
                 startContent={<CalendarDays className="h-3 w-3 ml-1" />}
                 classNames={{
-                  base: 'border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300',
+                  base: 'border border-focusLight/25 bg-focusLight/[0.07] text-violet-700 dark:border-focusLight/20 dark:bg-focusLight/10 dark:text-violet-300',
                   content: 'text-xs font-medium px-1',
-                  closeButton: 'text-violet-400 hover:text-violet-700 dark:text-violet-400/60 dark:hover:text-violet-300',
+                  closeButton: 'text-focusLight/50 hover:text-focusLight/80 dark:text-violet-400/60 dark:hover:text-violet-300',
                 }}
               >
                 {dateRange.start.day}/{dateRange.start.month}
@@ -573,26 +400,12 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                 size="sm"
                 onClose={() => setOpenNow(false)}
                 classNames={{
-                  base: 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300',
+                  base: 'border border-emerald-300/60 bg-emerald-50 text-emerald-700 dark:border-emerald-500/25 dark:bg-emerald-500/10 dark:text-emerald-300',
                   content: 'text-xs font-medium px-1',
-                  closeButton: 'text-emerald-400 hover:text-emerald-700 dark:text-emerald-400/60 dark:hover:text-emerald-300',
+                  closeButton: 'text-emerald-400/60 hover:text-emerald-600 dark:text-emerald-400/50 dark:hover:text-emerald-300',
                 }}
               >
                 Abierto ahora
-              </Chip>
-            )}
-
-            {isPriceFiltered && (
-              <Chip
-                size="sm"
-                onClose={() => setPriceRange([0, priceMax])}
-                classNames={{
-                  base: 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300',
-                  content: 'text-xs font-medium px-1',
-                  closeButton: 'text-emerald-400 hover:text-emerald-700 dark:text-emerald-400/60 dark:hover:text-emerald-300',
-                }}
-              >
-                {formatCurrency(priceRange[0])} – {formatCurrency(priceRange[1])}
               </Chip>
             )}
 
@@ -602,9 +415,9 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                 onClose={() => setVerifiedOnly(false)}
                 startContent={<BadgeCheck className="h-3 w-3 ml-1" />}
                 classNames={{
-                  base: 'border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300',
+                  base: 'border border-focusLight/25 bg-focusLight/[0.07] text-violet-700 dark:border-focusLight/20 dark:bg-focusLight/10 dark:text-violet-300',
                   content: 'text-xs font-medium px-1',
-                  closeButton: 'text-violet-400 hover:text-violet-700 dark:text-violet-400/60 dark:hover:text-violet-300',
+                  closeButton: 'text-focusLight/50 hover:text-focusLight/80 dark:text-violet-400/60 dark:hover:text-violet-300',
                 }}
               >
                 Verificadas
@@ -616,9 +429,9 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                 size="sm"
                 onClose={() => setWithServices(false)}
                 classNames={{
-                  base: 'border border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300',
+                  base: 'border border-focusLight/25 bg-focusLight/[0.07] text-violet-700 dark:border-focusLight/20 dark:bg-focusLight/10 dark:text-violet-300',
                   content: 'text-xs font-medium px-1',
-                  closeButton: 'text-violet-400 hover:text-violet-700 dark:text-violet-400/60 dark:hover:text-violet-300',
+                  closeButton: 'text-focusLight/50 hover:text-focusLight/80 dark:text-violet-400/60 dark:hover:text-violet-300',
                 }}
               >
                 Con agenda activa
@@ -628,7 +441,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
             <button
               type="button"
               onClick={clearAll}
-              className="ml-auto text-xs font-medium text-zinc-400 transition-colors hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
+              className="ml-auto text-[11px] font-medium text-slate/45 transition-colors hover:text-slate/80 dark:text-zinc-500 dark:hover:text-zinc-300"
             >
               Limpiar todo
             </button>
@@ -647,11 +460,11 @@ export function BookPageContent({ shops }: BookPageContentProps) {
             transition={{ duration: 0.15 }}
           >
             {filtered.length > 0 ? (
-              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs font-medium text-slate/50 dark:text-zinc-500">
                 {`${filtered.length} barberia${filtered.length !== 1 ? 's' : ''} encontrada${filtered.length !== 1 ? 's' : ''}`}
               </p>
             ) : (
-              <p className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs font-medium text-slate/50 dark:text-zinc-500">
                 Ninguna barberia coincide
               </p>
             )}
@@ -679,10 +492,10 @@ export function BookPageContent({ shops }: BookPageContentProps) {
           animate={{ opacity: 1 }}
           className="soft-panel rounded-[1.4rem] p-12 text-center"
         >
-          <p className="text-base font-semibold text-zinc-800 dark:text-zinc-200">
+          <p className="text-base font-semibold text-ink/80 dark:text-zinc-200">
             Sin resultados
           </p>
-          <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-500">
+          <p className="mt-1 text-sm text-slate/55 dark:text-zinc-500">
             Proba con otro termino o ajusta los filtros
           </p>
           <button
@@ -690,7 +503,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
             onClick={clearAll}
             className={[
               'mt-5 rounded-full border px-5 py-2 text-xs font-semibold transition-colors',
-              'border-zinc-200 text-zinc-600 hover:border-zinc-300 hover:text-zinc-800',
+              'border-ink/[0.09] text-ink/55 hover:border-ink/[0.15] hover:text-ink/80',
               'dark:border-white/10 dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-zinc-200',
             ].join(' ')}
           >

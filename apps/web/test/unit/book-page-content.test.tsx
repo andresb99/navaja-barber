@@ -3,9 +3,6 @@ import { BookPageContent } from '@/components/public/book-page-content';
 import { mockMarketplaceShops } from '@/lib/test-fixtures/shops';
 import type { MarketplaceShop } from '@/lib/shops';
 
-// Navaja Centro: verified, rating 4.8, price 900 cents, 4 active services, city Montevideo
-// Navaja Pocitos: not verified, rating 4.4, price 1100 cents, 2 active services, locationLabel Pocitos
-
 const shopWithNoServices: MarketplaceShop = {
   ...mockMarketplaceShops[0]!,
   id: 'no-services-id',
@@ -24,32 +21,8 @@ const shopWithNoServices: MarketplaceShop = {
 
 const shops = [...mockMarketplaceShops, shopWithNoServices];
 
-// Extra fixture: price above the slider step (5000 cents) for price-range tests
-const shopWithHighPrice: MarketplaceShop = {
-  ...mockMarketplaceShops[0]!,
-  id: 'high-price-id',
-  name: 'Navaja Premium',
-  slug: 'navaja-premium',
-  minServicePriceCents: 600000, // well above step=5000, priceMax becomes 600000
-  averageRating: 4.9,
-  isVerified: true,
-  activeServiceCount: 3,
-  city: 'Montevideo',
-  region: 'Montevideo',
-  locationLabel: 'Pocitos',
-  workingHours: [],
-  todayAvailability: 'closed',
-};
-const shopsWithPriceVariety = [...mockMarketplaceShops, shopWithNoServices, shopWithHighPrice];
-
 function getSearchInput() {
-  return screen.getByPlaceholderText(/Busca por nombre o zona/i);
-}
-
-/** Open the collapsible filter panel. Must be called before interacting with
- *  rating/verified/services/price filters, which live inside the panel. */
-function openFilterPanel() {
-  fireEvent.click(screen.getByRole('button', { name: /filtros/i }));
+  return screen.getByPlaceholderText(/buscar barberia/i);
 }
 
 describe('BookPageContent', () => {
@@ -59,12 +32,24 @@ describe('BookPageContent', () => {
     expect(screen.getByRole('heading', { name: 'Navaja Centro' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Navaja Pocitos' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Navaja Sin Agenda' })).toBeInTheDocument();
-    // no result count shown when no filters are active
     expect(screen.queryByText(/encontrada/i)).not.toBeInTheDocument();
   });
 
+  describe('inline controls', () => {
+    it('shows the search field, date picker and quick filter pills by default', () => {
+      render(<BookPageContent shops={shops} />);
+
+      expect(getSearchInput()).toBeInTheDocument();
+      expect(screen.getByText(/disponibilidad/i)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /abierto ahora/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /verificadas/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /con agenda activa/i })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /filtros/i })).not.toBeInTheDocument();
+    });
+  });
+
   describe('search by text', () => {
-    it('filters by shop name (case and accent insensitive)', () => {
+    it('filters by shop name', () => {
       render(<BookPageContent shops={shops} />);
 
       fireEvent.change(getSearchInput(), { target: { value: 'pocitos' } });
@@ -131,120 +116,33 @@ describe('BookPageContent', () => {
     });
   });
 
-  describe('filter panel', () => {
-    it('is closed by default — section labels are not visible', () => {
-      render(<BookPageContent shops={shops} />);
-
-      expect(screen.queryByText(/disponibilidad/i)).not.toBeInTheDocument();
-      expect(screen.queryByText(/otros filtros/i)).not.toBeInTheDocument();
-    });
-
-    it('opens when the Filtros button is clicked and shows all sections', () => {
-      render(<BookPageContent shops={shops} />);
-      openFilterPanel();
-
-      expect(screen.getByText(/disponibilidad/i)).toBeInTheDocument();
-      expect(screen.getByText(/otros filtros/i)).toBeInTheDocument();
-      expect(screen.getByText(/precio desde/i)).toBeInTheDocument();
-    });
-
-    it('shows the DateRangePicker for availability', () => {
-      render(<BookPageContent shops={shops} />);
-      openFilterPanel();
-
-      expect(
-        screen.getByRole('group', { name: /filtrar por rango de fechas/i }),
-      ).toBeInTheDocument();
-    });
-
-    it('shows the Abierto ahora toggle pill', () => {
-      render(<BookPageContent shops={shops} />);
-      openFilterPanel();
-
-      expect(screen.getByRole('button', { name: /abierto ahora/i })).toBeInTheDocument();
-    });
-
-    it('shows the price range slider with two thumbs', () => {
-      render(<BookPageContent shops={shops} />);
-      openFilterPanel();
-
-      // HeroUI Slider renders two input[type=range] with role="slider" for dual-thumb range
-      expect(screen.getAllByRole('slider')).toHaveLength(2);
-    });
-
-    it('shows a badge count when filters inside the panel are active', () => {
-      render(<BookPageContent shops={shops} />);
-      openFilterPanel();
-
-      fireEvent.click(screen.getByText('Verificadas'));
-
-      expect(screen.getByText('1')).toBeInTheDocument();
-    });
-  });
-
-  describe('price range filter', () => {
-    // Note: Slider step=5000 cents — values snap to nearest multiple of 5000.
-    // shopsWithPriceVariety includes a shop with price 600000 cents (priceMax=600000)
-    // so low=5000 reliably excludes Centro (900) + Pocitos (1100) and includes Premium (600000).
-
-    it('filters out null-price shops when the price filter is active', () => {
-      render(<BookPageContent shops={shopsWithPriceVariety} />);
-      openFilterPanel();
-
-      // Move low thumb to first valid step above 0 → isPriceFiltered = true
-      const [lowSlider] = screen.getAllByRole('slider');
-      fireEvent.change(lowSlider!, { target: { value: '5000' } });
-
-      // Sin Agenda (null price) must be excluded when any price filter is active
-      expect(screen.queryByRole('heading', { name: 'Navaja Sin Agenda' })).not.toBeInTheDocument();
-    });
-
-    it('excludes shops whose price is below the low threshold', () => {
-      render(<BookPageContent shops={shopsWithPriceVariety} />);
-      openFilterPanel();
-
-      // Set low to 5000: Centro (900) + Pocitos (1100) both < 5000 → excluded
-      // Premium (600000) >= 5000 → included
-      const [lowSlider] = screen.getAllByRole('slider');
-      fireEvent.change(lowSlider!, { target: { value: '5000' } });
-
-      expect(screen.getByRole('heading', { name: 'Navaja Premium' })).toBeInTheDocument();
-      expect(screen.queryByRole('heading', { name: 'Navaja Centro' })).not.toBeInTheDocument();
-      expect(screen.queryByRole('heading', { name: 'Navaja Pocitos' })).not.toBeInTheDocument();
-    });
-  });
-
   describe('verified filter', () => {
     it('shows only verified shops', () => {
       render(<BookPageContent shops={shops} />);
-      openFilterPanel();
 
-      fireEvent.click(screen.getByText('Verificadas'));
+      fireEvent.click(screen.getByRole('button', { name: /verificadas/i }));
 
-      // Only Centro is verified
       expect(screen.getByRole('heading', { name: 'Navaja Centro' })).toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Navaja Pocitos' })).not.toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Navaja Sin Agenda' })).not.toBeInTheDocument();
     });
 
-    it('toggles verified filter off', () => {
+    it('toggles the verified filter off', () => {
       render(<BookPageContent shops={shops} />);
-      openFilterPanel();
 
-      fireEvent.click(screen.getByText('Verificadas'));
-      // "Verificadas" now appears in panel + active strip → click panel chip (index 0)
-      fireEvent.click(screen.getAllByText('Verificadas')[0]!);
+      fireEvent.click(screen.getByRole('button', { name: /verificadas/i }));
+      fireEvent.click(screen.getByRole('button', { name: /verificadas/i }));
 
       expect(screen.getByRole('heading', { name: 'Navaja Pocitos' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Navaja Sin Agenda' })).toBeInTheDocument();
     });
   });
 
   describe('active services filter', () => {
     it('shows only shops with active services', () => {
       render(<BookPageContent shops={shops} />);
-      openFilterPanel();
 
-      fireEvent.click(screen.getByText('Con agenda activa'));
+      fireEvent.click(screen.getByRole('button', { name: /con agenda activa/i }));
 
       expect(screen.getByRole('heading', { name: 'Navaja Centro' })).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: 'Navaja Pocitos' })).toBeInTheDocument();
@@ -253,24 +151,21 @@ describe('BookPageContent', () => {
   });
 
   describe('combined filters', () => {
-    it('applies search + verified filter together', () => {
+    it('applies search and verified filter together', () => {
       render(<BookPageContent shops={shops} />);
-      openFilterPanel();
 
       fireEvent.change(getSearchInput(), { target: { value: 'navaja' } });
-      fireEvent.click(screen.getByText('Verificadas'));
+      fireEvent.click(screen.getByRole('button', { name: /verificadas/i }));
 
-      // Only Centro is verified and matches "navaja"
       expect(screen.getByRole('heading', { name: 'Navaja Centro' })).toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Navaja Pocitos' })).not.toBeInTheDocument();
     });
 
-    it('applies verified + active services and yields only matching shops', () => {
+    it('applies verified and active services together', () => {
       render(<BookPageContent shops={shops} />);
-      openFilterPanel();
 
-      fireEvent.click(screen.getByText('Verificadas'));
-      fireEvent.click(screen.getByText('Con agenda activa'));
+      fireEvent.click(screen.getByRole('button', { name: /verificadas/i }));
+      fireEvent.click(screen.getByRole('button', { name: /con agenda activa/i }));
 
       expect(screen.getByRole('heading', { name: 'Navaja Centro' })).toBeInTheDocument();
       expect(screen.queryByRole('heading', { name: 'Navaja Pocitos' })).not.toBeInTheDocument();
@@ -326,13 +221,12 @@ describe('BookPageContent', () => {
       expect(screen.getByText(/limpiar todo/i)).toBeInTheDocument();
     });
 
-    it('"Limpiar todo" resets all filters and shows all shops', () => {
+    it('clears all active filters and shows all shops again', () => {
       render(<BookPageContent shops={shops} />);
-      openFilterPanel();
 
       fireEvent.change(getSearchInput(), { target: { value: 'centro' } });
-      fireEvent.click(screen.getByText('Verificadas'));
-      fireEvent.click(screen.getByText('Con agenda activa'));
+      fireEvent.click(screen.getByRole('button', { name: /verificadas/i }));
+      fireEvent.click(screen.getByRole('button', { name: /con agenda activa/i }));
 
       fireEvent.click(screen.getByText(/limpiar todo/i));
 
@@ -350,19 +244,17 @@ describe('BookPageContent', () => {
       expect(screen.getByText(/"pocitos"/i)).toBeInTheDocument();
     });
 
-    it('shows a verified chip when verified filter is active', () => {
+    it('shows a verified chip when the verified filter is active', () => {
       render(<BookPageContent shops={shops} />);
-      openFilterPanel();
 
-      fireEvent.click(screen.getByText('Verificadas'));
+      fireEvent.click(screen.getByRole('button', { name: /verificadas/i }));
 
-      // "Verificadas" now in panel chip + active strip chip
       expect(screen.getAllByText('Verificadas')).toHaveLength(2);
     });
   });
 
-  describe('empty state "Limpiar filtros" button', () => {
-    it('appears in the empty state and resets all filters', () => {
+  describe('empty state clear button', () => {
+    it('resets all filters from the empty state', () => {
       render(<BookPageContent shops={shops} />);
 
       fireEvent.change(getSearchInput(), { target: { value: 'xyznonexistent' } });

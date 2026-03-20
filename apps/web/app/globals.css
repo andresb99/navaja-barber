@@ -297,13 +297,13 @@ textarea:not([data-slot='input']):focus-visible {
   box-shadow: 0 0 0 1px rgb(var(--brass) / 0.42) !important;
 }
 
-[data-slot='input-wrapper'] {
+[data-slot='input-wrapper']:not(.heroui-native *) {
   border-color: rgb(17 31 51 / 0.1) !important;
   background-color: rgb(17 31 51 / 0.04) !important;
   box-shadow: inset 0 0 0 1px transparent;
 }
 
-html.dark [data-slot='input-wrapper'] {
+html.dark [data-slot='input-wrapper']:not(.heroui-native *) {
   border-color: rgb(255 255 255 / 0.08) !important;
   background-color: rgb(255 255 255 / 0.035) !important;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.025);
@@ -343,11 +343,11 @@ html.dark [data-slot='input-wrapper'][data-disabled='true'] {
   border-color: rgb(255 255 255 / 0.04) !important;
 }
 
-.group[data-focus='true'] [data-slot='input-wrapper'],
-.group[data-focus-visible='true'] [data-slot='input-wrapper'],
-[data-slot='input-wrapper']:focus-within,
-[data-slot='input-wrapper'][data-focus='true'],
-[data-slot='input-wrapper'][data-focus-visible='true'] {
+.group[data-focus='true'] [data-slot='input-wrapper']:not(.heroui-native *),
+.group[data-focus-visible='true'] [data-slot='input-wrapper']:not(.heroui-native *),
+[data-slot='input-wrapper']:not(.heroui-native *):focus-within,
+[data-slot='input-wrapper']:not(.heroui-native *)[data-focus='true'],
+[data-slot='input-wrapper']:not(.heroui-native *)[data-focus-visible='true'] {
   border-color: rgb(var(--brass) / 0.42) !important;
   outline: 0 !important;
   box-shadow: inset 0 0 0 1px rgb(var(--brass) / 0.42) !important;
@@ -1825,4 +1825,49 @@ html.dark .map-overlay-chip {
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
   }
+}
+
+/* â”€â”€ RangeCalendar â€” refined violet, seamless integration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* HeroUI injects Tailwind data-* utilities on the element itself, so we need
+   compound selectors + !important to override them reliably. */
+
+/* Range band (::before pseudo on in-range cells) â€” soft violet wash */
+[data-selected="true"][data-range-selection="true"]::before {
+  background-color: rgb(139 92 246 / 0.12) !important;
+}
+
+html.dark [data-selected="true"][data-range-selection="true"]::before {
+  background-color: rgb(139 92 246 / 0.14) !important;
+}
+
+/* In-range text color */
+[data-selected="true"][data-range-selection="true"] {
+  color: rgb(var(--ink) / 0.8) !important;
+}
+
+html.dark [data-selected="true"][data-range-selection="true"] {
+  color: rgb(210 210 220) !important;
+}
+
+/* Selected endpoints â€” solid violet circles */
+[data-selected="true"][data-selection-start="true"][data-range-selection="true"],
+[data-selected="true"][data-selection-end="true"][data-range-selection="true"] {
+  background-color: rgb(124 58 237) !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+html.dark [data-selected="true"][data-selection-start="true"][data-range-selection="true"],
+html.dark [data-selected="true"][data-selection-end="true"][data-range-selection="true"] {
+  background-color: rgb(167 139 250) !important;
+  color: rgb(15 15 18) !important;
+}
+
+/* Today indicator â€” subtle violet ring */
+[role="button"][data-today="true"]:not([data-selection-start="true"]):not([data-selection-end="true"]) {
+  box-shadow: inset 0 0 0 1.5px rgb(139 92 246 / 0.35);
+}
+
+html.dark [role="button"][data-today="true"]:not([data-selection-start="true"]):not([data-selection-end="true"]) {
+  box-shadow: inset 0 0 0 1.5px rgb(167 139 250 / 0.4);
 }
