@@ -121,26 +121,59 @@ export function BookPageContent({ shops }: BookPageContentProps) {
     setWithServices(false);
   }, [priceMax]);
 
-  const isPriceFiltered = priceRange[0] > 0 || priceRange[1] < priceMax;
-  const hasActiveFilters =
-    deferredQuery.trim() ||
-    sortKey !== 'default' ||
-    isPriceFiltered ||
-    dateRange !== null ||
-    openNow ||
-    verifiedOnly ||
-    withServices;
+  // Derived booleans — memoized so they don't recreate on every render
+  const isPriceFiltered = useMemo(
+    () => priceRange[0] > 0 || priceRange[1] < priceMax,
+    [priceRange, priceMax],
+  );
 
-  const filterCount = [
-    isPriceFiltered,
-    dateRange !== null,
-    openNow,
-    verifiedOnly,
-    withServices,
-  ].filter(Boolean).length;
+  const hasActiveFilters = useMemo(
+    () =>
+      Boolean(deferredQuery.trim()) ||
+      sortKey !== 'default' ||
+      isPriceFiltered ||
+      dateRange !== null ||
+      openNow ||
+      verifiedOnly ||
+      withServices,
+    [deferredQuery, sortKey, isPriceFiltered, dateRange, openNow, verifiedOnly, withServices],
+  );
+
+  const filterCount = useMemo(
+    () =>
+      [isPriceFiltered, dateRange !== null, openNow, verifiedOnly, withServices].filter(Boolean)
+        .length,
+    [isPriceFiltered, dateRange, openNow, verifiedOnly, withServices],
+  );
+
+  // Pre-parse workingHours time strings once per shops load, not on every filter run
+  const parsedWorkingHours = useMemo(
+    () =>
+      new Map(
+        shops.map((shop) => [
+          shop.id,
+          shop.workingHours.map((wh) => {
+            const [sh = 0, sm = 0] = wh.startTime.split(':').map(Number);
+            const [eh = 0, em = 0] = wh.endTime.split(':').map(Number);
+            return { dayOfWeek: wh.dayOfWeek, startMinutes: sh * 60 + sm, endMinutes: eh * 60 + em };
+          }),
+        ]),
+      ),
+    [shops],
+  );
 
   const filtered = useMemo(() => {
     const q = normalize(deferredQuery.trim());
+
+    // Hoist time computation outside the per-shop loop
+    let currentMinutes = 0;
+    let isoDayOfWeek = 0;
+    if (openNow) {
+      const now = new Date();
+      currentMinutes = now.getHours() * 60 + now.getMinutes();
+      const jsDay = now.getDay(); // 0=Sun, 1=Mon…6=Sat
+      isoDayOfWeek = jsDay === 0 ? 7 : jsDay; // → ISO 1=Mon…7=Sun
+    }
 
     let result = shops.filter((shop) => {
       if (q) {
@@ -160,17 +193,13 @@ export function BookPageContent({ shops }: BookPageContentProps) {
       if (dateRange !== null && shop.activeServiceCount === 0) return false;
 
       if (openNow) {
-        const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-        // JS getDay(): 0=Sun, 1=Mon…6=Sat → ISO: 1=Mon…7=Sun
-        const jsDay = now.getDay();
-        const isoDayOfWeek = jsDay === 0 ? 7 : jsDay;
-        const isOpenNow = shop.workingHours.some((wh) => {
-          if (wh.dayOfWeek !== isoDayOfWeek) return false;
-          const [sh = 0, sm = 0] = wh.startTime.split(':').map(Number);
-          const [eh = 0, em = 0] = wh.endTime.split(':').map(Number);
-          return currentMinutes >= sh * 60 + sm && currentMinutes < eh * 60 + em;
-        });
+        const hours = parsedWorkingHours.get(shop.id) ?? [];
+        const isOpenNow = hours.some(
+          (wh) =>
+            wh.dayOfWeek === isoDayOfWeek &&
+            currentMinutes >= wh.startMinutes &&
+            currentMinutes < wh.endMinutes,
+        );
         if (!isOpenNow) return false;
       }
 
@@ -211,9 +240,9 @@ export function BookPageContent({ shops }: BookPageContentProps) {
     }
 
     return result;
-  }, [shops, deferredQuery, sortKey, priceRange, isPriceFiltered, dateRange, openNow, verifiedOnly, withServices]);
+  }, [shops, deferredQuery, sortKey, priceRange, isPriceFiltered, dateRange, openNow, verifiedOnly, withServices, parsedWorkingHours]);
 
-  const todayDate = today(getLocalTimeZone());
+  const todayDate = useMemo(() => today(getLocalTimeZone()), []);
 
   return (
     <div className="space-y-3">
