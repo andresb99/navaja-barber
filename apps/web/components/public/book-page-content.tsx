@@ -159,7 +159,20 @@ export function BookPageContent({ shops }: BookPageContentProps) {
 
       if (dateRange !== null && shop.activeServiceCount === 0) return false;
 
-      if (openNow && shop.todayAvailability === 'closed') return false;
+      if (openNow) {
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        // JS getDay(): 0=Sun, 1=Mon…6=Sat → ISO: 1=Mon…7=Sun
+        const jsDay = now.getDay();
+        const isoDayOfWeek = jsDay === 0 ? 7 : jsDay;
+        const isOpenNow = shop.workingHours.some((wh) => {
+          if (wh.dayOfWeek !== isoDayOfWeek) return false;
+          const [sh = 0, sm = 0] = wh.startTime.split(':').map(Number);
+          const [eh = 0, em = 0] = wh.endTime.split(':').map(Number);
+          return currentMinutes >= sh * 60 + sm && currentMinutes < eh * 60 + em;
+        });
+        if (!isOpenNow) return false;
+      }
 
       if (verifiedOnly && !shop.isVerified) return false;
       if (withServices && shop.activeServiceCount === 0) return false;
