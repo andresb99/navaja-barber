@@ -1506,7 +1506,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       }
     };
 
-    const cleanup = () => {
+    const teardown = () => {
       if (rafId) {
         cancelAnimationFrame(rafId);
       }
@@ -1530,12 +1530,21 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       const translatePercent = stageTranslate + (clampedOffset / sheetHeight) * 100;
       const nextStage = resolveVelocitySnap(translatePercent, velocityPxPerMs, sheetHeight);
 
-      cleanup();
+      teardown();
       setMobileSheetDragSnapshot({ dragging: false, offset: 0 });
       setMobileSheetStage(nextStage);
     };
 
-    activeDragCleanupRef.current = cleanup;
+    // Stored so a new drag can abort this one, resolving the stage from current offset
+    activeDragCleanupRef.current = () => {
+      const currentOffset = mobileSheetDragOffsetRef.current;
+      const translatePercent = stageTranslate + (currentOffset / sheetHeight) * 100;
+      const nextStage = resolveVelocitySnap(translatePercent, 0, sheetHeight);
+
+      teardown();
+      setMobileSheetDragSnapshot({ dragging: false, offset: 0 });
+      setMobileSheetStage(nextStage);
+    };
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
     window.addEventListener('pointerup', handlePointerEnd);
