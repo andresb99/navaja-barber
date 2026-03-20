@@ -726,6 +726,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
   const [mobileSheetTransitionReady, setMobileSheetTransitionReady] = useState(false);
   const mobileSheetDragOffsetRef = useRef(0);
   const isMobileSheetDraggingRef = useRef(false);
+  const activeDragCleanupRef = useRef<(() => void) | null>(null);
   const [mobileSheetDragSnapshot, setMobileSheetDragSnapshot] = useState<{ dragging: boolean; offset: number }>({ dragging: false, offset: 0 });
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const displayedShops = activeSearchMode === 'name' ? (searchResults ?? []) : viewportShops;
@@ -1454,6 +1455,11 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       return;
     }
 
+    // Clean up any in-progress drag before starting a new one
+    if (activeDragCleanupRef.current) {
+      activeDragCleanupRef.current();
+    }
+
     event.preventDefault();
 
     const startY = event.clientY;
@@ -1500,15 +1506,10 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
       }
     };
 
-    const handlePointerEnd = (endEvent?: PointerEvent) => {
+    const cleanup = () => {
       if (rafId) {
         cancelAnimationFrame(rafId);
       }
-
-      const finalOffset = endEvent ? endEvent.clientY - startY : 0;
-      const clampedOffset = Math.min(Math.max(finalOffset, minOffset), maxOffset);
-      const translatePercent = stageTranslate + (clampedOffset / sheetHeight) * 100;
-      const nextStage = resolveVelocitySnap(translatePercent, velocityPxPerMs, sheetHeight);
 
       sheet.style.willChange = '';
       sheet.style.transition = '';
@@ -1516,13 +1517,25 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
       mobileSheetDragOffsetRef.current = 0;
       isMobileSheetDraggingRef.current = false;
-      setMobileSheetDragSnapshot({ dragging: false, offset: 0 });
-      setMobileSheetStage(nextStage);
 
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerEnd);
       window.removeEventListener('pointercancel', handlePointerEnd);
+      activeDragCleanupRef.current = null;
     };
+
+    const handlePointerEnd = (endEvent?: PointerEvent) => {
+      const finalOffset = endEvent ? endEvent.clientY - startY : 0;
+      const clampedOffset = Math.min(Math.max(finalOffset, minOffset), maxOffset);
+      const translatePercent = stageTranslate + (clampedOffset / sheetHeight) * 100;
+      const nextStage = resolveVelocitySnap(translatePercent, velocityPxPerMs, sheetHeight);
+
+      cleanup();
+      setMobileSheetDragSnapshot({ dragging: false, offset: 0 });
+      setMobileSheetStage(nextStage);
+    };
+
+    activeDragCleanupRef.current = cleanup;
 
     window.addEventListener('pointermove', handlePointerMove, { passive: true });
     window.addEventListener('pointerup', handlePointerEnd);
