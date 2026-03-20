@@ -196,14 +196,32 @@ export function BookShopCard({ shop }: BookShopCardProps) {
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1">
                 {shop.minServicePriceCents !== null ? `Desde ${formatCurrency(shop.minServicePriceCents)}` : 'Sin precio'}
               </span>
-              {shop.isVerified ? (
+              {shop.isVerified && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/14 px-2.5 py-1 text-emerald-100">
                   <BadgeCheck className="h-3.5 w-3.5" />
                   Verificada
                 </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1">
-                  Activa
+              )}
+              {shop.todayAvailability === 'available' && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/18 px-2.5 py-1 text-emerald-200">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Turnos disponibles
+                </span>
+              )}
+              {shop.todayAvailability === 'few_slots' && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/18 px-2.5 py-1 text-amber-200">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                  Últimos turnos
+                </span>
+              )}
+              {shop.todayAvailability === 'no_slots' && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-white/50">
+                  Sin turnos hoy
+                </span>
+              )}
+              {shop.todayAvailability === 'closed' && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-white/50">
+                  Cerrado hoy
                 </span>
               )}
             </div>

@@ -63,6 +63,12 @@ interface ShopWorkingHoursRow {
   end_time: string;
 }
 
+interface ShopAppointmentRow {
+  shop_id: string;
+  start_at: string;
+  end_at: string;
+}
+
 export type MarketplaceSearchMode = 'all' | 'name' | 'area' | 'nearby';
 
 export interface MarketplaceShop {
@@ -88,6 +94,8 @@ export interface MarketplaceShop {
   minServicePriceCents: number | null;
   /** Distinct working-hour ranges aggregated across all staff for this shop. */
   workingHours: { dayOfWeek: number; startTime: string; endTime: string }[];
+  /** Availability status for today based on working hours and booked appointments. */
+  todayAvailability: 'available' | 'few_slots' | 'no_slots' | 'closed';
   customDomain: string | null;
   domainStatus: string | null;
   plan: string | null;
@@ -95,6 +103,38 @@ export interface MarketplaceShop {
   bookingCancellationNoticeHours: number;
   bookingStaffCancellationRefundMode: 'automatic_full' | 'manual_review';
   bookingCancellationPolicyText: string | null;
+}
+
+function getTodayDayOfWeek(timezone: string): number {
+  // Returns ISO day of week: 1=Monday, 2=Tuesday, ..., 7=Sunday
+  const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: timezone }).format(new Date());
+  const map: Record<string, number> = {
+    Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 7,
+  };
+  return map[weekday] ?? 1;
+}
+
+function computeTodayAvailability(
+  workingHoursRows: ShopWorkingHoursRow[],
+  appointmentRows: ShopAppointmentRow[],
+  todayDayOfWeek: number,
+): 'available' | 'few_slots' | 'no_slots' | 'closed' {
+  const todayHours = workingHoursRows.filter((wh) => wh.day_of_week === todayDayOfWeek);
+  if (todayHours.length === 0) return 'closed';
+
+  const SLOT_MINUTES = 30;
+  let totalSlots = 0;
+  for (const wh of todayHours) {
+    const [sh = 0, sm = 0] = wh.start_time.split(':').map(Number);
+    const [eh = 0, em = 0] = wh.end_time.split(':').map(Number);
+    const duration = eh * 60 + em - (sh * 60 + sm);
+    totalSlots += Math.floor(duration / SLOT_MINUTES);
+  }
+
+  const freeSlots = Math.max(0, totalSlots - appointmentRows.length);
+  if (freeSlots === 0) return 'no_slots';
+  if (freeSlots <= 3) return 'few_slots';
+  return 'available';
 }
 
 function buildMarketplaceShop(
@@ -105,6 +145,7 @@ function buildMarketplaceShop(
   galleryImages: ShopGalleryRow[],
   subscription: ShopSubscriptionRow | undefined,
   workingHoursRows: ShopWorkingHoursRow[],
+  appointmentRows: ShopAppointmentRow[],
 ): MarketplaceShop {
   const validRatings = reviews
     .map((item) => Number(item.rating))
@@ -148,6 +189,11 @@ function buildMarketplaceShop(
       startTime: wh.start_time,
       endTime: wh.end_time,
     })),
+    todayAvailability: computeTodayAvailability(
+      workingHoursRows,
+      appointmentRows,
+      getTodayDayOfWeek(shop.timezone),
+    ),
     customDomain: shop.custom_domain,
     domainStatus: shop.domain_status,
     plan: subscription?.plan || 'free',
@@ -441,7 +487,8 @@ export async function listMarketplaceShopsInBounds(
     return [];
   }
 
-  const [{ data: reviews }, { data: services }, { data: galleryImages }, { data: subscriptions }, { data: workingHours }] =
+  const todayStr = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Montevideo' }).format(new Date());
+  const [{ data: reviews }, { data: services }, { data: galleryImages }, { data: subscriptions }, { data: workingHours }, { data: appointments }] =
     await Promise.all([
       supabase
         .from('appointment_reviews')
@@ -465,12 +512,20 @@ export async function listMarketplaceShopsInBounds(
         .from('working_hours')
         .select('shop_id, day_of_week, start_time, end_time')
         .in('shop_id', activeShopIds),
+      supabase
+        .from('appointments')
+        .select('shop_id, start_at, end_at')
+        .in('shop_id', activeShopIds)
+        .gte('start_at', `${todayStr}T00:00:00-03:00`)
+        .lt('start_at', `${todayStr}T23:59:59-03:00`)
+        .neq('status', 'cancelled'),
     ]);
 
   const reviewsByShopId = new Map<string, ShopReviewRow[]>();
   const servicesByShopId = new Map<string, ShopServiceRow[]>();
   const galleryByShopId = new Map<string, ShopGalleryRow[]>();
   const workingHoursByShopId = new Map<string, ShopWorkingHoursRow[]>();
+  const appointmentsByShopId = new Map<string, ShopAppointmentRow[]>();
   const subscriptionsByShopId = new Map<string, ShopSubscriptionRow>(
     ((subscriptions || []) as ShopSubscriptionRow[]).map((item) => [String(item.shop_id), item]),
   );
@@ -503,6 +558,13 @@ export async function listMarketplaceShopsInBounds(
     workingHoursByShopId.set(shopId, current);
   });
 
+  ((appointments || []) as ShopAppointmentRow[]).forEach((item) => {
+    const shopId = String(item.shop_id);
+    const current = appointmentsByShopId.get(shopId) || [];
+    current.push(item);
+    appointmentsByShopId.set(shopId, current);
+  });
+
   return activeShopIds
     .map((shopId) => {
       const shop = shopById.get(shopId);
@@ -518,6 +580,7 @@ export async function listMarketplaceShopsInBounds(
         galleryByShopId.get(shopId) || [],
         subscriptionsByShopId.get(shopId),
         workingHoursByShopId.get(shopId) || [],
+        appointmentsByShopId.get(shopId) || [],
       );
     })
     .filter((item): item is MarketplaceShop => item !== null);
@@ -545,7 +608,8 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
   }
 
   const shopIds = shops.map((item) => String(item.id));
-  const [{ data: locations }, { data: reviews }, { data: services }, { data: galleryImages }, { data: subscriptions }, { data: workingHours }] =
+  const todayStr = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Montevideo' }).format(new Date());
+  const [{ data: locations }, { data: reviews }, { data: services }, { data: galleryImages }, { data: subscriptions }, { data: workingHours }, { data: appointments }] =
     await Promise.all([
       supabase
         .from('shop_locations')
@@ -574,6 +638,13 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
         .from('working_hours')
         .select('shop_id, day_of_week, start_time, end_time')
         .in('shop_id', shopIds),
+      supabase
+        .from('appointments')
+        .select('shop_id, start_at, end_at')
+        .in('shop_id', shopIds)
+        .gte('start_at', `${todayStr}T00:00:00-03:00`)
+        .lt('start_at', `${todayStr}T23:59:59-03:00`)
+        .neq('status', 'cancelled'),
     ]);
 
   const locationsByShopId = new Map(
@@ -583,6 +654,7 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
   const servicesByShopId = new Map<string, ShopServiceRow[]>();
   const galleryByShopId = new Map<string, ShopGalleryRow[]>();
   const workingHoursByShopId = new Map<string, ShopWorkingHoursRow[]>();
+  const appointmentsByShopId = new Map<string, ShopAppointmentRow[]>();
   const subscriptionsByShopId = new Map<string, ShopSubscriptionRow>(
     ((subscriptions || []) as ShopSubscriptionRow[]).map((item) => [String(item.shop_id), item]),
   );
@@ -615,6 +687,13 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
     workingHoursByShopId.set(shopId, current);
   });
 
+  ((appointments || []) as ShopAppointmentRow[]).forEach((item) => {
+    const shopId = String(item.shop_id);
+    const current = appointmentsByShopId.get(shopId) || [];
+    current.push(item);
+    appointmentsByShopId.set(shopId, current);
+  });
+
   return (shops as ShopRow[]).map((shop) =>
     buildMarketplaceShop(
       shop,
@@ -624,6 +703,7 @@ export const listMarketplaceShops = cache(async (): Promise<MarketplaceShop[]> =
       galleryByShopId.get(shop.id) || [],
       subscriptionsByShopId.get(shop.id),
       workingHoursByShopId.get(shop.id) || [],
+      appointmentsByShopId.get(shop.id) || [],
     ),
   );
 });

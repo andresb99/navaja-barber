@@ -18,6 +18,8 @@ const shopWithNoServices: MarketplaceShop = {
   city: 'Salto',
   region: 'Salto',
   locationLabel: 'Centro Salto',
+  workingHours: [],
+  todayAvailability: 'closed',
 };
 
 const shops = [...mockMarketplaceShops, shopWithNoServices];
@@ -35,6 +37,8 @@ const shopWithHighPrice: MarketplaceShop = {
   city: 'Montevideo',
   region: 'Montevideo',
   locationLabel: 'Pocitos',
+  workingHours: [],
+  todayAvailability: 'closed',
 };
 const shopsWithPriceVariety = [...mockMarketplaceShops, shopWithNoServices, shopWithHighPrice];
 
@@ -132,7 +136,6 @@ describe('BookPageContent', () => {
       render(<BookPageContent shops={shops} />);
 
       expect(screen.queryByText(/disponibilidad/i)).not.toBeInTheDocument();
-      expect(screen.queryByText(/horario/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/otros filtros/i)).not.toBeInTheDocument();
     });
 
@@ -141,7 +144,6 @@ describe('BookPageContent', () => {
       openFilterPanel();
 
       expect(screen.getByText(/disponibilidad/i)).toBeInTheDocument();
-      expect(screen.getByText(/horario/i)).toBeInTheDocument();
       expect(screen.getByText(/otros filtros/i)).toBeInTheDocument();
       expect(screen.getByText(/precio desde/i)).toBeInTheDocument();
     });
@@ -155,13 +157,11 @@ describe('BookPageContent', () => {
       ).toBeInTheDocument();
     });
 
-    it('shows the TimeInput for time filtering', () => {
+    it('shows the Abierto ahora toggle pill', () => {
       render(<BookPageContent shops={shops} />);
       openFilterPanel();
 
-      expect(
-        screen.getByRole('group', { name: /filtrar por horario disponible/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /abierto ahora/i })).toBeInTheDocument();
     });
 
     it('shows the price range slider with two thumbs', () => {

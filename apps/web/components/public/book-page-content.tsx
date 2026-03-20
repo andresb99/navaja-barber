@@ -2,9 +2,8 @@
 
 import { useCallback, useDeferredValue, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { type CalendarDate, Time, today, getLocalTimeZone } from '@internationalized/date';
+import { type CalendarDate, today, getLocalTimeZone } from '@internationalized/date';
 import { DateRangePicker } from '@heroui/date-picker';
-import { TimeInput, type TimeInputValue } from '@heroui/date-input';
 import { Slider } from '@heroui/slider';
 import { Chip } from '@heroui/chip';
 import { Input } from '@heroui/input';
@@ -14,7 +13,6 @@ import {
   ArrowUpDown,
   BadgeCheck,
   CalendarDays,
-  Clock,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -54,14 +52,6 @@ function getPriceMax(shops: MarketplaceShop[]): number {
   if (!prices.length) return 500000;
   const max = Math.max(...prices);
   return Math.ceil(max / 10000) * 10000;
-}
-
-function formatTime(t: TimeInputValue): string {
-  const h = t.hour;
-  const m = String(t.minute).padStart(2, '0');
-  const period = h >= 12 ? 'PM' : 'AM';
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${h12}:${m} ${period}`;
 }
 
 // ── Calendar classNames (theme-aware) ─────────────────────────────────────────
@@ -114,7 +104,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
   const [sortKey, setSortKey] = useState<SortKey>('default');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, priceMax]);
   const [dateRange, setDateRange] = useState<DateRange | null>(null);
-  const [selectedTime, setSelectedTime] = useState<TimeInputValue | null>(null);
+  const [openNow, setOpenNow] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [withServices, setWithServices] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -126,7 +116,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
     setSortKey('default');
     setPriceRange([0, priceMax]);
     setDateRange(null);
-    setSelectedTime(null);
+    setOpenNow(false);
     setVerifiedOnly(false);
     setWithServices(false);
   }, [priceMax]);
@@ -137,14 +127,14 @@ export function BookPageContent({ shops }: BookPageContentProps) {
     sortKey !== 'default' ||
     isPriceFiltered ||
     dateRange !== null ||
-    selectedTime !== null ||
+    openNow ||
     verifiedOnly ||
     withServices;
 
   const filterCount = [
     isPriceFiltered,
     dateRange !== null,
-    selectedTime !== null,
+    openNow,
     verifiedOnly,
     withServices,
   ].filter(Boolean).length;
@@ -169,19 +159,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
 
       if (dateRange !== null && shop.activeServiceCount === 0) return false;
 
-      if (selectedTime !== null) {
-        const selectedMinutes = selectedTime.hour * 60 + selectedTime.minute;
-        const targetDayOfWeek = dateRange !== null ? dateRange.start.dayOfWeek : null;
-        const hasMatchingHours = shop.workingHours.some((wh) => {
-          if (targetDayOfWeek !== null && wh.dayOfWeek !== targetDayOfWeek) return false;
-          const [startH = 0, startM = 0] = wh.startTime.split(':').map(Number);
-          const [endH = 0, endM = 0] = wh.endTime.split(':').map(Number);
-          const startMinutes = startH * 60 + startM;
-          const endMinutes = endH * 60 + endM;
-          return selectedMinutes >= startMinutes && selectedMinutes < endMinutes;
-        });
-        if (!hasMatchingHours) return false;
-      }
+      if (openNow && shop.todayAvailability === 'closed') return false;
 
       if (verifiedOnly && !shop.isVerified) return false;
       if (withServices && shop.activeServiceCount === 0) return false;
@@ -220,7 +198,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
     }
 
     return result;
-  }, [shops, deferredQuery, sortKey, priceRange, isPriceFiltered, dateRange, selectedTime, verifiedOnly, withServices]);
+  }, [shops, deferredQuery, sortKey, priceRange, isPriceFiltered, dateRange, openNow, verifiedOnly, withServices]);
 
   const todayDate = today(getLocalTimeZone());
 
@@ -352,8 +330,8 @@ export function BookPageContent({ shops }: BookPageContentProps) {
           >
             <div className="soft-panel rounded-[1.4rem] p-5 md:p-6 space-y-5">
 
-              {/* Row 1: three filter sections */}
-              <div className="grid gap-4 md:grid-cols-3">
+              {/* Row 1: two filter sections */}
+              <div className="grid gap-4 md:grid-cols-2">
 
                 {/* Disponibilidad */}
                 <div className="space-y-2.5">
@@ -395,41 +373,6 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                   )}
                 </div>
 
-                {/* Horario */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
-                    <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-                      Horario
-                    </span>
-                  </div>
-                  <TimeInput
-                    value={selectedTime}
-                    onChange={(v) => setSelectedTime(v)}
-                    granularity="minute"
-                    placeholderValue={new Time(9, 0)}
-                    aria-label="Filtrar por horario disponible"
-                    hourCycle={12}
-                    classNames={{
-                      base: 'w-full',
-                      inputWrapper: panelInputWrapperCN,
-                      input: 'text-sm text-zinc-700 dark:text-zinc-300',
-                      segment:
-                        'text-sm text-zinc-700 data-[placeholder=true]:text-zinc-400 focus:bg-violet-500/15 rounded dark:text-zinc-300 dark:data-[placeholder=true]:text-zinc-600',
-                    }}
-                  />
-                  {selectedTime && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedTime(null)}
-                      className="flex items-center gap-1 text-[11px] text-zinc-400 transition-colors hover:text-zinc-600 dark:text-zinc-500 dark:hover:text-zinc-300"
-                    >
-                      <X className="h-3 w-3" />
-                      Quitar hora
-                    </button>
-                  )}
-                </div>
-
                 {/* Otros filtros */}
                 <div className="space-y-2.5">
                   <div className="flex items-center gap-1.5">
@@ -466,6 +409,21 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                       ].join(' ')}
                     >
                       Con agenda activa
+                    </button>
+
+                    {/* Abierto ahora toggle pill */}
+                    <button
+                      type="button"
+                      onClick={() => setOpenNow((v) => !v)}
+                      className={[
+                        'flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all',
+                        openNow
+                          ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/15 dark:text-emerald-300'
+                          : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-800 dark:border-white/10 dark:bg-transparent dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-zinc-200',
+                      ].join(' ')}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${openNow ? 'bg-emerald-500' : 'bg-zinc-400'}`} />
+                      Abierto ahora
                     </button>
                   </div>
                 </div>
@@ -568,18 +526,17 @@ export function BookPageContent({ shops }: BookPageContentProps) {
               </Chip>
             )}
 
-            {selectedTime !== null && (
+            {openNow && (
               <Chip
                 size="sm"
-                onClose={() => setSelectedTime(null)}
-                startContent={<Clock className="h-3 w-3 ml-1" />}
+                onClose={() => setOpenNow(false)}
                 classNames={{
-                  base: 'border border-teal-200 bg-teal-50 text-teal-700 dark:border-teal-500/30 dark:bg-teal-500/10 dark:text-teal-300',
+                  base: 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300',
                   content: 'text-xs font-medium px-1',
-                  closeButton: 'text-teal-400 hover:text-teal-700 dark:text-teal-400/60 dark:hover:text-teal-300',
+                  closeButton: 'text-emerald-400 hover:text-emerald-700 dark:text-emerald-400/60 dark:hover:text-emerald-300',
                 }}
               >
-                {formatTime(selectedTime)}
+                Abierto ahora
               </Chip>
             )}
 
