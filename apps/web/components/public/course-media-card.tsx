@@ -84,8 +84,8 @@ function CourseMediaCardComponent({
   );
 
   return (
-    <Card className="data-card h-full min-h-[22rem] overflow-hidden rounded-[1.8rem] border-0 shadow-none">
-      <CardBody className="flex h-full flex-col p-4 md:p-5">
+    <Card className="data-card h-full min-h-[17rem] overflow-hidden rounded-[1.8rem] border-0 shadow-none">
+      <CardBody className="flex h-full flex-col p-4">
         <div className="flex items-start justify-between gap-3">
           <span className="inline-flex items-center rounded-full border border-slate-900/10 bg-white/70 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-700 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-200">
             {topLabel}
@@ -100,7 +100,7 @@ function CourseMediaCardComponent({
           ) : null}
         </div>
 
-        <h2 className="mt-3 line-clamp-2 font-[family-name:var(--font-heading)] text-[1.7rem] font-semibold leading-tight text-ink dark:text-slate-100">
+        <h2 className="mt-3 line-clamp-2 font-[family-name:var(--font-heading)] text-xl font-semibold leading-tight text-ink dark:text-slate-100">
           {title}
         </h2>
         <p className="mt-2 line-clamp-2 text-sm text-slate/80 dark:text-slate-300">{description}</p>
