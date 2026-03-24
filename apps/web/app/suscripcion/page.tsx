@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Check } from 'lucide-react';
 import { Card, CardBody } from '@heroui/card';
 import { publicMarketingSubscriptionHero, resolveSubscriptionBillingMessage } from '@navaja/shared';
 import { SubscriptionBillingPanel } from '@/components/admin/subscription-billing-panel';
@@ -102,8 +103,12 @@ export default async function SubscriptionPage({ searchParams }: SubscriptionPag
       <div className="grid gap-3 md:grid-cols-3">
         {PUBLIC_MARKETPLACE_PLANS.map((planId) => {
           const plan = getSubscriptionPlanDescriptor(planId);
+          const isRecommended = Boolean(plan.badge);
           return (
-            <Card key={plan.id} className="data-card rounded-[1.6rem] border-0 shadow-none">
+            <Card
+              key={plan.id}
+              className={`data-card rounded-[1.6rem] border-0 shadow-none${isRecommended ? ' ring-2 ring-violet-400/60 dark:ring-violet-500/50' : ''}`}
+            >
               <CardBody className="space-y-3 p-4">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-lg font-semibold text-ink dark:text-slate-100">{plan.name}</p>
@@ -114,20 +119,25 @@ export default async function SubscriptionPage({ searchParams }: SubscriptionPag
                   ) : null}
                 </div>
                 <p className="text-sm text-slate/75 dark:text-slate-300">{plan.description}</p>
-                <div className="space-y-1 rounded-[1rem] border border-white/60 bg-white/60 p-3 dark:border-white/10 dark:bg-white/[0.04]">
-                  <p className="text-sm font-semibold text-ink dark:text-slate-100">
-                    Mensual: {formatUyuCents(plan.monthlyPriceCents)}
+                <div className="rounded-[1rem] border border-white/60 bg-white/60 p-3 dark:border-white/10 dark:bg-white/[0.04]">
+                  <p className="text-2xl font-bold leading-none text-ink dark:text-slate-100">
+                    {plan.monthlyPriceCents > 0 ? formatUyuCents(plan.monthlyPriceCents) : 'Gratis'}
                   </p>
-                  <p className="text-xs text-slate/70 dark:text-slate-400">
-                    Anual en cuotas:{' '}
-                    {plan.annualInstallmentCents > 0
-                      ? `12x ${formatUyuCents(plan.annualInstallmentCents)}`
-                      : 'No aplica'}
+                  <p className="mt-1 text-xs text-slate/60 dark:text-slate-400">
+                    {plan.monthlyPriceCents > 0 ? 'por mes' : 'para siempre'}
                   </p>
+                  {plan.annualInstallmentCents > 0 ? (
+                    <p className="mt-2 text-xs text-slate/70 dark:text-slate-400">
+                      Anual: 12x {formatUyuCents(plan.annualInstallmentCents)}
+                    </p>
+                  ) : null}
                 </div>
-                <ul className="space-y-1.5 text-sm text-slate/85 dark:text-slate-200">
+                <ul className="space-y-2 text-sm text-slate/85 dark:text-slate-200">
                   {plan.features.map((feature) => (
-                    <li key={`${plan.id}-${feature}`}>- {feature}</li>
+                    <li key={`${plan.id}-${feature}`} className="flex items-start gap-2">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-violet-500 dark:text-violet-400" />
+                      <span>{feature}</span>
+                    </li>
                   ))}
                 </ul>
               </CardBody>
