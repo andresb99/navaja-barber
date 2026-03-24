@@ -133,7 +133,8 @@ export const publicMarketingSoftwareHero = {
   description:
     'Beardly centraliza reservas, agenda operativa, cobros, marketplace, cursos y seguimiento del negocio para que una barberia no dependa de herramientas sueltas.',
   actions: [
-    { href: '/suscripcion', label: 'Ver planes' },
+    { href: '/onboarding/barbershop', label: 'Registrar barberia' },
+    { href: '/suscripcion', label: 'Ver planes', variant: 'secondary' },
     { href: '/shops', label: 'Ver marketplace', variant: 'secondary' },
   ] as const satisfies readonly PublicMarketingAction[],
   stats: [
