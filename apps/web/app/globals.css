@@ -555,6 +555,11 @@ html.dark .soft-panel {
   border-color: var(--login-input-border-hover) !important;
 }
 
+/* Remove inner highlighted area that HeroUI renders on initial load */
+.login-input-wrapper [data-slot="inner-wrapper"] {
+  background: transparent !important;
+}
+
 .login-input-label {
   color: var(--login-label-color) !important;
 }
@@ -562,6 +567,15 @@ html.dark .soft-panel {
 .login-input-field {
   color: var(--login-text-color) !important;
   font-size: 16px !important;
+}
+
+/* Fix browser autofill highlight overriding input background */
+.login-input-field:-webkit-autofill,
+.login-input-field:-webkit-autofill:hover,
+.login-input-field:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--login-input-bg) inset !important;
+  -webkit-text-fill-color: var(--login-text-color) !important;
+  transition: background-color 9999s ease-in-out 0s;
 }
 
 .login-social-btn {
