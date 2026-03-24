@@ -874,8 +874,10 @@ html.dark .list-check input[type='checkbox'] {
   border: 0;
   border-radius: 0;
   background:
-    linear-gradient(135deg, rgb(255 255 255 / 0.92), rgb(250 248 245 / 0.86)),
+    linear-gradient(135deg, rgb(255 255 255 / 0.82), rgb(250 248 245 / 0.76)),
     var(--brand-panel-aura-soft);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   box-shadow:
     0 1px 0 rgb(15 23 42 / 0.04),
     0 4px 16px -8px rgb(15 23 42 / 0.08);
