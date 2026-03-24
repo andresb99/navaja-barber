@@ -603,6 +603,28 @@ html.dark .soft-panel {
   border-color: #166fe5 !important;
 }
 
+.login-social-apple {
+  background: #000000 !important;
+  color: #ffffff !important;
+  border-color: #000000 !important;
+}
+
+.login-social-apple:hover {
+  background: #1a1a1a !important;
+  border-color: #1a1a1a !important;
+}
+
+.dark .login-social-apple {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-color: #ffffff !important;
+}
+
+.dark .login-social-apple:hover {
+  background: #e5e5e5 !important;
+  border-color: #e5e5e5 !important;
+}
+
 .login-cta-btn {
   background: var(--login-cta-bg) !important;
   color: var(--login-cta-color) !important;

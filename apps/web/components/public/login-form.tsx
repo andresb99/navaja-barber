@@ -23,8 +23,8 @@ import {
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser';
 
 type AuthMode = 'login' | 'register' | 'recover' | 'reset';
-type AuthAction = 'login' | 'register' | 'magic-link' | 'recover' | 'reset' | 'google' | 'facebook';
-type SocialProvider = 'google' | 'facebook';
+type AuthAction = 'login' | 'register' | 'magic-link' | 'recover' | 'reset' | 'google' | 'facebook' | 'apple';
+type SocialProvider = 'google' | 'facebook' | 'apple';
 type MarketplacePlanId = (typeof PUBLIC_MARKETPLACE_PLANS)[number];
 
 interface LoginFormProps {
@@ -391,7 +391,9 @@ export function LoginForm({
   }
 
   function getSocialProviderLabel(provider: SocialProvider) {
-    return provider === 'google' ? 'Google' : 'Facebook';
+    if (provider === 'google') return 'Google';
+    if (provider === 'apple') return 'Apple';
+    return 'Facebook';
   }
 
   async function signInWithSocialProvider(provider: SocialProvider) {
@@ -821,6 +823,26 @@ export function LoginForm({
                   {activeAction === 'facebook' ? 'Redirigiendo...' : 'Continuar con Facebook'}
                 </Button>
               </div>
+              <Button
+                type="button"
+                variant="flat"
+                radius="lg"
+                className="login-social-btn login-social-apple w-full gap-2.5 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98]"
+                isLoading={activeAction === 'apple'}
+                isDisabled={isBusy}
+                onClick={() => {
+                  void signInWithSocialProvider('apple');
+                }}
+                startContent={
+                  activeAction !== 'apple' ? (
+                    <svg className="h-[18px] w-[18px] shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.7 9.05 7.42c1.38.07 2.33.74 3.13.8 1.19-.24 2.33-.93 3.6-.84 1.54.12 2.7.72 3.44 1.84-3.16 1.89-2.41 5.98.48 7.13-.57 1.5-1.31 2.99-2.65 3.93zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                    </svg>
+                  ) : undefined
+                }
+              >
+                {activeAction === 'apple' ? 'Redirigiendo...' : 'Continuar con Apple'}
+              </Button>
 
               {/* Forgot password - login only */}
               {mode === 'login' ? (
