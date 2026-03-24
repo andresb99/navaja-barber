@@ -26,6 +26,8 @@ web-dev.log
 AGENTS.md
 CLAUDE.md
 .claude/
+.claude-flow/
+.swarm/
 .mcp.json
 **/.mcp.json
 
