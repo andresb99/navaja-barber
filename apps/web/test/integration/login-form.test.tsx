@@ -35,14 +35,15 @@ describe('LoginForm', () => {
 
     render(<LoginForm initialMode="login" />);
 
-    expect(screen.getByRole('heading', { name: 'Ingresar' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Bienvenido de vuelta' })).toBeInTheDocument();
 
     await user.click(screen.getByTestId('auth-mode-register'));
 
     expect(screen.getByRole('heading', { name: 'Crear cuenta' })).toBeInTheDocument();
     expect(screen.getByLabelText('Nombre y apellido')).toBeInTheDocument();
 
-    await user.click(screen.getByTestId('auth-mode-recover'));
+    await user.click(screen.getByTestId('auth-mode-login'));
+    await user.click(screen.getByRole('button', { name: 'Olvide mi contrasena' }));
 
     expect(screen.getByRole('heading', { name: 'Recuperar acceso' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Enviar enlace de recuperacion' })).toBeInTheDocument();

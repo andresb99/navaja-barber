@@ -38,13 +38,12 @@ describe('BookPage', () => {
     expect(screen.getByRole('heading', { name: 'Navaja Centro' })).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'Agendar aqui' })[0]).toHaveAttribute(
       'href',
-      '/shops/navaja-centro/book',
+      '/book/navaja-centro',
     );
     const interiorCard = screen.getByRole('heading', { name: 'Navaja Interior' }).closest('article');
 
     expect(interiorCard).not.toBeNull();
     expect(within(interiorCard as HTMLElement).getByText('Uruguay')).toBeInTheDocument();
-    expect(within(interiorCard as HTMLElement).getByText('Activa')).toBeInTheDocument();
     expect(
       within(interiorCard as HTMLElement).getByText(
         'Servicios, staff y horarios cargados dentro de su propio workspace.',

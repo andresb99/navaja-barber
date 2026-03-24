@@ -54,7 +54,7 @@ describe('JobsPage', () => {
     ).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'Enviar CV directo' })[0]).toHaveAttribute(
       'href',
-      '/shops/navaja-centro/jobs',
+      '/jobs/navaja-centro',
     );
     expect(screen.getAllByRole('link', { name: 'Ver barberia' })[1]).toHaveAttribute(
       'href',

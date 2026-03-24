@@ -70,7 +70,7 @@ describe('BookingSuccessPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Agendar otra' })).toHaveAttribute(
       'href',
-      '/shops/navaja-centro/book',
+      '/book/navaja-centro',
     );
     expect(screen.getByRole('button', { name: 'Volver a la barberia' })).toHaveAttribute(
       'href',

@@ -113,7 +113,7 @@ describe('CoursesPage', () => {
     expect(screen.getByText(/\$\s?50\b/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Ver curso' })).toHaveAttribute(
       'href',
-      '/shops/navaja-centro/courses/course-1',
+      '/courses/course-1',
     );
     expect(screen.getByRole('link', { name: 'Ver academia' })).toHaveAttribute(
       'href',

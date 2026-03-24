@@ -15,7 +15,7 @@ describe('ModelosLandingPage', () => {
     render(await ModelosLandingPage());
 
     expect(screen.getByText(/Todavia no hay convocatorias abiertas/i)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Crear mi perfil de modelo' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Crear mi perfil' })).toHaveAttribute(
       'href',
       '/modelos/registro',
     );
