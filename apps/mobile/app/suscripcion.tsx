@@ -15,6 +15,7 @@ import {
   type SubscriptionStatus,
   type SubscriptionTier,
 } from '@navaja/shared';
+import { Feather } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 import {
   ActionButton,
@@ -250,8 +251,20 @@ export default function SuscripcionScreen() {
         <View style={styles.list}>
           {PUBLIC_MARKETPLACE_PLANS.map((planId) => {
             const plan = getSubscriptionPlanDescriptor(planId);
+            const isRecommended = Boolean(plan.badge);
             return (
-              <SurfaceCard key={plan.id} style={styles.planCard}>
+              <SurfaceCard
+                key={plan.id}
+                style={[
+                  styles.planCard,
+                  isRecommended
+                    ? {
+                        borderColor: colors.mode === 'dark' ? 'rgba(139,92,246,0.5)' : 'rgba(139,92,246,0.6)',
+                        borderWidth: 2,
+                      }
+                    : null,
+                ]}
+              >
                 <View style={styles.planHeader}>
                   <Text style={[styles.planName, { color: colors.text }]}>{plan.name}</Text>
                   {plan.badge ? <Chip label={plan.badge} tone="success" /> : null}
@@ -259,20 +272,25 @@ export default function SuscripcionScreen() {
                 <Text style={[styles.planDescription, { color: colors.textMuted }]}>
                   {plan.description}
                 </Text>
-                <Text style={[styles.planPrice, { color: colors.text }]}>
-                  Mensual: {formatUyuCents(plan.monthlyPriceCents)}
-                </Text>
-                <Text style={[styles.planMeta, { color: colors.textMuted }]}>
-                  Anual en cuotas:{' '}
-                  {plan.annualInstallmentCents > 0
-                    ? `12x ${formatUyuCents(plan.annualInstallmentCents)}`
-                    : 'No aplica'}
-                </Text>
+                <View style={[styles.priceBlock, { borderColor: colors.border, backgroundColor: colors.panelMuted }]}>
+                  <Text style={[styles.planPrice, { color: colors.text }]}>
+                    {plan.monthlyPriceCents > 0 ? formatUyuCents(plan.monthlyPriceCents) : 'Gratis'}
+                  </Text>
+                  <Text style={[styles.planMeta, { color: colors.textMuted }]}>
+                    {plan.monthlyPriceCents > 0 ? 'por mes' : 'para siempre'}
+                  </Text>
+                  {plan.annualInstallmentCents > 0 ? (
+                    <Text style={[styles.planMeta, { color: colors.textMuted }]}>
+                      Anual: 12x {formatUyuCents(plan.annualInstallmentCents)}
+                    </Text>
+                  ) : null}
+                </View>
                 <View style={styles.featureList}>
                   {plan.features.map((feature) => (
-                    <Text key={`${plan.id}-${feature}`} style={[styles.featureItem, { color: colors.textMuted }]}>
-                      - {feature}
-                    </Text>
+                    <View key={`${plan.id}-${feature}`} style={styles.featureItem}>
+                      <Feather name="check" size={13} color={colors.mode === 'dark' ? '#a78bfa' : '#7c3aed'} style={styles.featureIcon} />
+                      <Text style={[styles.featureText, { color: colors.textMuted }]}>{feature}</Text>
+                    </View>
                   ))}
                 </View>
               </SurfaceCard>
@@ -429,17 +447,33 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 18,
   },
+  priceBlock: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 12,
+    gap: 2,
+  },
   planPrice: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
+    lineHeight: 26,
   },
   planMeta: {
     fontSize: 12,
   },
   featureList: {
-    gap: 4,
+    gap: 6,
   },
   featureItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  featureIcon: {
+    marginTop: 2,
+  },
+  featureText: {
+    flex: 1,
     fontSize: 12,
     lineHeight: 17,
   },

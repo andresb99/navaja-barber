@@ -6,7 +6,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 const DEFAULT_NEXT_PATH = '/(tabs)/cuenta';
 const PASSWORD_RESET_PATH = '/(auth)/login?mode=reset';
-type SocialProvider = 'google' | 'facebook';
+type SocialProvider = 'google' | 'facebook' | 'apple';
 
 function normalizeInternalPath(value: string | null | undefined, fallback = DEFAULT_NEXT_PATH) {
   const normalized = value?.trim();
@@ -140,8 +140,14 @@ export async function signInWithFacebookOnMobile(nextPath = DEFAULT_NEXT_PATH) {
   return signInWithSocialProviderOnMobile('facebook', nextPath);
 }
 
+export async function signInWithAppleOnMobile(nextPath = DEFAULT_NEXT_PATH) {
+  return signInWithSocialProviderOnMobile('apple', nextPath);
+}
+
 function getSocialProviderLabel(provider: SocialProvider) {
-  return provider === 'google' ? 'Google' : 'Facebook';
+  if (provider === 'google') return 'Google';
+  if (provider === 'apple') return 'Apple';
+  return 'Facebook';
 }
 
 async function signInWithSocialProviderOnMobile(
@@ -162,9 +168,11 @@ async function signInWithSocialProviderOnMobile(
               prompt: 'select_account',
             },
           }
-        : {
-            scopes: 'email,public_profile',
-          }),
+        : provider === 'facebook'
+          ? {
+              scopes: 'email,public_profile',
+            }
+          : {}),
     },
   });
 

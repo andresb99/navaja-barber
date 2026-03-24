@@ -11,6 +11,7 @@ import {
   Screen,
 } from '../../components/ui/primitives';
 import {
+  signInWithAppleOnMobile,
   signInWithFacebookOnMobile,
   getPasswordRecoveryRedirectUrl,
   signInWithGoogleOnMobile,
@@ -250,13 +251,17 @@ export default function LoginScreen() {
     }
   }
 
-  async function continueWithSocial(provider: 'google' | 'facebook') {
+  async function continueWithSocial(provider: 'google' | 'facebook' | 'apple') {
     beginRequest();
-    const providerLabel = provider === 'google' ? 'Google' : 'Facebook';
+    const providerLabel = provider === 'google' ? 'Google' : provider === 'apple' ? 'Apple' : 'Facebook';
 
     try {
       const result =
-        provider === 'google' ? await signInWithGoogleOnMobile() : await signInWithFacebookOnMobile();
+        provider === 'google'
+          ? await signInWithGoogleOnMobile()
+          : provider === 'apple'
+            ? await signInWithAppleOnMobile()
+            : await signInWithFacebookOnMobile();
 
       if (result.error) {
         endRequest();
@@ -391,6 +396,17 @@ export default function LoginScreen() {
             variant="secondary"
             onPress={() => {
               void continueWithSocial('facebook');
+            }}
+            disabled={loading}
+            style={styles.socialButton}
+          />
+        ) : null}
+        {mode === 'login' || mode === 'register' ? (
+          <ActionButton
+            label="Continuar con Apple"
+            variant="secondary"
+            onPress={() => {
+              void continueWithSocial('apple');
             }}
             disabled={loading}
             style={styles.socialButton}
