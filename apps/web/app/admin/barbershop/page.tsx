@@ -6,7 +6,7 @@ import { AdminBarbershopSettingsForm } from '@/components/admin/barbershop-setti
 import { CustomDomainSettingsForm } from '@/components/admin/custom-domain-settings-form';
 import { MercadoPagoSettingsPanel } from '@/components/admin/mercadopago-settings-panel';
 import { requireAdmin } from '@/lib/auth';
-import { buildShopHref } from '@/lib/shop-links';
+import { buildShopHref, buildTenantRootHref } from '@/lib/shop-links';
 import { getShopMercadoPagoAccountSummary } from '@/lib/shop-payment-accounts.server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { type SubscriptionTier } from '@/lib/subscription-plans';
@@ -489,6 +489,56 @@ export default async function AdminBarbershopSettingsPage({
               </div>
             </div>
           </div>
+
+          <Card className="admin-premium-card" shadow="none">
+            <CardBody className="space-y-5 p-5 md:p-6">
+              <div>
+                <p className="hero-eyebrow">Subdominio</p>
+                <h3 className="mt-2 font-[family-name:var(--font-heading)] text-xl font-semibold text-ink dark:text-slate-100">
+                  Tu pagina en Beardly
+                </h3>
+                <p className="mt-2 text-sm text-slate/80 dark:text-slate-300">
+                  {currentPlan === 'pro' || currentPlan === 'business' || currentPlan === 'app_admin'
+                    ? 'Tu barberia tiene un subdominio propio dentro de la plataforma.'
+                    : 'Con el plan Pro accedes a un subdominio propio dentro de Beardly.'}
+                </p>
+              </div>
+              {currentPlan === 'pro' || currentPlan === 'business' || currentPlan === 'app_admin' ? (
+                <div className="space-y-3">
+                  <div className="admin-premium-subcard rounded-[1.25rem] px-4 py-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate/60 dark:text-slate-400">
+                      Tu subdominio
+                    </p>
+                    <p className="mt-1 break-all text-sm font-semibold text-ink dark:text-slate-100">
+                      {buildTenantRootHref(shopData?.slug || ctx.shopSlug)}
+                    </p>
+                  </div>
+                  <Button
+                    as="a"
+                    href={buildTenantRootHref(shopData?.slug || ctx.shopSlug)}
+                    target="_blank"
+                    rel="noreferrer"
+                    variant="flat"
+                    size="sm"
+                    className="font-medium"
+                    startContent={<Globe className="h-4 w-4" />}
+                  >
+                    Abrir subdominio
+                  </Button>
+                </div>
+              ) : (
+                <div className="admin-premium-subcard rounded-[1.35rem] px-4 py-4" data-tone="warning">
+                  <p className="text-sm font-semibold text-ink dark:text-slate-100">
+                    Disponible en el plan Pro
+                  </p>
+                  <p className="mt-1 text-sm text-slate/80 dark:text-slate-300">
+                    Actualiza tu suscripcion al plan Pro para tener un subdominio propio como{' '}
+                    <span className="font-mono">tulocal.beardly.com</span>.
+                  </p>
+                </div>
+              )}
+            </CardBody>
+          </Card>
 
           <Card className="admin-premium-card" shadow="none">
             <CardBody className="space-y-5 p-5 md:p-6">

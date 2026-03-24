@@ -196,12 +196,33 @@ export function canRouteTenantOnCustomDomain(record: ResolvedTenantLookupRecord 
   );
 }
 
+export function canUsePlatformSubdomainForPlan(plan: SubscriptionTier | string | null | undefined) {
+  const normalized = String(plan || '').trim().toLowerCase();
+  return normalized === 'pro' || normalized === 'business' || normalized === 'app_admin';
+}
+
+// When ENABLE_SUBDOMAIN_PLAN_GATE=true, only Pro/Business shops get a platform subdomain.
+// When unset or false (default), any active shop gets subdomain routing.
 export function canRouteTenantOnPlatformHost(record: ResolvedTenantLookupRecord | null | undefined) {
   if (!record) {
     return false;
   }
 
-  return String(record.shopStatus || '').trim().toLowerCase() === 'active';
+  const isActive = String(record.shopStatus || '').trim().toLowerCase() === 'active';
+  if (!isActive) {
+    return false;
+  }
+
+  const planGateEnabled =
+    String(process.env.ENABLE_SUBDOMAIN_PLAN_GATE || '').trim().toLowerCase() === 'true';
+  if (!planGateEnabled) {
+    return true;
+  }
+
+  return (
+    canUsePlatformSubdomainForPlan(record.plan) &&
+    isOperationalSubscriptionStatus(record.subscriptionStatus)
+  );
 }
 
 export function getReservedCustomDomainReason(
