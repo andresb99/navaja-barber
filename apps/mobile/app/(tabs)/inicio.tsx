@@ -1655,6 +1655,17 @@ export default function InicioScreen() {
                   style={styles.mapPreviewActionButton}
                 />
                 <ActionButton
+                  label="Ver perfil"
+                  variant="secondary"
+                  onPress={() => {
+                    router.push(`/shops/${mapPreviewShop.slug}`);
+                  }}
+                  style={styles.mapPreviewActionButton}
+                />
+              </View>
+
+              <View style={styles.mapPreviewActions}>
+                <ActionButton
                   label="Cursos"
                   variant="secondary"
                   onPress={() => {
@@ -1662,9 +1673,6 @@ export default function InicioScreen() {
                   }}
                   style={styles.mapPreviewActionButton}
                 />
-              </View>
-
-              <View style={styles.mapPreviewActions}>
                 <ActionButton
                   label="Abrir mapa"
                   variant="secondary"
@@ -1673,6 +1681,9 @@ export default function InicioScreen() {
                   }}
                   style={styles.mapPreviewActionButton}
                 />
+              </View>
+
+              <View style={styles.mapPreviewActions}>
                 <ActionButton
                   label="Como llegar"
                   variant="secondary"
@@ -1906,10 +1917,10 @@ export default function InicioScreen() {
                             style={styles.shopCardActionButton}
                           />
                           <ActionButton
-                            label="Abrir mapa"
+                            label="Ver perfil"
                             variant="secondary"
                             onPress={() => {
-                              void openShopInGoogleMaps(shop);
+                              router.push(`/shops/${shop.slug}`);
                             }}
                             style={styles.shopCardActionButton}
                           />
