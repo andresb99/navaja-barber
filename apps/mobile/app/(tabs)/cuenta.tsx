@@ -841,8 +841,8 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     borderWidth: 1,
-    borderRadius: 18,
-    padding: 12,
+    borderRadius: 16,
+    padding: 14,
     gap: 3,
   },
   infoTitle: {

@@ -527,9 +527,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   optionCard: {
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 13,
+    padding: 14,
     gap: 4,
   },
   optionTitle: {

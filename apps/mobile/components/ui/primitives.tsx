@@ -865,7 +865,7 @@ const baseStyles = StyleSheet.create({
   screenHeaderShell: {
     position: 'relative',
     overflow: 'hidden',
-    borderRadius: 28,
+    borderRadius: 24,
     borderWidth: 1,
     padding: 18,
     shadowOpacity: 0.11,
