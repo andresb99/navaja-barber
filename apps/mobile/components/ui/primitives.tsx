@@ -666,9 +666,7 @@ export function ActionButton({
     ? colors.text
     : isDanger
       ? colors.inverseForeground
-      : mode === 'dark'
-        ? colors.inverseSurface
-        : colors.inverseForeground;
+      : '#ffffff';
   const spinnerColor = isSecondary ? colors.text : textColor;
   const heroVariant = isDanger ? 'danger' : isSecondary ? 'secondary' : 'primary';
 
@@ -700,7 +698,13 @@ export function ActionButton({
         />
       ) : (
         <LinearGradient
-          colors={isSecondary ? getSecondaryGradient(colors) : getPrimaryGradient(colors)}
+          colors={
+            isSecondary
+              ? getSecondaryGradient(colors)
+              : colors.mode === 'dark'
+                ? (['#8b5cf6', '#6366f1'] as const)
+                : getPrimaryGradient(colors)
+          }
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFillObject}
@@ -887,19 +891,20 @@ const baseStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     fontSize: 10,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 1.1,
     textTransform: 'uppercase',
     overflow: 'hidden',
   },
   screenTitle: {
     fontSize: 28,
-    fontWeight: '800',
+    fontFamily: 'Sora_800ExtraBold',
     letterSpacing: -0.5,
   },
   screenSubtitle: {
     fontSize: 14,
     lineHeight: 20,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   card: {
     position: 'relative',
@@ -964,19 +969,20 @@ const baseStyles = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 6,
     fontSize: 10,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 1.1,
     textTransform: 'uppercase',
     overflow: 'hidden',
   },
   heroTitle: {
     fontSize: 25,
-    fontWeight: '800',
+    fontFamily: 'Sora_800ExtraBold',
     letterSpacing: -0.45,
   },
   heroDescription: {
     fontSize: 13,
     lineHeight: 20,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   statTile: {
     position: 'relative',
@@ -996,13 +1002,13 @@ const baseStyles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   statValue: {
     fontSize: 18,
-    fontWeight: '800',
+    fontFamily: 'Sora_800ExtraBold',
   },
   pillToggle: {
     position: 'relative',
@@ -1018,10 +1024,11 @@ const baseStyles = StyleSheet.create({
   },
   pillToggleText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   pillToggleTextCompact: {
     fontSize: 10,
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 0.7,
     textTransform: 'uppercase',
   },
@@ -1041,7 +1048,7 @@ const baseStyles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     marginBottom: 4,
   },
   field: {
@@ -1073,7 +1080,7 @@ const baseStyles = StyleSheet.create({
     opacity: 0.55,
   },
   buttonText: {
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     fontSize: 13,
     letterSpacing: 0.2,
   },
@@ -1086,7 +1093,7 @@ const baseStyles = StyleSheet.create({
   },
   chipText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   selectionChip: {
     borderRadius: 999,
@@ -1098,14 +1105,16 @@ const baseStyles = StyleSheet.create({
   },
   selectionChipText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   errorText: {
     fontSize: 13,
     lineHeight: 18,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   mutedText: {
     fontSize: 13,
     lineHeight: 18,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
 });
