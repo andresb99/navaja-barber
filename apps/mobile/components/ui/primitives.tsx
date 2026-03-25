@@ -71,14 +71,14 @@ function getSheenGradient(
 
 function getCoolFade(colors: ReturnType<typeof useNavajaTheme>['colors']) {
   return colors.mode === 'dark'
-    ? (['rgba(139,92,246,0.08)', 'rgba(139,92,246,0.02)', 'rgba(139,92,246,0)'] as const)
-    : (['rgba(139,92,246,0.09)', 'rgba(139,92,246,0.03)', 'rgba(139,92,246,0)'] as const);
+    ? (['rgba(139,92,246,0.12)', 'rgba(139,92,246,0.04)', 'rgba(139,92,246,0)'] as const)
+    : (['rgba(139,92,246,0.10)', 'rgba(139,92,246,0.03)', 'rgba(139,92,246,0)'] as const);
 }
 
 function getWarmFade(colors: ReturnType<typeof useNavajaTheme>['colors']) {
   return colors.mode === 'dark'
-    ? (['rgba(234,176,72,0.1)', 'rgba(234,176,72,0.02)', 'rgba(234,176,72,0)'] as const)
-    : (['rgba(234,176,72,0.1)', 'rgba(234,176,72,0.03)', 'rgba(234,176,72,0)'] as const);
+    ? (['rgba(63,63,70,0.22)', 'rgba(63,63,70,0.07)', 'rgba(63,63,70,0)'] as const)
+    : (['rgba(217,70,239,0.07)', 'rgba(217,70,239,0.02)', 'rgba(217,70,239,0)'] as const);
 }
 
 export function Screen({

@@ -31,8 +31,8 @@ export const navajaTheme = {
 
 export const navajaUiModes = {
   light: {
-    background: '#f6f8ff',
-    backgroundBase: '#f6f2ff',
+    background: '#f7f5f3',
+    backgroundBase: '#f3eeff',
     backdropPrimary: 'rgba(139, 92, 246, 0.12)',
     backdropSecondary: 'rgba(217, 70, 239, 0.08)',
     backdropWarm: 'rgba(234, 176, 72, 0.08)',
@@ -77,8 +77,8 @@ export const navajaUiModes = {
     shadowSoft: 'rgba(15, 23, 42, 0.12)',
   },
   dark: {
-    background: '#060012',
-    backgroundBase: '#060012',
+    background: '#09090b',
+    backgroundBase: '#0c0916',
     backdropPrimary: 'rgba(139, 92, 246, 0.12)',
     backdropSecondary: 'rgba(217, 70, 239, 0.08)',
     backdropWarm: 'rgba(234, 176, 72, 0.08)',

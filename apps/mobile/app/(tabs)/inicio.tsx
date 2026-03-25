@@ -790,7 +790,7 @@ export default function InicioScreen() {
   async function fetchViewportShopsForRegion(region: Region) {
     const { bounds, cacheKey, limit } = getViewportContext(region);
     const cached = viewportCacheRef.current.get(cacheKey);
-    if (cached) {
+    if (cached && cached.length > 0) {
       return {
         items: cached,
         fromCache: true,
@@ -818,7 +818,9 @@ export default function InicioScreen() {
       }
     }
 
-    viewportCacheRef.current.set(cacheKey, items);
+    if (items.length > 0) {
+      viewportCacheRef.current.set(cacheKey, items);
+    }
     return {
       items,
       fromCache: false,
