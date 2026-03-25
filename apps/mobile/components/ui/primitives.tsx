@@ -852,7 +852,7 @@ const baseStyles = StyleSheet.create({
     overflow: 'hidden',
     paddingHorizontal: 16,
     paddingTop: 20,
-    paddingBottom: 126,
+    paddingBottom: 48,
     gap: 18,
   },
   screenHeaderShell: {

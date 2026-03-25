@@ -88,9 +88,7 @@ const MOBILE_SHEET_STAGE_TRANSLATE: Record<MobileSheetStage, number> = {
   collapsed: 88,
 };
 const MOBILE_STAGE_VERTICAL_PADDING = 6;
-const MOBILE_TAB_BAR_HEIGHT_PX = 76;
-const MOBILE_TAB_BAR_BOTTOM_OFFSET_PX = 12;
-const MOBILE_TAB_BAR_CLEARANCE_PX = MOBILE_TAB_BAR_HEIGHT_PX + MOBILE_TAB_BAR_BOTTOM_OFFSET_PX;
+const MOBILE_TAB_BAR_CLEARANCE_PX = 0;
 const MOBILE_SHEET_BOTTOM_GAP_PX = 8;
 const MOBILE_PREVIEW_BOTTOM_GAP_PX = 16;
 const MAP_LOADING_OVERLAY_OPACITY = 0.5;
@@ -1274,49 +1272,51 @@ export default function InicioScreen() {
     }, VIEWPORT_DEBOUNCE_MS);
   }
 
-  const sheetPanResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 3,
-        onPanResponderGrant: () => {
-          setMobileSheetDragOffset(0);
-        },
-        onPanResponderMove: (_, gestureState) => {
-          if (mobileSheetHeight <= 0) {
-            return;
-          }
+  const sheetDragStateRef = useRef({
+    mobileSheetHeight,
+    sheetMinOffset,
+    sheetMaxOffset,
+    sheetStageTranslatePercent,
+  });
+  useEffect(() => {
+    sheetDragStateRef.current = {
+      mobileSheetHeight,
+      sheetMinOffset,
+      sheetMaxOffset,
+      sheetStageTranslatePercent,
+    };
+  }, [mobileSheetHeight, sheetMinOffset, sheetMaxOffset, sheetStageTranslatePercent]);
 
-          const clampedOffset = clamp(gestureState.dy, sheetMinOffset, sheetMaxOffset);
-          setMobileSheetDragOffset(clampedOffset);
-        },
-        onPanResponderRelease: (_, gestureState) => {
-          if (mobileSheetHeight <= 0) {
-            setMobileSheetDragOffset(0);
-            return;
-          }
-
-          const clampedOffset = clamp(gestureState.dy, sheetMinOffset, sheetMaxOffset);
-          const translatePercent = sheetStageTranslatePercent + (clampedOffset / mobileSheetHeight) * 100;
-
-          setMobileSheetDragOffset(0);
-          setMobileSheetStage(getClosestMobileSheetStage(translatePercent, mobileSheetHeight));
-        },
-        onPanResponderTerminate: (_, gestureState) => {
-          if (mobileSheetHeight <= 0) {
-            setMobileSheetDragOffset(0);
-            return;
-          }
-
-          const clampedOffset = clamp(gestureState.dy, sheetMinOffset, sheetMaxOffset);
-          const translatePercent = sheetStageTranslatePercent + (clampedOffset / mobileSheetHeight) * 100;
-
-          setMobileSheetDragOffset(0);
-          setMobileSheetStage(getClosestMobileSheetStage(translatePercent, mobileSheetHeight));
-        },
-      }),
-    [mobileSheetHeight, sheetMaxOffset, sheetMinOffset, sheetStageTranslatePercent],
-  );
+  const sheetPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => Math.abs(gestureState.dy) > 3,
+      onPanResponderGrant: () => {
+        setMobileSheetDragOffset(0);
+      },
+      onPanResponderMove: (_, gestureState) => {
+        const { mobileSheetHeight: h, sheetMinOffset: minO, sheetMaxOffset: maxO } = sheetDragStateRef.current;
+        if (h <= 0) return;
+        setMobileSheetDragOffset(clamp(gestureState.dy, minO, maxO));
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        const { mobileSheetHeight: h, sheetMinOffset: minO, sheetMaxOffset: maxO, sheetStageTranslatePercent: pct } = sheetDragStateRef.current;
+        if (h <= 0) { setMobileSheetDragOffset(0); return; }
+        const clampedOffset = clamp(gestureState.dy, minO, maxO);
+        const translatePercent = pct + (clampedOffset / h) * 100;
+        setMobileSheetDragOffset(0);
+        setMobileSheetStage(getClosestMobileSheetStage(translatePercent, h));
+      },
+      onPanResponderTerminate: (_, gestureState) => {
+        const { mobileSheetHeight: h, sheetMinOffset: minO, sheetMaxOffset: maxO, sheetStageTranslatePercent: pct } = sheetDragStateRef.current;
+        if (h <= 0) { setMobileSheetDragOffset(0); return; }
+        const clampedOffset = clamp(gestureState.dy, minO, maxO);
+        const translatePercent = pct + (clampedOffset / h) * 100;
+        setMobileSheetDragOffset(0);
+        setMobileSheetStage(getClosestMobileSheetStage(translatePercent, h));
+      },
+    })
+  ).current;
 
   const topOverlayOffset = insets.top + 8;
   const mapChipTop = topOverlayOffset + 138;
