@@ -1,13 +1,18 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import {
+  ActionButton,
   Card,
+  Chip,
   HeroPanel,
   MutedText,
   PillToggle,
   Screen,
+  SkeletonCard,
   StatTile,
+  SurfaceCard,
+  UserAvatar,
 } from '../../components/ui/primitives';
 import { formatCurrency } from '../../lib/format';
 import {
@@ -18,6 +23,15 @@ import {
   type MarketplaceShop,
 } from '../../lib/marketplace';
 import { useNavajaTheme } from '../../lib/theme';
+
+function getShopInitials(name: string) {
+  return name
+    .split(' ')
+    .slice(0, 2)
+    .map((word) => word[0] || '')
+    .join('')
+    .toUpperCase();
+}
 
 export default function CursosScreen() {
   const { colors } = useNavajaTheme();
@@ -137,9 +151,11 @@ export default function CursosScreen() {
       ) : null}
 
       {loading ? (
-        <Card>
-          <MutedText>Cargando cursos...</MutedText>
-        </Card>
+        <>
+          <SkeletonCard lines={4} />
+          <SkeletonCard lines={3} />
+          <SkeletonCard lines={4} />
+        </>
       ) : null}
 
       {!loading && !visibleCourses.length ? (
@@ -150,37 +166,99 @@ export default function CursosScreen() {
 
       <View style={styles.list}>
         {visibleCourses.map((course) => (
-          <Pressable
+          <CourseCard
             key={course.id}
+            course={course}
             onPress={() =>
               router.push({
                 pathname: '/courses/[id]',
                 params: { id: course.id },
               })
             }
-          >
-            <Card elevated>
-              <Text style={[styles.shopName, { color: colors.textMuted }]}>{course.shopName}</Text>
-              <Text style={[styles.courseTitle, { color: colors.text }]}>{course.title}</Text>
-              <Text style={[styles.description, { color: colors.textSoft }]} numberOfLines={3}>
-                {course.description}
-              </Text>
-              <View style={styles.metaGrid}>
-                <Text style={[styles.metaItem, { color: colors.text }]}>
-                  Nivel: {course.level}
-                </Text>
-                <Text style={[styles.metaItem, { color: colors.text }]}>
-                  Duracion: {course.durationHours} h
-                </Text>
-                <Text style={[styles.metaItem, { color: colors.text }]}>
-                  Inversion: {formatCurrency(course.priceCents)}
-                </Text>
-              </View>
-            </Card>
-          </Pressable>
+            onShopPress={() => setActiveFilter(course.shopId)}
+          />
         ))}
       </View>
     </Screen>
+  );
+}
+
+function CourseCard({
+  course,
+  onPress,
+  onShopPress,
+}: {
+  course: MarketplaceCourse;
+  onPress: () => void;
+  onShopPress: () => void;
+}) {
+  const { colors } = useNavajaTheme();
+  const initials = getShopInitials(course.shopName);
+
+  return (
+    <SurfaceCard style={styles.courseCard}>
+      <View style={styles.courseTopRow}>
+        {course.level ? (
+          <Chip label={course.level} tone="neutral" style={styles.levelChip} />
+        ) : null}
+        <View style={styles.courseTopRight}>
+          <UserAvatar initials={initials} size="sm" />
+        </View>
+      </View>
+
+      <Text style={[styles.courseShop, { color: colors.textMuted }]}>{course.shopName}</Text>
+      <Text style={[styles.courseTitle, { color: colors.text }]}>{course.title}</Text>
+
+      {course.description ? (
+        <Text style={[styles.courseDescription, { color: colors.textSoft }]} numberOfLines={2}>
+          {course.description}
+        </Text>
+      ) : null}
+
+      <View style={styles.courseMeta}>
+        <CourseMetaRow label="Nivel" value={course.level} colors={colors} />
+        <CourseMetaRow label="Duracion" value={`${course.durationHours} horas`} colors={colors} />
+        <CourseMetaRow label="Barberia" value={course.shopName} colors={colors} />
+      </View>
+
+      <View style={styles.coursePriceRow}>
+        <Text style={[styles.coursePriceLabel, { color: colors.textMuted }]}>Inversion</Text>
+        <Text style={[styles.coursePrice, { color: colors.text }]}>
+          {formatCurrency(course.priceCents)}
+        </Text>
+      </View>
+
+      <View style={styles.courseActions}>
+        <ActionButton
+          label="Ver curso"
+          onPress={onPress}
+          style={styles.courseActionPrimary}
+        />
+        <ActionButton
+          label="Ver academia"
+          variant="secondary"
+          onPress={onShopPress}
+          style={styles.courseActionSecondary}
+        />
+      </View>
+    </SurfaceCard>
+  );
+}
+
+function CourseMetaRow({
+  label,
+  value,
+  colors,
+}: {
+  label: string;
+  value: string;
+  colors: ReturnType<typeof useNavajaTheme>['colors'];
+}) {
+  return (
+    <View style={styles.metaRow}>
+      <Text style={[styles.metaLabel, { color: colors.textMuted }]}>{label}</Text>
+      <Text style={[styles.metaValue, { color: colors.text }]}>{value}</Text>
+    </View>
   );
 }
 
@@ -202,28 +280,82 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   list: {
+    gap: 16,
+  },
+  courseCard: {
+    borderRadius: 28,
+    padding: 20,
     gap: 12,
   },
-  shopName: {
+  courseTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  courseTopRight: {
+    marginLeft: 'auto',
+  },
+  levelChip: {
+    alignSelf: 'flex-start',
+  },
+  courseShop: {
     fontSize: 11,
     fontFamily: 'PlusJakartaSans_700Bold',
-    letterSpacing: 0.8,
+    letterSpacing: 0.9,
     textTransform: 'uppercase',
+    marginTop: -4,
   },
   courseTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: 'Sora_800ExtraBold',
+    letterSpacing: -0.4,
+    lineHeight: 28,
   },
-  description: {
+  courseDescription: {
     fontSize: 13,
-    lineHeight: 20,
+    lineHeight: 19,
     fontFamily: 'PlusJakartaSans_400Regular',
   },
-  metaGrid: {
+  courseMeta: {
     gap: 4,
+    paddingVertical: 4,
   },
-  metaItem: {
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  metaLabel: {
     fontSize: 12,
     fontFamily: 'PlusJakartaSans_600SemiBold',
+  },
+  metaValue: {
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+  },
+  coursePriceRow: {
+    gap: 2,
+  },
+  coursePriceLabel: {
+    fontSize: 11,
+    fontFamily: 'PlusJakartaSans_700Bold',
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+  },
+  coursePrice: {
+    fontSize: 32,
+    fontFamily: 'Sora_800ExtraBold',
+    letterSpacing: -0.8,
+  },
+  courseActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  courseActionPrimary: {
+    flex: 1,
+  },
+  courseActionSecondary: {
+    flex: 1,
   },
 });

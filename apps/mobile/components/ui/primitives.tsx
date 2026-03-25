@@ -1,6 +1,5 @@
 import { PropsWithChildren, useEffect, useRef } from 'react';
 import {
-  ActivityIndicator,
   Animated,
   Easing,
   Pressable,
@@ -16,10 +15,14 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
+  Avatar as HeroAvatar,
   Button as HeroButton,
   Card as HeroCard,
   Chip as HeroChip,
   Input as HeroInput,
+  Separator as HeroSeparator,
+  Skeleton as HeroSkeleton,
+  Spinner as HeroSpinner,
   TextArea as HeroTextArea,
 } from 'heroui-native';
 import { getStatusSurface, useNavajaTheme } from '../../lib/theme';
@@ -719,7 +722,7 @@ export function ActionButton({
       )}
 
       {loading ? (
-        <ActivityIndicator color={spinnerColor} size="small" />
+        <HeroSpinner color={spinnerColor} size="sm" />
       ) : (
         <Text style={[baseStyles.buttonText, { color: textColor }, textStyle]}>{label}</Text>
       )}
@@ -841,6 +844,42 @@ export function ErrorText({ message }: { message: string | null }) {
 export function MutedText({ children }: PropsWithChildren) {
   const { colors } = useNavajaTheme();
   return <Text style={[baseStyles.mutedText, { color: colors.textMuted }]}>{children}</Text>;
+}
+
+export function SkeletonCard({ lines = 3 }: { lines?: number }) {
+  return (
+    <Card elevated>
+      {Array.from({ length: lines }).map((_, index) => (
+        <HeroSkeleton
+          key={index}
+          variant="shimmer"
+          className={`h-4 rounded-lg ${index === 0 ? 'w-1/3' : index === lines - 1 ? 'w-1/2' : 'w-full'}`}
+        />
+      ))}
+    </Card>
+  );
+}
+
+export function UserAvatar({
+  url,
+  initials,
+  size = 'md',
+}: {
+  url?: string | null;
+  initials?: string;
+  size?: 'sm' | 'md' | 'lg';
+}) {
+  return (
+    <HeroAvatar alt={initials || 'Avatar'} size={size} color="accent">
+      {url ? <HeroAvatar.Image source={{ uri: url }} /> : null}
+      <HeroAvatar.Fallback>{initials?.slice(0, 2).toUpperCase() || '?'}</HeroAvatar.Fallback>
+    </HeroAvatar>
+  );
+}
+
+export function Divider() {
+  const { colors } = useNavajaTheme();
+  return <HeroSeparator style={{ backgroundColor: colors.borderMuted, marginVertical: 4 }} />;
 }
 
 const baseStyles = StyleSheet.create({
