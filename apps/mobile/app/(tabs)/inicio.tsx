@@ -2308,7 +2308,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sheetStatusState: {
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
     paddingHorizontal: 14,
     paddingVertical: 14,
