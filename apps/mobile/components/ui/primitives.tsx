@@ -34,6 +34,9 @@ function getHeroGradient(colors: ReturnType<typeof useNavajaTheme>['colors']) {
 }
 
 function getSecondaryGradient(colors: ReturnType<typeof useNavajaTheme>['colors']) {
+  if (colors.mode === 'dark') {
+    return ['rgba(255,255,255,0.05)', 'rgba(255,255,255,0.02)'] as const;
+  }
   return [colors.secondaryGradientStart, colors.secondaryGradientEnd] as const;
 }
 
@@ -278,7 +281,11 @@ export function Card({
         style={StyleSheet.absoluteFillObject}
       />
       <LinearGradient
-        colors={['rgba(255,255,255,0)', colors.borderActive, 'rgba(255,255,255,0)']}
+        colors={
+          colors.mode === 'dark'
+            ? ['rgba(255,255,255,0)', 'rgba(255,255,255,0.1)', 'rgba(255,255,255,0)']
+            : ['rgba(56,189,248,0)', 'rgba(56,189,248,0.42)', 'rgba(244,63,94,0.28)', 'rgba(244,63,94,0)']
+        }
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={baseStyles.cardBeam}
@@ -658,7 +665,7 @@ export function ActionButton({
   const dangerTone = getStatusSurface(colors, 'danger');
 
   const borderColor = isSecondary
-    ? colors.borderMuted
+    ? colors.border
     : isDanger
       ? dangerTone.borderColor
       : colors.borderMuted;
@@ -930,9 +937,9 @@ const baseStyles = StyleSheet.create({
   surfaceCard: {
     position: 'relative',
     overflow: 'hidden',
-    borderRadius: 20,
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 14,
+    padding: 16,
     shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 16,
@@ -940,13 +947,13 @@ const baseStyles = StyleSheet.create({
   },
   surfaceBeam: {
     position: 'absolute',
-    left: 14,
-    right: 14,
+    left: 16,
+    right: 16,
     top: 0,
     height: 1,
   },
   surfaceContent: {
-    gap: 6,
+    gap: 8,
   },
   heroPanel: {
     position: 'relative',
