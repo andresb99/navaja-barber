@@ -1,9 +1,7 @@
 import '../global.css';
 import 'react-native-reanimated';
-import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import * as Font from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -21,8 +19,6 @@ import {
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { HeroUINativeProviderRaw } from 'heroui-native/provider-raw';
 import { NavajaThemeProvider, useNavajaTheme } from '../lib/theme';
-
-SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootNavigator() {
   const { colors } = useNavajaTheme();
@@ -105,11 +101,6 @@ export default function RootLayout() {
     PlusJakartaSans_700Bold,
   });
 
-  useEffect(() => {
-    if (fontsLoaded) {
-      void SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
