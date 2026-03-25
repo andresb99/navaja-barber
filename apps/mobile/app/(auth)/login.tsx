@@ -71,6 +71,8 @@ export default function LoginScreen() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [hasRecoverySession, setHasRecoverySession] = useState(initialMode !== 'reset');
@@ -337,7 +339,24 @@ export default function LoginScreen() {
         {mode === 'login' || mode === 'register' ? (
           <>
             <Label>Contrasena</Label>
-            <Field value={password} onChangeText={setPassword} secureTextEntry />
+            <View style={styles.passwordRow}>
+              <Field
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                style={styles.passwordField}
+              />
+              <Pressable
+                style={styles.eyeButton}
+                onPress={() => setShowPassword((v) => !v)}
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+              >
+                <Text style={[styles.eyeText, { color: colors.textMuted }]}>
+                  {showPassword ? 'Ocultar' : 'Ver'}
+                </Text>
+              </Pressable>
+            </View>
           </>
         ) : null}
 
@@ -358,7 +377,24 @@ export default function LoginScreen() {
               </Text>
             ) : null}
             <Label>Nueva contrasena</Label>
-            <Field value={newPassword} onChangeText={setNewPassword} secureTextEntry />
+            <View style={styles.passwordRow}>
+              <Field
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry={!showNewPassword}
+                style={styles.passwordField}
+              />
+              <Pressable
+                style={styles.eyeButton}
+                onPress={() => setShowNewPassword((v) => !v)}
+                accessibilityRole="button"
+                accessibilityLabel={showNewPassword ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+              >
+                <Text style={[styles.eyeText, { color: colors.textMuted }]}>
+                  {showNewPassword ? 'Ocultar' : 'Ver'}
+                </Text>
+              </Pressable>
+            </View>
             <Label>Confirmar contrasena</Label>
             <Field value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
           </>
@@ -504,5 +540,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     textAlign: 'center',
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  passwordField: {
+    flex: 1,
+  },
+  eyeButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+  },
+  eyeText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
 });
