@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { SurfaceCard } from '../../components/ui/primitives';
 import { Card, Chip, ErrorText, MutedText, Screen } from '../../components/ui/primitives';
 import { getStaffContext } from '../../lib/auth';
 import { formatCurrency, formatDateTime } from '../../lib/format';
@@ -138,6 +139,30 @@ export default function StaffPanelScreen() {
         </Text>
       </Card>
 
+      <Card>
+        <Text style={[styles.title, { color: colors.text }]}>Acciones rapidas</Text>
+        <View style={styles.quickActions}>
+          <SurfaceCard onPress={() => router.push('/staff/citas')} style={styles.quickCard}>
+            <Text style={[styles.quickTitle, { color: colors.text }]}>Mis citas</Text>
+            <Text style={[styles.quickDesc, { color: colors.textMuted }]}>
+              Agenda, walk-ins y cierre de estados.
+            </Text>
+          </SurfaceCard>
+          <SurfaceCard onPress={() => router.push('/staff/metricas')} style={styles.quickCard}>
+            <Text style={[styles.quickTitle, { color: colors.text }]}>Mis metricas</Text>
+            <Text style={[styles.quickDesc, { color: colors.textMuted }]}>
+              Facturacion, ocupacion, ticket y resenas.
+            </Text>
+          </SurfaceCard>
+          <SurfaceCard onPress={() => router.push('/staff/ausencias')} style={styles.quickCard}>
+            <Text style={[styles.quickTitle, { color: colors.text }]}>Mis ausencias</Text>
+            <Text style={[styles.quickDesc, { color: colors.textMuted }]}>
+              Solicitar tiempo libre y ver historial.
+            </Text>
+          </SurfaceCard>
+        </View>
+      </Card>
+
       <ErrorText message={error} />
       {loading ? <MutedText>Cargando agenda...</MutedText> : null}
       {!loading && appointments.length === 0 ? <MutedText>No hay citas en este periodo.</MutedText> : null}
@@ -183,6 +208,21 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 13,
+  },
+  quickActions: {
+    gap: 8,
+  },
+  quickCard: {
+    padding: 14,
+  },
+  quickTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  quickDesc: {
+    fontSize: 12,
+    marginTop: 4,
+    lineHeight: 16,
   },
   row: {
     flexDirection: 'row',
