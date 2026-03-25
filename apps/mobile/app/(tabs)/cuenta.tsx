@@ -10,6 +10,7 @@ import {
   HeroPanel,
   Label,
   MutedText,
+  PillToggle,
   Screen,
   SurfaceCard,
 } from '../../components/ui/primitives';
@@ -131,6 +132,9 @@ export default function CuentaScreen() {
   const [fullName, setFullName] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
   const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [preferredPaymentMethod, setPreferredPaymentMethod] = useState<'mercado_pago' | 'card' | 'cash' | ''>('');
+  const [preferredCardBrand, setPreferredCardBrand] = useState<string>('');
+  const [preferredCardLast4, setPreferredCardLast4] = useState<string>('');
   const [appointments, setAppointments] = useState<MyAppointment[]>([]);
   const [invitations, setInvitations] = useState<InvitationItem[]>([]);
   const [accountNotifications, setAccountNotifications] = useState<AccountSystemNotificationItem[]>([]);
@@ -169,7 +173,7 @@ export default function CuentaScreen() {
       const [{ data: profile }, { data: membershipRows }, { data: notificationRows, error: notificationsError }, marketplaceShops] = await Promise.all([
         supabase
           .from('user_profiles')
-          .select('full_name, phone, avatar_url')
+          .select('full_name, phone, avatar_url, preferred_payment_method, preferred_card_brand, preferred_card_last4')
           .eq('auth_user_id', auth.userId)
           .maybeSingle(),
         supabase
@@ -190,6 +194,12 @@ export default function CuentaScreen() {
       setFullName(String(profile?.full_name || ''));
       setPhone(String(profile?.phone || ''));
       setAvatarUrl(String(profile?.avatar_url || ''));
+      const rawPpm = String(profile?.preferred_payment_method || '');
+      setPreferredPaymentMethod(
+        rawPpm === 'mercado_pago' || rawPpm === 'card' || rawPpm === 'cash' ? rawPpm : '',
+      );
+      setPreferredCardBrand(String(profile?.preferred_card_brand || ''));
+      setPreferredCardLast4(String(profile?.preferred_card_last4 || ''));
 
       const shopIds = [...new Set((membershipRows || []).map((item) => String(item.shop_id || '')))];
       const { data: inviteShops } = shopIds.length
@@ -354,12 +364,21 @@ export default function CuentaScreen() {
     setError(null);
     setMessage(null);
 
+    if (preferredPaymentMethod === 'card' && preferredCardLast4 && !/^\d{4}$/.test(preferredCardLast4)) {
+      setSaving(false);
+      setError('Los ultimos 4 digitos de la tarjeta deben ser exactamente 4 numeros.');
+      return;
+    }
+
     const { error: saveError } = await supabase.from('user_profiles').upsert(
       {
         auth_user_id: userId,
         full_name: fullName || null,
         phone: phone || null,
         avatar_url: avatarUrl || null,
+        preferred_payment_method: preferredPaymentMethod || null,
+        preferred_card_brand: preferredPaymentMethod === 'card' ? preferredCardBrand || null : null,
+        preferred_card_last4: preferredPaymentMethod === 'card' ? preferredCardLast4 || null : null,
       },
       { onConflict: 'auth_user_id' },
     );
@@ -520,6 +539,35 @@ export default function CuentaScreen() {
               autoCapitalize="none"
               keyboardType="url"
             />
+            <Label>Metodo de pago preferido</Label>
+            <View style={styles.paymentMethodRow}>
+              {([
+                { value: '', label: 'Sin preferencia' },
+                { value: 'mercado_pago', label: 'Mercado Pago' },
+                { value: 'card', label: 'Tarjeta' },
+                { value: 'cash', label: 'Efectivo' },
+              ] as Array<{ value: typeof preferredPaymentMethod; label: string }>).map((opt) => (
+                <PillToggle
+                  key={opt.value}
+                  label={opt.label}
+                  active={preferredPaymentMethod === opt.value}
+                  onPress={() => setPreferredPaymentMethod(opt.value)}
+                />
+              ))}
+            </View>
+            {preferredPaymentMethod === 'card' ? (
+              <>
+                <Label>Marca de tarjeta (ej: Visa)</Label>
+                <Field value={preferredCardBrand} onChangeText={setPreferredCardBrand} />
+                <Label>Ultimos 4 digitos</Label>
+                <Field
+                  value={preferredCardLast4}
+                  onChangeText={setPreferredCardLast4}
+                  keyboardType="numeric"
+                  maxLength={4}
+                />
+              </>
+            ) : null}
             <ActionButton
               label={saving ? 'Guardando...' : 'Guardar perfil'}
               onPress={saveProfile}
@@ -764,6 +812,11 @@ export default function CuentaScreen() {
 }
 
 const styles = StyleSheet.create({
+  paymentMethodRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
