@@ -14,6 +14,7 @@ import {
   MutedText,
   PillToggle,
   Screen,
+  SkeletonCard,
   SurfaceCard,
 } from '../../components/ui/primitives';
 import { submitBookingViaApi } from '../../lib/api';
@@ -361,7 +362,7 @@ export default function ReservasScreen() {
 
       <Card elevated>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>1. Servicio y barberia</Text>
-        {loadingShops ? <MutedText>Cargando barberias...</MutedText> : null}
+        {loadingShops ? <SkeletonCard lines={2} /> : null}
         {!loadingShops && !shops.length ? (
           <MutedText>No hay barberias activas publicadas.</MutedText>
         ) : null}
@@ -379,7 +380,7 @@ export default function ReservasScreen() {
           ))}
         </View>
 
-        {loadingServices ? <MutedText>Cargando servicios...</MutedText> : null}
+        {loadingServices ? <SkeletonCard lines={3} /> : null}
         {!loadingServices && selectedShop && !services.length ? (
           <MutedText>No hay servicios activos en esta barberia.</MutedText>
         ) : null}
@@ -449,7 +450,7 @@ export default function ReservasScreen() {
 
       <Card elevated>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>3. Horario</Text>
-        {loadingSlots ? <MutedText>Cargando horarios...</MutedText> : null}
+        {loadingSlots ? <SkeletonCard lines={4} /> : null}
         {!loadingSlots && selectedService && !visibleSlots.length ? (
           <MutedText>No hay horarios disponibles para esa fecha.</MutedText>
         ) : null}

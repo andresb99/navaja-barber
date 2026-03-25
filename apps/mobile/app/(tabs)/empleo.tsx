@@ -12,6 +12,7 @@ import {
   Label,
   MultilineField,
   Screen,
+  SkeletonCard,
   SurfaceCard,
 } from '../../components/ui/primitives';
 import {
@@ -43,6 +44,7 @@ export default function EmpleoScreen() {
   const [availability, setAvailability] = useState('');
   const [cvAsset, setCvAsset] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
+  const [loadingShops, setLoadingShops] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -52,6 +54,7 @@ export default function EmpleoScreen() {
       let active = true;
 
       void (async () => {
+        setLoadingShops(true);
         const marketplaceShops = await listMarketplaceShops();
         if (!active) {
           return;
@@ -70,6 +73,7 @@ export default function EmpleoScreen() {
         } else {
           setTarget(preferredShopId || '');
         }
+        setLoadingShops(false);
       })();
 
       return () => {
@@ -242,6 +246,9 @@ export default function EmpleoScreen() {
 
       <Card elevated>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Enviar mi CV a</Text>
+        {loadingShops ? (
+          <SkeletonCard lines={2} />
+        ) : null}
         <View style={styles.targetList}>
           {hasExternalApi ? (
             <SurfaceCard

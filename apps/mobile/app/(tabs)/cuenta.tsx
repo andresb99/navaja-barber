@@ -5,6 +5,7 @@ import {
   ActionButton,
   Card,
   Chip,
+  Divider,
   ErrorText,
   Field,
   HeroPanel,
@@ -12,7 +13,9 @@ import {
   MutedText,
   PillToggle,
   Screen,
+  SkeletonCard,
   SurfaceCard,
+  UserAvatar,
 } from '../../components/ui/primitives';
 import { PlatformQuickLinks } from '../../components/marketing/platform-quick-links';
 import {
@@ -525,8 +528,21 @@ export default function CuentaScreen() {
       />
 
       <Card elevated>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Mi perfil</Text>
-        {canEditProfile ? (
+        <View style={styles.profileHeader}>
+          <UserAvatar
+            url={avatarUrl}
+            initials={fullName ? fullName.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() : email.slice(0, 2).toUpperCase()}
+            size="lg"
+          />
+          <View style={styles.profileHeaderText}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Mi perfil</Text>
+            {email ? <Text style={[styles.profileEmail, { color: colors.textMuted }]}>{email}</Text> : null}
+          </View>
+        </View>
+        <Divider />
+        {loading ? (
+          <SkeletonCard lines={3} />
+        ) : canEditProfile ? (
           <>
             <Label>Nombre y apellido</Label>
             <Field value={fullName} onChangeText={setFullName} />
@@ -822,6 +838,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 8,
+  },
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  profileHeaderText: {
+    flex: 1,
+    gap: 3,
+  },
+  profileEmail: {
+    fontSize: 12,
   },
   sectionTitle: {
     fontSize: 17,

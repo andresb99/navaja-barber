@@ -13,6 +13,7 @@ import {
   MutedText,
   PillToggle,
   Screen,
+  SkeletonCard,
   StatTile,
   SurfaceCard,
 } from '../../components/ui/primitives';
@@ -235,7 +236,12 @@ export default function ModelosScreen() {
           ))}
         </View>
 
-        {loadingCalls ? <MutedText>Cargando convocatorias...</MutedText> : null}
+        {loadingCalls ? (
+          <>
+            <SkeletonCard lines={3} />
+            <SkeletonCard lines={4} />
+          </>
+        ) : null}
         {!loadingCalls && !visibleCalls.length ? (
           <MutedText>No hay convocatorias abiertas para ese filtro.</MutedText>
         ) : null}

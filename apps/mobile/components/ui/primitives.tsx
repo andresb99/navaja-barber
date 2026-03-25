@@ -722,7 +722,7 @@ export function ActionButton({
       )}
 
       {loading ? (
-        <HeroSpinner color={spinnerColor} size="sm" />
+        <HeroSpinner size="sm" color={spinnerColor} />
       ) : (
         <Text style={[baseStyles.buttonText, { color: textColor }, textStyle]}>{label}</Text>
       )}
@@ -848,15 +848,15 @@ export function MutedText({ children }: PropsWithChildren) {
 
 export function SkeletonCard({ lines = 3 }: { lines?: number }) {
   return (
-    <Card elevated>
-      {Array.from({ length: lines }).map((_, index) => (
+    <View style={skeletonStyles.card}>
+      {Array.from({ length: lines }).map((_, i) => (
         <HeroSkeleton
-          key={index}
+          key={i}
           variant="shimmer"
-          className={`h-4 rounded-lg ${index === 0 ? 'w-1/3' : index === lines - 1 ? 'w-1/2' : 'w-full'}`}
+          className={i === 0 ? 'h-4 w-3/4 rounded-lg' : i === lines - 1 ? 'h-3 w-1/2 rounded-lg' : 'h-3 w-full rounded-lg'}
         />
       ))}
-    </Card>
+    </View>
   );
 }
 
@@ -870,17 +870,27 @@ export function UserAvatar({
   size?: 'sm' | 'md' | 'lg';
 }) {
   return (
-    <HeroAvatar alt={initials || 'Avatar'} size={size} color="accent">
-      {url ? <HeroAvatar.Image source={{ uri: url }} /> : null}
-      <HeroAvatar.Fallback>{initials?.slice(0, 2).toUpperCase() || '?'}</HeroAvatar.Fallback>
+    <HeroAvatar size={size} color="accent" animation="disable-all" alt={initials || 'Avatar'}>
+      {url ? (
+        <HeroAvatar.Image source={{ uri: url }} />
+      ) : null}
+      <HeroAvatar.Fallback>{initials || ''}</HeroAvatar.Fallback>
     </HeroAvatar>
   );
 }
 
-export function Divider() {
-  const { colors } = useNavajaTheme();
-  return <HeroSeparator style={{ backgroundColor: colors.borderMuted, marginVertical: 4 }} />;
+export function Divider({ className }: { className?: string }) {
+  return <HeroSeparator variant="thin" className={className ?? 'my-2'} />;
 }
+
+const skeletonStyles = StyleSheet.create({
+  card: {
+    gap: 10,
+    padding: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+});
 
 const baseStyles = StyleSheet.create({
   screen: {
