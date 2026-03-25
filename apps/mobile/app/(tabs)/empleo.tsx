@@ -228,7 +228,7 @@ export default function EmpleoScreen() {
     <Screen
       eyebrow="Empleo"
       title="Postulate a una barberia o deja tu CV en la red"
-      subtitle="La app replica el selector de destino de la web. Si tienes API externa, puedes enviar tu CV al marketplace completo sin salir de mobile."
+      subtitle="Postulate directamente a una barberia o deja tu CV en la bolsa general de la red."
     >
       <HeroPanel
         eyebrow="Empleo marketplace"
@@ -321,7 +321,7 @@ export default function EmpleoScreen() {
 const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: 'Sora_700Bold',
   },
   targetList: {
     gap: 8,
@@ -334,10 +334,11 @@ const styles = StyleSheet.create({
   },
   targetTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   targetSubtitle: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   cvBox: {
     borderWidth: 1,
@@ -347,12 +348,14 @@ const styles = StyleSheet.create({
   },
   cvTitle: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   cvName: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   success: {
     fontSize: 13,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
 });

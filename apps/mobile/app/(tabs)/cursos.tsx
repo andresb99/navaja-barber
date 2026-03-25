@@ -90,7 +90,7 @@ export default function CursosScreen() {
     <Screen
       eyebrow="Cursos"
       title="Catalogo global de formacion"
-      subtitle="La vista replica el marketplace de la web: todo el catalogo activo en una sola pantalla, con filtros por barberia y tarjetas tipo HeroUI."
+      subtitle="Explora el catalogo de formacion, compara academia entre barberias y filtra por tenant."
     >
       <HeroPanel
         eyebrow="Academia marketplace"
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: 'Sora_700Bold',
   },
   filterWrap: {
     flexDirection: 'row',
@@ -206,23 +206,24 @@ const styles = StyleSheet.create({
   },
   shopName: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   courseTitle: {
     fontSize: 18,
-    fontWeight: '800',
+    fontFamily: 'Sora_800ExtraBold',
   },
   description: {
     fontSize: 13,
     lineHeight: 18,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   metaGrid: {
     gap: 4,
   },
   metaItem: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
   },
 });

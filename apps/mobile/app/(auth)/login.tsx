@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modeText: {
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     fontSize: 12,
   },
   helper: {
@@ -538,7 +538,7 @@ const styles = StyleSheet.create({
   recoverLink: {
     marginTop: 2,
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     textAlign: 'center',
   },
   passwordRow: {
@@ -555,6 +555,6 @@ const styles = StyleSheet.create({
   },
   eyeText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
 });

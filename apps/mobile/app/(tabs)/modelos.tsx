@@ -181,7 +181,7 @@ export default function ModelosScreen() {
     <Screen
       eyebrow="Modelos"
       title="Convocatorias abiertas de distintas barberias"
-      subtitle="Replica la capa visual del marketplace web: filtros por tenant, cards de convocatorias y un formulario con el mismo tono de UI."
+      subtitle="Encontra convocatorias abiertas y registra tu perfil para que las barberias te contacten."
     >
       <HeroPanel
         eyebrow="Modelos marketplace"
@@ -353,11 +353,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: 'Sora_700Bold',
   },
   sectionCopy: {
     fontSize: 13,
     lineHeight: 18,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   chipWrap: {
     flexDirection: 'row',
@@ -375,20 +376,22 @@ const styles = StyleSheet.create({
   },
   callShop: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   callTitle: {
-    fontWeight: '800',
+    fontFamily: 'Sora_800ExtraBold',
     fontSize: 15,
   },
   callMeta: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   selectedSessionText: {
     fontSize: 13,
     marginBottom: 2,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   inline: {
     flexDirection: 'row',
@@ -397,5 +400,6 @@ const styles = StyleSheet.create({
   },
   success: {
     fontSize: 13,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
 });

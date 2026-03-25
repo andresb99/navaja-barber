@@ -564,18 +564,19 @@ const styles = StyleSheet.create({
   },
   drawerEyebrow: {
     fontSize: 10,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
   drawerTitle: {
     fontSize: 25,
-    fontWeight: '800',
+    fontFamily: 'Sora_800ExtraBold',
     letterSpacing: -0.45,
   },
   drawerSubtitle: {
     fontSize: 13,
     lineHeight: 19,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   closeButton: {
     width: 40,
@@ -605,17 +606,17 @@ const styles = StyleSheet.create({
   },
   identityLabel: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   identityValue: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Sora_700Bold',
   },
   identityMeta: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
   },
   sectionsWrap: {
     gap: 14,
@@ -629,7 +630,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 0.9,
     textTransform: 'uppercase',
   },
@@ -658,11 +659,12 @@ const styles = StyleSheet.create({
   },
   itemLabel: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   itemDescription: {
     fontSize: 12,
     lineHeight: 16,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   stateCard: {
     borderWidth: 1,
@@ -672,6 +674,6 @@ const styles = StyleSheet.create({
   },
   stateText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
   },
 });

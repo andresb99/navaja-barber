@@ -320,7 +320,7 @@ export default function ReservasScreen() {
     <Screen
       eyebrow="Reservas"
       title="Agenda como en la web, pero nativo"
-      subtitle="Selecciona barberia, servicio, staff y horario. El flujo conserva la misma secuencia visual de la web responsive."
+      subtitle="Elige tu barberia, servicio, staff y horario. Confirma con tus datos en segundos."
     >
       <HeroPanel
         eyebrow="Reserva publica"
@@ -517,10 +517,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: 'Sora_700Bold',
   },
   helper: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   optionList: {
     gap: 8,
@@ -533,10 +534,11 @@ const styles = StyleSheet.create({
   },
   optionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   optionMeta: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   inlineButtons: {
     flexDirection: 'row',

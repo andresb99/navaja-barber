@@ -1981,7 +1981,7 @@ const styles = StyleSheet.create({
   },
   mapLoadingText: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   mapChip: {
     position: 'absolute',
@@ -1994,7 +1994,7 @@ const styles = StyleSheet.create({
   },
   mapChipText: {
     fontSize: 10,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 0.75,
     textTransform: 'uppercase',
   },
@@ -2009,7 +2009,7 @@ const styles = StyleSheet.create({
   },
   markerBadgeText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   searchOverlay: {
     position: 'absolute',
@@ -2049,13 +2049,13 @@ const styles = StyleSheet.create({
   },
   chromeEyebrow: {
     fontSize: 10,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 0.9,
     textTransform: 'uppercase',
   },
   chromeTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'Sora_700Bold',
   },
   chromeActions: {
     flexDirection: 'row',
@@ -2110,7 +2110,7 @@ const styles = StyleSheet.create({
   },
   suggestionLabel: {
     fontSize: 13,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   suggestionDescription: {
     fontSize: 12,
@@ -2168,18 +2168,20 @@ const styles = StyleSheet.create({
   },
   mapPreviewTitle: {
     fontSize: 16,
-    fontWeight: '800',
+    fontFamily: 'Sora_800ExtraBold',
   },
   mapPreviewMeta: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   mapPreviewRatingText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   mapPreviewDescription: {
     fontSize: 13,
     lineHeight: 18,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   mapPreviewFacts: {
     flexDirection: 'row',
@@ -2234,7 +2236,7 @@ const styles = StyleSheet.create({
   },
   sheetCollapsedTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   sheetTitleRow: {
     flexDirection: 'row',
@@ -2248,18 +2250,19 @@ const styles = StyleSheet.create({
   },
   sheetEyebrow: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 1.1,
     textTransform: 'uppercase',
   },
   sheetTitle: {
     fontSize: 21,
-    fontWeight: '800',
+    fontFamily: 'Sora_800ExtraBold',
     lineHeight: 26,
   },
   sheetSubtitle: {
     fontSize: 13,
     lineHeight: 18,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   sheetPinsBadge: {
     flexDirection: 'row',
@@ -2272,7 +2275,7 @@ const styles = StyleSheet.create({
   },
   sheetPinsBadgeText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   clearSearchButton: {
     alignSelf: 'flex-start',
@@ -2283,7 +2286,7 @@ const styles = StyleSheet.create({
   },
   clearSearchButtonText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   warningText: {
     fontSize: 12,
@@ -2332,7 +2335,7 @@ const styles = StyleSheet.create({
   },
   shopCardHighlight: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     flex: 1,
@@ -2347,7 +2350,7 @@ const styles = StyleSheet.create({
   },
   shopCardRatingText: {
     fontSize: 11,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   shopCardBottomRow: {
     flexDirection: 'row',
@@ -2364,14 +2367,15 @@ const styles = StyleSheet.create({
   shopCardTitle: {
     fontSize: 20,
     lineHeight: 24,
-    fontWeight: '800',
+    fontFamily: 'Sora_800ExtraBold',
   },
   shopCardLocation: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   shopCardDistance: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -2384,6 +2388,7 @@ const styles = StyleSheet.create({
   shopCardDescription: {
     fontSize: 13,
     lineHeight: 18,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   shopCardFacts: {
     flexDirection: 'row',

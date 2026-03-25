@@ -825,11 +825,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '800',
+    fontFamily: 'Sora_700Bold',
   },
   subSectionTitle: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'PlusJakartaSans_700Bold',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
   },
@@ -847,14 +847,16 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontFamily: 'PlusJakartaSans_700Bold',
   },
   infoMeta: {
     fontSize: 12,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   infoHint: {
     fontSize: 12,
     marginTop: 2,
+    fontFamily: 'PlusJakartaSans_400Regular',
   },
   inviteActions: {
     marginTop: 8,
