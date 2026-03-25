@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 19,
     fontFamily: 'Sora_700Bold',
   },
   filterWrap: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   list: {
-    gap: 10,
+    gap: 12,
   },
   shopName: {
     fontSize: 11,
@@ -211,12 +211,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   courseTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'Sora_800ExtraBold',
   },
   description: {
     fontSize: 13,
-    lineHeight: 18,
+    lineHeight: 20,
     fontFamily: 'PlusJakartaSans_400Regular',
   },
   metaGrid: {

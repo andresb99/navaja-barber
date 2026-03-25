@@ -320,7 +320,7 @@ export default function EmpleoScreen() {
 
 const styles = StyleSheet.create({
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 19,
     fontFamily: 'Sora_700Bold',
   },
   targetList: {
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   targetTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'PlusJakartaSans_700Bold',
   },
   targetSubtitle: {

@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 19,
     fontFamily: 'Sora_700Bold',
   },
   sectionCopy: {
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
   },
   callTitle: {
     fontFamily: 'Sora_800ExtraBold',
-    fontSize: 15,
+    fontSize: 17,
   },
   callMeta: {
     fontSize: 12,

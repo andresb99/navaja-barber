@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   drawerTitle: {
-    fontSize: 25,
+    fontSize: 26,
     fontFamily: 'Sora_800ExtraBold',
     letterSpacing: -0.45,
   },
@@ -658,7 +658,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   itemLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'PlusJakartaSans_700Bold',
   },
   itemDescription: {

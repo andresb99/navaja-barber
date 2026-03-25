@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 19,
     fontFamily: 'Sora_700Bold',
   },
   helper: {
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   optionTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'PlusJakartaSans_700Bold',
   },
   optionMeta: {

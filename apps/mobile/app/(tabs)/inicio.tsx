@@ -2255,7 +2255,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   sheetTitle: {
-    fontSize: 21,
+    fontSize: 22,
     fontFamily: 'Sora_800ExtraBold',
     lineHeight: 26,
   },
@@ -2365,7 +2365,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   shopCardTitle: {
-    fontSize: 20,
+    fontSize: 22,
     lineHeight: 24,
     fontFamily: 'Sora_800ExtraBold',
   },

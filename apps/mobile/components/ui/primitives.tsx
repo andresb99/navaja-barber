@@ -911,7 +911,7 @@ const baseStyles = StyleSheet.create({
     overflow: 'hidden',
     borderRadius: 24,
     borderWidth: 1,
-    padding: 18,
+    padding: 20,
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 18,
@@ -925,7 +925,7 @@ const baseStyles = StyleSheet.create({
     height: 1,
   },
   cardContent: {
-    gap: 12,
+    gap: 14,
   },
   surfaceCard: {
     position: 'relative',
@@ -980,7 +980,7 @@ const baseStyles = StyleSheet.create({
     letterSpacing: -0.45,
   },
   heroDescription: {
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: 20,
     fontFamily: 'PlusJakartaSans_400Regular',
   },
@@ -1001,13 +1001,13 @@ const baseStyles = StyleSheet.create({
     height: 1,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: 'PlusJakartaSans_700Bold',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 22,
     fontFamily: 'Sora_800ExtraBold',
   },
   pillToggle: {
