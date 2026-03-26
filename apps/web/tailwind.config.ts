@@ -128,9 +128,10 @@ const config: Config = {
         },
       },
     }),
-    // Glass navbar utilities — declared after heroui() so source order wins without !important
-    plugin(function ({ addComponents }) {
-      addComponents({
+    // Glass navbar utilities — addUtilities puts these in @layer utilities (same as bg-background),
+    // and since this plugin runs after heroui(), our rules appear later in source order and win.
+    plugin(function ({ addUtilities }) {
+      addUtilities({
         '.glass-navbar-wrapper': {
           background:
             'linear-gradient(135deg, rgb(255 255 255 / 0.82), rgb(250 248 245 / 0.76)), var(--brand-panel-aura-soft)',
@@ -153,7 +154,7 @@ const config: Config = {
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
         },
-      });
+      }, { respectPrefix: false });
     }),
   ],
 };
