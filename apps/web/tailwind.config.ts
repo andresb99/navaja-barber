@@ -128,31 +128,31 @@ const config: Config = {
         },
       },
     }),
-    // Glass navbar utilities — addUtilities puts these in @layer utilities (same as bg-background),
-    // and since this plugin runs after heroui(), our rules appear later in source order and win.
+    // Glass navbar utilities — !important required to override HeroUI's bg-background in Vercel
+    // production builds where separate CSS chunks can load in unpredictable order.
     plugin(function ({ addUtilities }) {
       addUtilities({
         '.glass-navbar-wrapper': {
           background:
-            'linear-gradient(135deg, rgb(255 255 255 / 0.82), rgb(250 248 245 / 0.76)), var(--brand-panel-aura-soft)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+            'linear-gradient(135deg, rgb(255 255 255 / 0.82), rgb(250 248 245 / 0.76)), var(--brand-panel-aura-soft) !important',
+          backdropFilter: 'blur(16px) !important',
+          WebkitBackdropFilter: 'blur(16px) !important',
         },
         '.dark .glass-navbar-wrapper': {
-          background: 'rgba(9, 9, 11, 0.65)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          background: 'rgba(9, 9, 11, 0.65) !important',
+          backdropFilter: 'blur(16px) !important',
+          WebkitBackdropFilter: 'blur(16px) !important',
         },
         '.glass-navbar-menu': {
           background:
-            'linear-gradient(155deg, rgb(255 255 255 / 0.94), rgb(250 248 245 / 0.88)), var(--brand-panel-aura-strong)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+            'linear-gradient(155deg, rgb(255 255 255 / 0.94), rgb(250 248 245 / 0.88)), var(--brand-panel-aura-strong) !important',
+          backdropFilter: 'blur(16px) !important',
+          WebkitBackdropFilter: 'blur(16px) !important',
         },
         '.dark .glass-navbar-menu': {
-          background: 'rgba(9, 9, 11, 0.92)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          background: 'rgba(9, 9, 11, 0.92) !important',
+          backdropFilter: 'blur(20px) !important',
+          WebkitBackdropFilter: 'blur(20px) !important',
         },
       }, { respectPrefix: false });
     }),
