@@ -10,7 +10,6 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router, usePathname } from 'expo-router';
 import { Button as HeroButton } from 'heroui-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -231,29 +230,26 @@ export function AppMenuButton({
         onRequestClose={closeMenu}
       >
         <View style={[styles.overlay, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-          {/* Backdrop — tap to dismiss */}
-          <Pressable style={StyleSheet.absoluteFillObject} onPress={closeMenu} />
+          {/* Backdrop — dims page behind and dismisses on tap */}
+          <Pressable
+            style={[
+              StyleSheet.absoluteFillObject,
+              { backgroundColor: isDark ? 'rgba(0,0,0,0.45)' : 'rgba(0,0,0,0.18)' },
+            ]}
+            onPress={closeMenu}
+          />
 
           {/* Overlay panel */}
-          <View style={styles.panel}>
-            {isDark ? (
-              <View
-                style={[
-                  StyleSheet.absoluteFillObject,
-                  { backgroundColor: 'rgba(9, 9, 11, 0.92)' },
-                ]}
-              />
-            ) : (
-              <LinearGradient
-                colors={[
-                  'rgba(255, 255, 255, 0.96)',
-                  'rgba(250, 248, 245, 0.93)',
-                ]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFillObject}
-              />
-            )}
+          <View
+            style={[
+              styles.panel,
+              {
+                backgroundColor: isDark
+                  ? 'rgba(9, 9, 11, 0.96)'
+                  : 'rgba(255, 255, 255, 0.97)',
+              },
+            ]}
+          >
 
             {/* Violet aura top-right */}
             <View
