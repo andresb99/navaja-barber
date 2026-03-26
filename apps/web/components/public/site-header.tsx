@@ -622,7 +622,12 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
       className="bg-transparent px-0 pt-0"
       classNames={{
         wrapper: 'glass-nav mx-auto w-full max-w-none px-4 md:px-6 lg:px-8',
-        menu: cn('mobile-nav-menu', usesCondensedAdminNavigation && 'admin-nav-menu-hidden'),
+        menu: cn(
+            'mobile-nav-menu',
+            '![background:linear-gradient(155deg,rgb(255_255_255/0.94),rgb(250_248_245/0.88)),var(--brand-panel-aura-strong)] ![backdrop-filter:blur(16px)] ![-webkit-backdrop-filter:blur(16px)]',
+            'dark:![background:rgba(9,9,11,0.92)] dark:![backdrop-filter:blur(20px)] dark:![-webkit-backdrop-filter:blur(20px)]',
+            usesCondensedAdminNavigation && 'admin-nav-menu-hidden'
+          ),
       }}
     >
       <NavbarContent justify="start">
