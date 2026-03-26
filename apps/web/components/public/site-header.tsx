@@ -621,17 +621,8 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
       onMenuOpenChange={setIsMenuOpen}
       className="bg-transparent px-0 pt-0"
       classNames={{
-        wrapper: cn(
-            'glass-nav mx-auto w-full max-w-none px-4 md:px-6 lg:px-8',
-            '![background:linear-gradient(135deg,rgb(255_255_255/0.82),rgb(250_248_245/0.76)),var(--brand-panel-aura-soft)] ![backdrop-filter:blur(16px)] ![-webkit-backdrop-filter:blur(16px)]',
-            'dark:![background:rgba(9,9,11,0.65)] dark:![backdrop-filter:blur(16px)] dark:![-webkit-backdrop-filter:blur(16px)]'
-          ),
-        menu: cn(
-            'mobile-nav-menu',
-            '![background:linear-gradient(155deg,rgb(255_255_255/0.94),rgb(250_248_245/0.88)),var(--brand-panel-aura-strong)] ![backdrop-filter:blur(16px)] ![-webkit-backdrop-filter:blur(16px)]',
-            'dark:![background:rgba(9,9,11,0.92)] dark:![backdrop-filter:blur(20px)] dark:![-webkit-backdrop-filter:blur(20px)]',
-            usesCondensedAdminNavigation && 'admin-nav-menu-hidden'
-          ),
+        wrapper: 'glass-nav glass-navbar-wrapper mx-auto w-full max-w-none px-4 md:px-6 lg:px-8',
+        menu: cn('mobile-nav-menu glass-navbar-menu', usesCondensedAdminNavigation && 'admin-nav-menu-hidden'),
       }}
     >
       <NavbarContent justify="start">

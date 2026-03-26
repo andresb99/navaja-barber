@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss';
 import { heroui } from '@heroui/react';
+import plugin from 'tailwindcss/plugin';
 
 const config: Config = {
   darkMode: 'class',
@@ -126,6 +127,33 @@ const config: Config = {
           },
         },
       },
+    }),
+    // Glass navbar utilities — declared after heroui() so source order wins without !important
+    plugin(function ({ addComponents }) {
+      addComponents({
+        '.glass-navbar-wrapper': {
+          background:
+            'linear-gradient(135deg, rgb(255 255 255 / 0.82), rgb(250 248 245 / 0.76)), var(--brand-panel-aura-soft)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+        },
+        '.dark .glass-navbar-wrapper': {
+          background: 'rgba(9, 9, 11, 0.65)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+        },
+        '.glass-navbar-menu': {
+          background:
+            'linear-gradient(155deg, rgb(255 255 255 / 0.94), rgb(250 248 245 / 0.88)), var(--brand-panel-aura-strong)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+        },
+        '.dark .glass-navbar-menu': {
+          background: 'rgba(9, 9, 11, 0.92)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        },
+      });
     }),
   ],
 };
