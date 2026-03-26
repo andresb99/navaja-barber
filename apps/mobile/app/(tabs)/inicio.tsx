@@ -16,6 +16,7 @@ import { router, useFocusEffect } from 'expo-router';
 import Constants from 'expo-constants';
 import MapView, { Marker, PROVIDER_GOOGLE, type Region } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppMenuButton } from '../../components/navigation/app-menu';
@@ -1426,12 +1427,14 @@ export default function InicioScreen() {
 
       <View style={[styles.searchOverlay, { top: topOverlayOffset }]}>
         <View style={styles.chromeRow}>
-          <View
+          <BlurView
+            intensity={colors.mode === 'dark' ? 48 : 60}
+            tint={colors.mode === 'dark' ? 'dark' : 'light'}
             style={[
               styles.chromeBrand,
               {
                 borderColor: colors.border,
-                backgroundColor: colors.panelStrong,
+                overflow: 'hidden',
               },
             ]}
           >
@@ -1453,7 +1456,7 @@ export default function InicioScreen() {
                 Marketplace barber
               </Text>
             </View>
-          </View>
+          </BlurView>
 
           <View style={styles.chromeActions}>
             <ThemeToggle />
@@ -1461,12 +1464,14 @@ export default function InicioScreen() {
           </View>
         </View>
 
-        <View
+        <BlurView
+          intensity={colors.mode === 'dark' ? 48 : 60}
+          tint={colors.mode === 'dark' ? 'dark' : 'light'}
           style={[
             styles.searchCard,
             {
               borderColor: colors.border,
-              backgroundColor: colors.panelStrong,
+              overflow: 'hidden',
             },
           ]}
         >
@@ -1553,7 +1558,7 @@ export default function InicioScreen() {
               )}
             </View>
           ) : null}
-        </View>
+        </BlurView>
       </View>
 
       {mapPreviewShop ? (
