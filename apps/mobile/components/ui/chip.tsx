@@ -1,5 +1,4 @@
-import { StyleProp, StyleSheet, Text, TextStyle, ViewStyle } from 'react-native';
-import { Chip as HeroChip } from 'heroui-native';
+import { Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 import { getStatusSurface, useNavajaTheme } from '../../lib/theme';
 
 export function Chip({
@@ -27,21 +26,9 @@ export function Chip({
               borderColor: colors.borderMuted,
               textColor: colors.text,
             };
-  const heroColor =
-    tone === 'success'
-      ? 'success'
-      : tone === 'warning'
-        ? 'warning'
-        : tone === 'danger'
-          ? 'danger'
-          : 'default';
-  const heroVariant = tone === 'neutral' ? 'secondary' : 'soft';
 
   return (
-    <HeroChip
-      variant={heroVariant}
-      color={heroColor}
-      animation="disable-all"
+    <View
       style={[
         styles.chip,
         {
@@ -52,7 +39,7 @@ export function Chip({
       ]}
     >
       <Text style={[styles.chipText, { color: toneStyles.textColor }, textStyle]}>{label}</Text>
-    </HeroChip>
+    </View>
   );
 }
 
@@ -71,12 +58,9 @@ export function SelectionChip({
   const textColor = active ? '#111f33' : colors.text;
 
   return (
-    <HeroChip
+    <Pressable
       disabled={disabled}
       onPress={onPress}
-      variant={active ? 'primary' : 'secondary'}
-      color={active ? 'accent' : 'default'}
-      animation="disable-all"
       style={[
         styles.selectionChip,
         {
@@ -87,7 +71,7 @@ export function SelectionChip({
       ]}
     >
       <Text style={[styles.selectionChipText, { color: textColor }]}>{label}</Text>
-    </HeroChip>
+    </Pressable>
   );
 }
 

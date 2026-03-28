@@ -1,7 +1,6 @@
 import { PropsWithChildren } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Card as HeroCard } from 'heroui-native';
 import { useNavajaTheme } from '../../lib/theme';
 import {
   getCoolFade,
@@ -18,9 +17,7 @@ export function Card({
   const { colors } = useNavajaTheme();
 
   return (
-    <HeroCard
-      variant={elevated ? 'default' : 'secondary'}
-      className="overflow-hidden p-0"
+    <View
       style={[
         styles.card,
         {
@@ -66,7 +63,7 @@ export function Card({
         style={styles.cardBeam}
       />
       <View style={styles.cardContent}>{children}</View>
-    </HeroCard>
+    </View>
   );
 }
 

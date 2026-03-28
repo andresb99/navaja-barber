@@ -16,6 +16,6 @@
     "app",
     "lib",
     "components",
-    "uniwind-env.d.ts"
+    "nativewind-env.d.ts"
   ]
 }

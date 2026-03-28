@@ -17,7 +17,6 @@ import {
   PlusJakartaSans_600SemiBold,
   PlusJakartaSans_700Bold,
 } from '@expo-google-fonts/plus-jakarta-sans';
-import { HeroUINativeProviderRaw } from 'heroui-native/provider-raw';
 import { NavajaThemeProvider, useNavajaTheme } from '../lib/theme';
 
 function RootNavigator() {
@@ -106,19 +105,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <NavajaThemeProvider>
-          <HeroUINativeProviderRaw
-            config={{
-              textProps: {
-                allowFontScaling: false,
-                maxFontSizeMultiplier: 1.15,
-              },
-              devInfo: {
-                stylingPrinciples: false,
-              },
-            }}
-          >
-            <RootNavigator />
-          </HeroUINativeProviderRaw>
+          <RootNavigator />
         </NavajaThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

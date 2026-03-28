@@ -1,7 +1,6 @@
 import { PropsWithChildren } from 'react';
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Card as HeroCard } from 'heroui-native';
 import { useNavajaTheme } from '../../lib/theme';
 import {
   getActiveGradient,
@@ -72,9 +71,7 @@ export function SurfaceCard({
   );
 
   const card = (
-    <HeroCard
-      variant={active ? 'default' : 'secondary'}
-      className="overflow-hidden p-0"
+    <View
       style={[
         styles.surfaceCard,
         {
@@ -85,7 +82,7 @@ export function SurfaceCard({
       ]}
     >
       {inner}
-    </HeroCard>
+    </View>
   );
 
   if (onPress) {

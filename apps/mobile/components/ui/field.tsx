@@ -1,5 +1,4 @@
-import { StyleSheet, TextInputProps } from 'react-native';
-import { Input as HeroInput, TextArea as HeroTextArea } from 'heroui-native';
+import { StyleSheet, TextInput, TextInputProps } from 'react-native';
 import { useNavajaTheme } from '../../lib/theme';
 
 export function Field(props: TextInputProps) {
@@ -7,13 +6,10 @@ export function Field(props: TextInputProps) {
   const { style, ...inputProps } = props;
 
   return (
-    <HeroInput
+    <TextInput
       {...inputProps}
-      variant="primary"
-      isBottomSheetAware={false}
-      className="text-sm"
-      placeholderColorClassName="text-muted"
-      selectionColorClassName="accent-focus"
+      placeholderTextColor={colors.textMuted}
+      selectionColor={colors.focus}
       style={[
         styles.field,
         {
@@ -32,13 +28,11 @@ export function MultilineField(props: TextInputProps) {
   const { style, ...inputProps } = props;
 
   return (
-    <HeroTextArea
+    <TextInput
       {...inputProps}
-      variant="primary"
-      isBottomSheetAware={false}
-      className="text-sm"
-      placeholderColorClassName="text-muted"
-      selectionColorClassName="accent-focus"
+      multiline
+      placeholderTextColor={colors.textMuted}
+      selectionColor={colors.focus}
       style={[
         styles.field,
         styles.multilineField,
@@ -46,6 +40,7 @@ export function MultilineField(props: TextInputProps) {
           borderColor: colors.inputBorder,
           backgroundColor: colors.input,
           color: colors.text,
+          textAlignVertical: 'top',
         },
         style,
       ]}

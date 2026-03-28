@@ -9,7 +9,6 @@ import {
 } from 'react';
 import { Appearance, useColorScheme } from 'react-native';
 import { navajaTheme, navajaUiModes, type NavajaUiModeTokens } from '@navaja/shared';
-import { Uniwind } from 'uniwind';
 
 const THEME_STORAGE_KEY = '@navaja/theme-preference';
 
@@ -208,10 +207,6 @@ export function NavajaThemeProvider({ children }: PropsWithChildren) {
   useEffect(() => {
     syncLegacyPalette(mode);
   }, [mode]);
-
-  useEffect(() => {
-    Uniwind.setTheme(preference === 'system' ? 'system' : preference);
-  }, [preference]);
 
   async function setPreference(next: ThemePreference) {
     setPreferenceState(next);

@@ -1,11 +1,12 @@
-@import "tailwindcss";
-@import "uniwind";
-@import "heroui-native/styles";
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
 
 @source "./app";
 @source "./components";
 @source "./lib";
-@source "./node_modules/heroui-native/lib";
 
 @theme {
   --radius: 0.55rem;

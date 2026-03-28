@@ -1,6 +1,5 @@
-import { StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Button as HeroButton } from 'heroui-native';
 import { useNavajaTheme } from '../../lib/theme';
 
 export function ThemeToggle() {
@@ -8,13 +7,10 @@ export function ThemeToggle() {
   const isDark = mode === 'dark';
 
   return (
-    <HeroButton
-      isIconOnly
-      variant="secondary"
+    <Pressable
       onPress={() => {
         void toggleTheme();
       }}
-      className="rounded-[16px]"
       style={[
         styles.themeToggle,
         {
@@ -24,13 +20,14 @@ export function ThemeToggle() {
         },
       ]}
       accessibilityLabel={isDark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+      accessibilityRole="button"
     >
       <Ionicons
         name={isDark ? 'sunny-outline' : 'moon-outline'}
         size={18}
         color={colors.text}
       />
-    </HeroButton>
+    </Pressable>
   );
 }
 

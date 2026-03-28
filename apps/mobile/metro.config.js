@@ -1,6 +1,6 @@
 const path = require('path');
 const { getDefaultConfig } = require('expo/metro-config');
-const { withUniwindConfig } = require('uniwind/metro');
+const { withNativeWind } = require('nativewind/metro');
 
 // Monorepo root (two levels up from apps/mobile)
 const projectRoot = __dirname;
@@ -22,7 +22,4 @@ config.resolver = {
   ],
 };
 
-module.exports = withUniwindConfig(config, {
-  cssEntryFile: './global.css',
-  dtsFile: './uniwind-env.d.ts',
-});
+module.exports = withNativeWind(config);

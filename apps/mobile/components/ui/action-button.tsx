@@ -1,6 +1,5 @@
-import { StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Button as HeroButton, Spinner as HeroSpinner } from 'heroui-native';
 import { getStatusSurface, useNavajaTheme } from '../../lib/theme';
 import { getPrimaryGradient, getSecondaryGradient } from './gradients';
 
@@ -37,14 +36,11 @@ export function ActionButton({
       ? colors.inverseForeground
       : '#ffffff';
   const spinnerColor = isSecondary ? colors.text : textColor;
-  const heroVariant = isDanger ? 'danger' : isSecondary ? 'secondary' : 'primary';
 
   return (
-    <HeroButton
-      variant={heroVariant}
-      isDisabled={disabled || loading}
+    <Pressable
+      disabled={disabled || loading}
       onPress={onPress}
-      className="overflow-hidden rounded-full"
       style={[
         styles.button,
         {
@@ -81,11 +77,11 @@ export function ActionButton({
       )}
 
       {loading ? (
-        <HeroSpinner size="sm" color={spinnerColor} />
+        <ActivityIndicator size="small" color={spinnerColor} />
       ) : (
         <Text style={[styles.buttonText, { color: textColor }, textStyle]}>{label}</Text>
       )}
-    </HeroButton>
+    </Pressable>
   );
 }
 

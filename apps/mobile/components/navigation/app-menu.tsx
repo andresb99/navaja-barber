@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, usePathname } from 'expo-router';
-import { Button as HeroButton } from 'heroui-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getAuthContext, type AppRole, type AuthContext } from '../../lib/auth';
 import { useNavajaTheme } from '../../lib/theme';
@@ -204,11 +203,8 @@ export function AppMenuButton({
 
   return (
     <>
-      <HeroButton
-        isIconOnly
-        variant="secondary"
+      <Pressable
         onPress={() => setVisible(true)}
-        className="rounded-[16px]"
         style={[
           styles.triggerButton,
           {
@@ -219,9 +215,10 @@ export function AppMenuButton({
           style,
         ]}
         accessibilityLabel="Abrir menu de navegacion"
+        accessibilityRole="button"
       >
         <Ionicons name="menu-outline" size={iconSize} color={colors.text} />
-      </HeroButton>
+      </Pressable>
 
       <Modal
         visible={visible}
@@ -290,11 +287,8 @@ export function AppMenuButton({
               </View>
 
               <View style={styles.headerActions}>
-                <HeroButton
-                  isIconOnly
-                  variant="secondary"
+                <Pressable
                   onPress={closeMenu}
-                  className="rounded-[14px]"
                   style={[
                     styles.closeButton,
                     {
@@ -306,9 +300,10 @@ export function AppMenuButton({
                         : colors.panelRaised,
                     },
                   ]}
+                  accessibilityRole="button"
                 >
                   <Ionicons name="close-outline" size={22} color={colors.text} />
-                </HeroButton>
+                </Pressable>
               </View>
             </View>
 
