@@ -63,3 +63,20 @@ export function rangeOfDates(date: string, days: number): string[] {
   return Array.from({ length: days }, (_, index) => addDays(date, index));
 }
 
+export function formatDateTime(value: string, locale = 'es-UY'): string {
+  return new Date(value).toLocaleString(locale, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+export function formatTime(value: string, locale = 'es-UY'): string {
+  return new Date(value).toLocaleTimeString(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+

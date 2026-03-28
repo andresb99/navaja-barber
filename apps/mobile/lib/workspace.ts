@@ -1,22 +1,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { env } from './env';
-import { supabase } from './supabase';
 import {
   buildAccessibleWorkspaces,
-} from './workspace-catalog';
-import type {
-  StaffWorkspace,
-  WorkspaceMembershipRow,
-  WorkspaceShopRow,
-  WorkspaceStaffRow,
-} from './workspace-catalog';
+  type StaffWorkspace,
+  type WorkspaceMembershipRow,
+  type WorkspaceShopRow,
+  type WorkspaceStaffRow,
+} from '@navaja/shared';
+import { env } from './env';
+import { supabase } from './supabase';
 
 export type {
   StaffWorkspace,
   WorkspaceMembershipRow,
   WorkspaceShopRow,
   WorkspaceStaffRow,
-} from './workspace-catalog';
+} from '@navaja/shared';
 
 const ACTIVE_WORKSPACE_KEY_PREFIX = '@navaja/active-workspace';
 

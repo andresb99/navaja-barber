@@ -1,81 +1,36 @@
 import type { DocumentPickerAsset } from 'expo-document-picker';
 import type {
+  AccountAppointmentItemApi,
+  AdminBarbershopPayload,
+  AdminMembershipNotificationApi,
+  AdminNotificationDigestItemApi,
+  AdminNotificationsSummaryResponse,
+  AdminPaymentNotificationApi,
+  AdminTimeOffNotificationApi,
+  AppAdminSubscriptionItemApi,
   BookingApiResponse,
+  BookingPayload,
+  CourseEnrollmentPayload,
+  DirectJobPayload,
+  MarketplaceSearchIntent,
+  MarketplaceSearchMode,
+  ModelRegistrationPayload,
+  NetworkJobPayload,
+  ReviewInvitePreviewResponse,
+  SubscriptionCheckoutPayload,
   SubscriptionStatus,
   SubscriptionTier,
 } from '@navaja/shared';
 import type { MarketplaceShop } from './marketplace';
 import { env } from './env';
 
-type BookingPayload = {
-  shop_id: string;
-  service_id: string;
-  staff_id: string;
-  start_at: string;
-  source_channel?: 'WEB' | 'MOBILE' | undefined;
-  pay_in_store?: boolean | undefined;
-  customer_name: string;
-  customer_phone: string;
-  customer_email?: string | null | undefined;
-  notes?: string | null | undefined;
-};
-
-type ModelRegistrationPayload = {
-  shop_id?: string | undefined;
-  session_id?: string | undefined;
-  full_name: string;
-  phone: string;
-  email?: string | null | undefined;
-  instagram?: string | null | undefined;
-  preferences: string[];
-  consent_photos_videos: boolean;
-  marketing_opt_in: boolean;
-};
-
-type DirectJobPayload = {
-  shop_id: string;
-  name: string;
-  phone: string;
-  email: string;
-  instagram?: string | null | undefined;
-  experience_years: number;
-  availability: string;
-};
-
-type NetworkJobPayload = Omit<DirectJobPayload, 'shop_id'>;
-type SubscriptionCheckoutPayload = {
-  accessToken: string;
-  shopId: string;
-  targetPlan: 'pro' | 'business';
-  billingMode: 'monthly' | 'annual_installments';
-  returnTo?: string;
-};
-type CourseEnrollmentPayload = {
-  sessionId: string;
-  name: string;
-  phone: string;
-  email: string;
-  accessToken?: string | undefined;
-  returnTo?: string;
-};
-type AdminBarbershopPayload = {
-  shop_id: string;
-  shop_name: string;
-  shop_slug: string;
-  timezone: string;
-  phone?: string | null | undefined;
-  description?: string | null | undefined;
-  location_label?: string | null | undefined;
-  city?: string | null | undefined;
-  region?: string | null | undefined;
-  country_code?: string | null | undefined;
-  latitude?: number | null | undefined;
-  longitude?: number | null | undefined;
-};
-
-type MarketplaceSearchIntent = 'smart' | 'name' | 'area';
-
-export type MarketplaceSearchMode = 'all' | 'name' | 'area' | 'nearby';
+export type { MarketplaceSearchMode } from '@navaja/shared';
+export type { AccountAppointmentItemApi } from '@navaja/shared';
+export type { AdminNotificationDigestItemApi } from '@navaja/shared';
+export type { AdminTimeOffNotificationApi } from '@navaja/shared';
+export type { AdminMembershipNotificationApi } from '@navaja/shared';
+export type { AdminPaymentNotificationApi } from '@navaja/shared';
+export type { AppAdminSubscriptionItemApi } from '@navaja/shared';
 
 interface MarketplaceSearchResponse {
   items: MarketplaceShop[];
@@ -86,89 +41,12 @@ interface MarketplaceViewportResponse {
   items: MarketplaceShop[];
 }
 
-export interface AccountAppointmentItemApi {
-  id: string;
-  shopId: string;
-  customerId: string;
-  staffId: string;
-  startAt: string;
-  status: string;
-  paymentStatus?: string | null;
-  serviceName: string;
-  staffName: string;
-  hasReview: boolean;
-  reviewRating: number | null;
-}
-
 interface AccountAppointmentsResponse {
   items: AccountAppointmentItemApi[];
 }
 
-interface ReviewInvitePreviewResponse {
-  appointmentId: string;
-  staffId: string;
-  staffName: string;
-  serviceName: string;
-  appointmentStartAt: string;
-  expiresAt: string;
-}
-
-export interface AdminNotificationDigestItemApi {
-  id: string;
-  kind: 'time_off' | 'membership' | 'payment';
-  targetId: string;
-  title: string;
-  detail: string;
-  createdAt: string | null;
-  isNew: boolean;
-}
-
-export interface AdminTimeOffNotificationApi {
-  id: string;
-  staffName: string;
-  startAt: string;
-  endAt: string;
-  reason: string;
-  createdAt: string;
-}
-
-export interface AdminMembershipNotificationApi {
-  id: string;
-  profileName: string;
-  role: 'admin' | 'staff';
-  createdAt: string;
-}
-
-export interface AdminPaymentNotificationApi {
-  id: string;
-  intentType: 'booking' | 'subscription' | 'course_enrollment';
-  createdAt: string;
-  customerName: string | null;
-}
-
-interface AdminNotificationsSummaryResponse {
-  pending_count: number;
-  pending_time_off_count: number;
-  pending_membership_count: number;
-  stale_pending_intents: number;
-  pending_time_off_requests: AdminTimeOffNotificationApi[];
-  pending_membership_notifications: AdminMembershipNotificationApi[];
-  pending_payment_notifications: AdminPaymentNotificationApi[];
-  items: AdminNotificationDigestItemApi[];
-}
-
 interface AppAdminStatusResponse {
   is_platform_admin: boolean;
-}
-
-export interface AppAdminSubscriptionItemApi {
-  shopId: string;
-  shopName: string;
-  shopSlug: string;
-  shopStatus: string;
-  plan: SubscriptionTier;
-  status: SubscriptionStatus;
-  currentPeriodEnd: string | null;
 }
 
 interface AppAdminSubscriptionsResponse {

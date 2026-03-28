@@ -1,120 +1,31 @@
-import { calculateBookedMinutes } from '@navaja/shared';
+import {
+  calculateBookedMinutes,
+  calculateTrustedRating,
+  calculateTimeOffMinutes,
+  calculateWorkedMinutes,
+  clampRatio,
+  filterAppointmentsByChannel,
+  getDateRange,
+  getHealthStatus,
+  getRangeDates,
+  getSourceChannelLabel,
+  isOnlineChannel,
+  isWalkInChannel,
+  normalizeSourceChannel,
+} from '@navaja/shared';
+import type {
+  BookingMetricsChannelView,
+  DashboardMetrics,
+  MetricRange,
+  RecentStaffReview,
+  StaffPerformanceDetail,
+  StaffPerformanceMetric,
+  StaffRatingTrendPoint,
+} from '@navaja/shared';
 import { env } from './env';
 import { supabase } from './supabase';
 
-export type MetricRange = 'today' | 'last7' | 'month';
-export type BookingMetricsChannelView = 'ALL' | 'ONLINE_ONLY' | 'WALK_INS_ONLY';
-
-export interface DashboardMetrics {
-  rangeLabel: string;
-  countsByStatus: Record<string, number>;
-  estimatedRevenueCents: number;
-  revenuePerAvailableHourCents: number;
-  averageTicketCents: number;
-  topServices: Array<{ service: string; count: number }>;
-  revenueByStaff: Array<{ staff_id: string; staff: string; revenue_cents: number }>;
-  availableMinutes: number;
-  bookedMinutes: number;
-  occupancyRatio: number;
-  statusSummary: {
-    pendingAppointments: number;
-    confirmedAppointments: number;
-    doneAppointments: number;
-    cancelledAppointments: number;
-    noShowAppointments: number;
-    activeQueueAppointments: number;
-    completionRate: number;
-    cancellationRate: number;
-    noShowRate: number;
-  };
-  capacitySummary: {
-    idleMinutes: number;
-    utilizationGapRatio: number;
-  };
-  dailySeries: Array<{
-    date: string;
-    label: string;
-    appointments: number;
-    doneAppointments: number;
-    revenueCents: number;
-    onlineAppointments: number;
-    walkInAppointments: number;
-  }>;
-  peakHours: Array<{
-    hour: number;
-    label: string;
-    appointments: number;
-  }>;
-  channelMix: Array<{
-    channel: string;
-    label: string;
-    appointments: number;
-    doneAppointments: number;
-    revenueCents: number;
-    share: number;
-  }>;
-  channelBreakdown: {
-    view: BookingMetricsChannelView;
-    totalAppointments: number;
-    onlineAppointments: number;
-    walkInAppointments: number;
-    filteredAppointments: number;
-    onlineShare: number;
-    walkInShare: number;
-  };
-}
-
-export interface StaffPerformanceMetric {
-  staffId: string;
-  staffName: string;
-  totalRevenueCents: number;
-  completedAppointments: number;
-  availableMinutes: number;
-  bookedMinutes: number;
-  serviceMinutes: number;
-  revenuePerAvailableHourCents: number;
-  occupancyRatio: number;
-  staffCancellations: number;
-  customerCancellations: number;
-  adminCancellations: number;
-  systemCancellations: number;
-  totalCancellations: number;
-  noShowAppointments: number;
-  uniqueCustomers: number;
-  repeatCustomers: number;
-  repeatClientRate: number;
-  reviewCount: number;
-  averageRating: number;
-  shopAverageRating: number;
-  trustedRating: number;
-  averageTicketCents: number;
-  cancellationRate: number;
-  health: 'top' | 'healthy' | 'attention';
-  healthLabel: string;
-  healthTone: 'success' | 'warning' | 'danger';
-}
-
-export interface StaffRatingTrendPoint {
-  periodStart: string;
-  averageRating: number;
-  reviewCount: number;
-}
-
-export interface RecentStaffReview {
-  id: string;
-  rating: number;
-  comment: string | null;
-  submittedAt: string;
-  customerName: string;
-}
-
-export interface StaffPerformanceDetail {
-  rangeLabel: string;
-  metric: StaffPerformanceMetric;
-  ratingTrend: StaffRatingTrendPoint[];
-  recentReviews: RecentStaffReview[];
-  insights: string[];
-}
+export type { MetricRange, BookingMetricsChannelView, DashboardMetrics, StaffPerformanceMetric, StaffPerformanceDetail } from '@navaja/shared';
 
 interface AppointmentMetricRow {
   id: string | null;
@@ -148,214 +59,9 @@ interface ReviewMetricRow {
   customers?: { name?: string | null } | null;
 }
 
-function parseTimePart(value: string | number | null | undefined, fallback = 0): number {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
 function parseNumeric(value: number | string | null | undefined): number {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function clampRatio(value: number) {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  if (value < 0) {
-    return 0;
-  }
-  if (value > 1) {
-    return 1;
-  }
-  return value;
-}
-
-function normalizeSourceChannel(value: unknown) {
-  const normalized = String(value || '')
-    .trim()
-    .toUpperCase();
-  return normalized || 'WEB';
-}
-
-function isOnlineChannel(value: unknown) {
-  return normalizeSourceChannel(value) === 'WEB';
-}
-
-function isWalkInChannel(value: unknown) {
-  const channel = normalizeSourceChannel(value);
-  return channel === 'WALK_IN' || channel === 'ADMIN_CREATED';
-}
-
-function filterAppointmentsByChannel<T extends { source_channel?: unknown }>(
-  rows: T[],
-  channelView: BookingMetricsChannelView,
-) {
-  if (channelView === 'ONLINE_ONLY') {
-    return rows.filter((item) => isOnlineChannel(item.source_channel));
-  }
-
-  if (channelView === 'WALK_INS_ONLY') {
-    return rows.filter((item) => isWalkInChannel(item.source_channel));
-  }
-
-  return rows;
-}
-
-function getSourceChannelLabel(value: unknown) {
-  const channel = normalizeSourceChannel(value);
-
-  if (channel === 'WEB') {
-    return 'Web';
-  }
-
-  if (channel === 'WALK_IN') {
-    return 'Walk-in';
-  }
-
-  if (channel === 'ADMIN_CREATED') {
-    return 'Admin';
-  }
-
-  if (channel === 'WHATSAPP') {
-    return 'WhatsApp';
-  }
-
-  if (channel === 'INSTAGRAM') {
-    return 'Instagram';
-  }
-
-  if (channel === 'PHONE') {
-    return 'Telefono';
-  }
-
-  return channel;
-}
-
-function calculateTrustedRating(
-  averageRating: number,
-  reviewCount: number,
-  shopAverageRating: number,
-  minimumReviewWeight = 5,
-) {
-  const v = Math.max(0, reviewCount);
-  const m = Math.max(1, minimumReviewWeight);
-  const r = Math.max(0, averageRating);
-  const c = Math.max(0, shopAverageRating);
-  return Number((((v / (v + m)) * r + (m / (v + m)) * c).toFixed(2)));
-}
-
-function getHealthStatus(metric: {
-  occupancyRatio: number;
-  trustedRating: number;
-  reviewCount: number;
-  staffCancellations: number;
-  totalCancellations: number;
-  completedAppointments: number;
-}): Pick<StaffPerformanceMetric, 'health' | 'healthLabel' | 'healthTone'> {
-  const trackedAppointments = metric.completedAppointments + metric.totalCancellations;
-  const staffCancellationRate =
-    trackedAppointments > 0 ? metric.staffCancellations / trackedAppointments : 0;
-
-  if (
-    metric.occupancyRatio >= 0.8 &&
-    metric.trustedRating >= 4.6 &&
-    staffCancellationRate <= 0.04 &&
-    metric.completedAppointments >= 3
-  ) {
-    return {
-      health: 'top',
-      healthLabel: 'Top',
-      healthTone: 'success',
-    };
-  }
-
-  if (
-    metric.occupancyRatio < 0.55 ||
-    staffCancellationRate > 0.08 ||
-    (metric.reviewCount >= 5 && metric.trustedRating < 4.3)
-  ) {
-    return {
-      health: 'attention',
-      healthLabel: 'Atencion',
-      healthTone: 'danger',
-    };
-  }
-
-  return {
-    health: 'healthy',
-    healthLabel: 'Saludable',
-    healthTone: 'warning',
-  };
-}
-
-function getDateRange(range: MetricRange) {
-  const now = new Date();
-  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const end = new Date(start);
-
-  if (range === 'today') {
-    end.setUTCDate(end.getUTCDate() + 1);
-    return { start, end, label: 'Hoy' };
-  }
-
-  if (range === 'last7') {
-    start.setUTCDate(start.getUTCDate() - 6);
-    end.setUTCDate(end.getUTCDate() + 1);
-    return { start, end, label: 'Ultimos 7 dias' };
-  }
-
-  start.setUTCDate(1);
-  end.setUTCMonth(end.getUTCMonth() + 1);
-  end.setUTCDate(1);
-  return { start, end, label: 'Este mes' };
-}
-
-function getRangeDates(start: Date, end: Date) {
-  const rangeDates: Date[] = [];
-  for (let cursor = new Date(start); cursor < end; cursor = new Date(cursor.getTime() + 24 * 60 * 60 * 1000)) {
-    rangeDates.push(new Date(cursor));
-  }
-  return rangeDates;
-}
-
-function calculateWorkedMinutes(
-  rangeDates: Date[],
-  workingHours: Array<{
-    day_of_week: number | null;
-    start_time: string | null;
-    end_time: string | null;
-  }>,
-) {
-  return workingHours.reduce((acc, item) => {
-    const [startHourRaw, startMinuteRaw] = String(item.start_time)
-      .split(':')
-      .slice(0, 2)
-      .map(Number);
-    const [endHourRaw, endMinuteRaw] = String(item.end_time)
-      .split(':')
-      .slice(0, 2)
-      .map(Number);
-    const startHour = parseTimePart(startHourRaw);
-    const startMinute = parseTimePart(startMinuteRaw);
-    const endHour = parseTimePart(endHourRaw);
-    const endMinute = parseTimePart(endMinuteRaw);
-    const minutes = endHour * 60 + endMinute - (startHour * 60 + startMinute);
-    const matchingDays = rangeDates.filter((date) => date.getUTCDay() === Number(item.day_of_week || 0)).length;
-    return acc + Math.max(0, minutes) * matchingDays;
-  }, 0);
-}
-
-function calculateTimeOffMinutes(
-  timeOff: Array<{
-    start_at: string | null;
-    end_at: string | null;
-  }>,
-) {
-  return timeOff.reduce((acc, item) => {
-    const intervalMinutes = Math.round((new Date(String(item.end_at)).getTime() - new Date(String(item.start_at)).getTime()) / 60000);
-    return acc + Math.max(0, intervalMinutes);
-  }, 0);
 }
 
 function toMonthPeriodStart(value: string) {

@@ -1,28 +1,9 @@
+import type { AppRole, AuthContext, StaffContext } from '@navaja/shared';
+import type { StaffWorkspace } from '@navaja/shared';
 import { supabase } from './supabase';
-import { resolveActiveWorkspaceForUser, type StaffWorkspace } from './workspace';
+import { resolveActiveWorkspaceForUser } from './workspace';
 
-export type AppRole = 'guest' | 'user' | 'staff' | 'admin';
-
-export interface AuthContext {
-  role: AppRole;
-  userId: string | null;
-  email: string | null;
-  staffId: string | null;
-  staffName: string | null;
-  shopId: string | null;
-  shopName: string | null;
-  shopSlug: string | null;
-  workspaces: StaffWorkspace[];
-}
-
-export interface StaffContext {
-  staffId: string | null;
-  name: string;
-  role: 'admin' | 'staff';
-  shopId: string;
-  shopName: string;
-  shopSlug: string | null;
-}
+export type { AppRole, AuthContext, StaffContext } from '@navaja/shared';
 
 function guestAuthContext(): AuthContext {
   return {

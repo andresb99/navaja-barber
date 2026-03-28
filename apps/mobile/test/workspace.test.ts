@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildAccessibleWorkspaces } from '../lib/workspace-catalog';
+import { buildAccessibleWorkspaces } from '@navaja/shared';
 
 describe('mobile workspace catalog', () => {
   it('keeps membership-only admin access visible in mobile', () => {
