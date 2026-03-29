@@ -7,19 +7,37 @@ import {
   marketingCtaClassNames,
 } from '@/components/public/marketing';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildShopHref } from '@/lib/shop-links';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
 import { buildTenantCanonicalHref } from '@/lib/tenant-public-urls';
+import ShopJobsPage, { generateMetadata as generateShopJobsMetadata } from '@/app/jobs/[slug]/page';
 
-export const metadata: Metadata = buildSitePageMetadata({
-  title: 'Trabajo en barberias',
-  description:
-    'Encuentra barberias activas para enviar tu CV directo o dejar tu perfil en la bolsa general del marketplace.',
-  path: '/jobs',
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const routeContext = await getPublicTenantRouteContext();
+  if (routeContext.mode !== 'path' && routeContext.shopSlug) {
+    return generateShopJobsMetadata({
+      params: Promise.resolve({ slug: routeContext.shopSlug }),
+    });
+  }
+
+  return buildSitePageMetadata({
+    title: 'Trabajo en barberias',
+    description:
+      'Encuentra barberias activas para enviar tu CV directo o dejar tu perfil en la bolsa general del marketplace.',
+    path: '/jobs',
+  });
+}
 
 export default async function JobsPage() {
+  const routeContext = await getPublicTenantRouteContext();
+  if (routeContext.mode !== 'path' && routeContext.shopSlug) {
+    return ShopJobsPage({
+      params: Promise.resolve({ slug: routeContext.shopSlug }),
+    });
+  }
+
   const shops = await listMarketplaceShops();
 
   if (!shops.length) {

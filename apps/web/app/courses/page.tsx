@@ -2,9 +2,13 @@ import type { Metadata } from 'next';
 import { CoursesMarketplaceCatalog } from '@/components/public/courses-marketplace-catalog';
 import { MarketingHero, MarketingPanel } from '@/components/public/marketing';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import ShopCoursesPage, {
+  generateMetadata as generateShopCoursesMetadata,
+} from '@/app/shops/[slug]/courses/page';
 
 interface CourseRow {
   id: string;
@@ -17,14 +21,30 @@ interface CourseRow {
   image_url: string | null;
 }
 
-export const metadata: Metadata = buildSitePageMetadata({
-  title: 'Cursos de barberia',
-  description:
-    'Explora cursos, workshops y formacion publicados por barberias activas dentro del marketplace.',
-  path: '/courses',
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const routeContext = await getPublicTenantRouteContext();
+  if (routeContext.mode !== 'path' && routeContext.shopSlug) {
+    return generateShopCoursesMetadata({
+      params: Promise.resolve({ slug: routeContext.shopSlug }),
+    });
+  }
+
+  return buildSitePageMetadata({
+    title: 'Cursos de barberia',
+    description:
+      'Explora cursos, workshops y formacion publicados por barberias activas dentro del marketplace.',
+    path: '/courses',
+  });
+}
 
 export default async function CoursesPage() {
+  const routeContext = await getPublicTenantRouteContext();
+  if (routeContext.mode !== 'path' && routeContext.shopSlug) {
+    return ShopCoursesPage({
+      params: Promise.resolve({ slug: routeContext.shopSlug }),
+    });
+  }
+
   const shops = await listMarketplaceShops();
 
   if (!shops.length) {

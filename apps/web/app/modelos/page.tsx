@@ -7,16 +7,36 @@ import {
   marketingCtaClassNames,
 } from '@/components/public/marketing';
 import { listMarketplaceOpenModelCalls } from '@/lib/modelos';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
+import ShopModelosPage, {
+  generateMetadata as generateShopModelosMetadata,
+} from '@/app/modelos/[slug]/page';
 
-export const metadata: Metadata = buildSitePageMetadata({
-  title: 'Convocatorias para modelos',
-  description:
-    'Revisa convocatorias abiertas para modelos y sesiones academicas publicadas por barberias del marketplace.',
-  path: '/modelos',
-});
+export async function generateMetadata(): Promise<Metadata> {
+  const routeContext = await getPublicTenantRouteContext();
+  if (routeContext.mode !== 'path' && routeContext.shopSlug) {
+    return generateShopModelosMetadata({
+      params: Promise.resolve({ slug: routeContext.shopSlug }),
+    });
+  }
+
+  return buildSitePageMetadata({
+    title: 'Convocatorias para modelos',
+    description:
+      'Revisa convocatorias abiertas para modelos y sesiones academicas publicadas por barberias del marketplace.',
+    path: '/modelos',
+  });
+}
 
 export default async function ModelosLandingPage() {
+  const routeContext = await getPublicTenantRouteContext();
+  if (routeContext.mode !== 'path' && routeContext.shopSlug) {
+    return ShopModelosPage({
+      params: Promise.resolve({ slug: routeContext.shopSlug }),
+    });
+  }
+
   const openCalls = await listMarketplaceOpenModelCalls();
 
   return (

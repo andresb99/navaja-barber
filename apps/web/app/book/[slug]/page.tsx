@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BookingFlow } from '@/components/public/booking-flow';
-import { buildTenantPublicHref, buildTenantRootHref } from '@/lib/shop-links';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
+import { buildTenantPublicHref } from '@/lib/shop-links';
 import { getShopMercadoPagoAccountSummary } from '@/lib/shop-payment-accounts.server';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
@@ -35,6 +36,7 @@ export async function generateMetadata({ params }: ShopBookPageProps): Promise<M
 export default async function ShopBookPage({ params }: ShopBookPageProps) {
   const { slug } = await params;
   const shop = await getMarketplaceShopBySlug(slug);
+  const routeContext = await getPublicTenantRouteContext();
 
   if (!shop) {
     notFound();
@@ -113,7 +115,7 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
   const supportsOnlinePayment = Boolean(
     paymentAccount?.isActive && paymentAccount.status === 'connected',
   );
-  const profileHref = buildTenantRootHref(shop.slug);
+  const profileHref = buildTenantPublicHref(shop.slug, routeContext.mode);
 
   if (!hasActiveServices || !hasActiveStaff) {
     const emptyTitle = !hasActiveServices

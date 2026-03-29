@@ -2,23 +2,47 @@ import type { Metadata } from 'next';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
 import { ModelRegistrationForm } from '@/components/public/model-registration-form';
 import { listMarketplaceOpenModelCalls } from '@/lib/modelos';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
 import { Container } from '@/components/heroui/container';
+import ShopModelRegistrationPage, {
+  generateMetadata as generateShopModelRegistrationMetadata,
+} from '@/app/modelos/[slug]/registro/page';
 
 interface ModelRegistrationPageProps {
   searchParams: Promise<{ session_id?: string }>;
 }
 
-export const metadata: Metadata = buildSitePageMetadata({
-  title: 'Registro de modelos',
-  description:
-    'Crea tu perfil para postularte a futuras convocatorias y sesiones academicas del marketplace.',
-  path: '/modelos/registro',
-  noIndex: true,
-});
+export async function generateMetadata({
+  searchParams,
+}: ModelRegistrationPageProps): Promise<Metadata> {
+  const routeContext = await getPublicTenantRouteContext();
+  if (routeContext.mode !== 'path' && routeContext.shopSlug) {
+    return generateShopModelRegistrationMetadata({
+      params: Promise.resolve({ slug: routeContext.shopSlug }),
+      searchParams,
+    });
+  }
+
+  return buildSitePageMetadata({
+    title: 'Registro de modelos',
+    description:
+      'Crea tu perfil para postularte a futuras convocatorias y sesiones academicas del marketplace.',
+    path: '/modelos/registro',
+    noIndex: true,
+  });
+}
 
 export default async function ModelRegistrationPage({ searchParams }: ModelRegistrationPageProps) {
+  const routeContext = await getPublicTenantRouteContext();
+  if (routeContext.mode !== 'path' && routeContext.shopSlug) {
+    return ShopModelRegistrationPage({
+      params: Promise.resolve({ slug: routeContext.shopSlug }),
+      searchParams,
+    });
+  }
+
   const [shops, openCalls, params] = await Promise.all([
     listMarketplaceShops(),
     listMarketplaceOpenModelCalls(),

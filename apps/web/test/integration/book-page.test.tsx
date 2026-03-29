@@ -7,6 +7,30 @@ describe('BookPage', () => {
     vi.clearAllMocks();
   });
 
+  it('renders the tenant booking page when the request is scoped to a tenant host', async () => {
+    const tenantBookPage = vi.fn(async () => <div>Tenant booking page</div>);
+
+    vi.doMock('@/lib/public-tenant-context', () => ({
+      getPublicTenantRouteContext: vi.fn().mockResolvedValue({
+        shopId: '11111111-1111-1111-1111-111111111111',
+        shopSlug: 'navaja-centro',
+        mode: 'platform_subdomain',
+      }),
+    }));
+    vi.doMock('@/app/book/[slug]/page', () => ({
+      default: tenantBookPage,
+      generateMetadata: vi.fn(),
+    }));
+
+    const { default: BookPage } = await import('@/app/book/page');
+    render(await BookPage());
+
+    expect(screen.getByText('Tenant booking page')).toBeInTheDocument();
+    expect(tenantBookPage).toHaveBeenCalledWith({
+      params: expect.any(Promise),
+    });
+  });
+
   it('renders shop cards when marketplace shops are available', async () => {
     const shops = [
       ...mockMarketplaceShops,
@@ -23,6 +47,13 @@ describe('BookPage', () => {
       },
     ];
 
+    vi.doMock('@/lib/public-tenant-context', () => ({
+      getPublicTenantRouteContext: vi.fn().mockResolvedValue({
+        shopId: null,
+        shopSlug: null,
+        mode: 'path',
+      }),
+    }));
     vi.doMock('@/lib/shops', () => ({
       listMarketplaceShops: vi.fn().mockResolvedValue(shops),
     }));
@@ -40,7 +71,9 @@ describe('BookPage', () => {
       'href',
       '/book/navaja-centro',
     );
-    const interiorCard = screen.getByRole('heading', { name: 'Navaja Interior' }).closest('article');
+    const interiorCard = screen
+      .getByRole('heading', { name: 'Navaja Interior' })
+      .closest('article');
 
     expect(interiorCard).not.toBeNull();
     expect(within(interiorCard as HTMLElement).getByText('Uruguay')).toBeInTheDocument();
@@ -53,6 +86,13 @@ describe('BookPage', () => {
   });
 
   it('renders the empty state when no marketplace shops exist', async () => {
+    vi.doMock('@/lib/public-tenant-context', () => ({
+      getPublicTenantRouteContext: vi.fn().mockResolvedValue({
+        shopId: null,
+        shopSlug: null,
+        mode: 'path',
+      }),
+    }));
     vi.doMock('@/lib/shops', () => ({
       listMarketplaceShops: vi.fn().mockResolvedValue([]),
     }));

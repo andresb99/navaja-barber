@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { JobsForm } from '@/components/public/jobs-form';
-import { buildTenantRootHref } from '@/lib/shop-links';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
+import { buildTenantPublicHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 import { Container } from '@/components/heroui/container';
@@ -30,6 +31,7 @@ export async function generateMetadata({ params }: ShopJobsPageProps): Promise<M
 export default async function ShopJobsPage({ params }: ShopJobsPageProps) {
   const { slug } = await params;
   const shop = await getMarketplaceShopBySlug(slug);
+  const routeContext = await getPublicTenantRouteContext();
 
   if (!shop) {
     notFound();
@@ -37,7 +39,10 @@ export default async function ShopJobsPage({ params }: ShopJobsPageProps) {
 
   return (
     <section className="space-y-6">
-      <ShopPageBreadcrumb shopName={shop.name} shopHref={buildTenantRootHref(shop.slug)} />
+      <ShopPageBreadcrumb
+        shopName={shop.name}
+        shopHref={buildTenantPublicHref(shop.slug, routeContext.mode)}
+      />
       <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
         <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div>

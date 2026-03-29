@@ -37,7 +37,41 @@ describe('CoursesPage', () => {
     vi.clearAllMocks();
   });
 
+  it('renders the tenant courses page when the request is scoped to a tenant host', async () => {
+    const tenantCoursesPage = vi.fn(async () => <div>Tenant courses page</div>);
+
+    vi.doMock('@/lib/public-tenant-context', () => ({
+      getPublicTenantRouteContext: vi.fn().mockResolvedValue({
+        shopId: primaryShop.id,
+        shopSlug: primaryShop.slug,
+        mode: 'platform_subdomain',
+      }),
+    }));
+    vi.doMock('@/lib/supabase/admin', () => ({
+      createSupabaseAdminClient: vi.fn(),
+    }));
+    vi.doMock('@/app/shops/[slug]/courses/page', () => ({
+      default: tenantCoursesPage,
+      generateMetadata: vi.fn(),
+    }));
+
+    const { default: CoursesPage } = await import('@/app/courses/page');
+    render(await CoursesPage());
+
+    expect(screen.getByText('Tenant courses page')).toBeInTheDocument();
+    expect(tenantCoursesPage).toHaveBeenCalledWith({
+      params: expect.any(Promise),
+    });
+  });
+
   it('renders the marketplace empty state when there are no active shops', async () => {
+    vi.doMock('@/lib/public-tenant-context', () => ({
+      getPublicTenantRouteContext: vi.fn().mockResolvedValue({
+        shopId: null,
+        shopSlug: null,
+        mode: 'path',
+      }),
+    }));
     vi.doMock('@/lib/shops', () => ({
       listMarketplaceShops: vi.fn().mockResolvedValue([]),
     }));
@@ -56,6 +90,13 @@ describe('CoursesPage', () => {
   });
 
   it('renders the no-courses state when no active course rows are returned', async () => {
+    vi.doMock('@/lib/public-tenant-context', () => ({
+      getPublicTenantRouteContext: vi.fn().mockResolvedValue({
+        shopId: null,
+        shopSlug: null,
+        mode: 'path',
+      }),
+    }));
     vi.doMock('@/lib/shops', () => ({
       listMarketplaceShops: vi.fn().mockResolvedValue([primaryShop]),
     }));
@@ -70,6 +111,13 @@ describe('CoursesPage', () => {
   });
 
   it('renders global course cards and filters out rows for unknown shops', async () => {
+    vi.doMock('@/lib/public-tenant-context', () => ({
+      getPublicTenantRouteContext: vi.fn().mockResolvedValue({
+        shopId: null,
+        shopSlug: null,
+        mode: 'path',
+      }),
+    }));
     vi.doMock('@/lib/shops', () => ({
       listMarketplaceShops: vi.fn().mockResolvedValue([primaryShop]),
     }));

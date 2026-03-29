@@ -6,7 +6,41 @@ describe('ModelosLandingPage', () => {
     vi.clearAllMocks();
   });
 
+  it('renders the tenant modelos page when the request is scoped to a tenant host', async () => {
+    const tenantModelosPage = vi.fn(async () => <div>Tenant modelos page</div>);
+
+    vi.doMock('@/lib/public-tenant-context', () => ({
+      getPublicTenantRouteContext: vi.fn().mockResolvedValue({
+        shopId: '11111111-1111-1111-1111-111111111111',
+        shopSlug: 'navaja-centro',
+        mode: 'platform_subdomain',
+      }),
+    }));
+    vi.doMock('@/lib/modelos', () => ({
+      listMarketplaceOpenModelCalls: vi.fn(),
+    }));
+    vi.doMock('@/app/modelos/[slug]/page', () => ({
+      default: tenantModelosPage,
+      generateMetadata: vi.fn(),
+    }));
+
+    const { default: ModelosLandingPage } = await import('@/app/modelos/page');
+    render(await ModelosLandingPage());
+
+    expect(screen.getByText('Tenant modelos page')).toBeInTheDocument();
+    expect(tenantModelosPage).toHaveBeenCalledWith({
+      params: expect.any(Promise),
+    });
+  });
+
   it('renders the no-open-calls state when there are no active model sessions', async () => {
+    vi.doMock('@/lib/public-tenant-context', () => ({
+      getPublicTenantRouteContext: vi.fn().mockResolvedValue({
+        shopId: null,
+        shopSlug: null,
+        mode: 'path',
+      }),
+    }));
     vi.doMock('@/lib/modelos', () => ({
       listMarketplaceOpenModelCalls: vi.fn().mockResolvedValue([]),
     }));
@@ -22,6 +56,13 @@ describe('ModelosLandingPage', () => {
   });
 
   it('renders marketplace calls with all compensation and fallback variants', async () => {
+    vi.doMock('@/lib/public-tenant-context', () => ({
+      getPublicTenantRouteContext: vi.fn().mockResolvedValue({
+        shopId: null,
+        shopSlug: null,
+        mode: 'path',
+      }),
+    }));
     vi.doMock('@/lib/modelos', () => ({
       listMarketplaceOpenModelCalls: vi.fn().mockResolvedValue([
         {

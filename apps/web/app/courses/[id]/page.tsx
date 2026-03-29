@@ -3,10 +3,12 @@ import { notFound } from 'next/navigation';
 import { formatCurrency } from '@navaja/shared';
 import { CourseEnrollmentForm } from '@/components/public/course-enrollment-form';
 import { CourseReviewsSection } from '@/components/public/course-reviews-section';
+import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
-import { buildTenantRootHref } from '@/lib/shop-links';
+import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
+import { buildTenantPublicHref } from '@/lib/shop-links';
 import { Container } from '@/components/heroui/container';
 import { ShopPageBreadcrumb } from '@/components/public/shop-page-breadcrumb';
 
@@ -17,15 +19,40 @@ interface CourseDetailsPageProps {
 export async function generateMetadata({ params }: CourseDetailsPageProps): Promise<Metadata> {
   const { id } = await params;
   const supabase = createSupabaseAdminClient();
+  const routeContext = await getPublicTenantRouteContext();
 
   const { data: course } = await supabase
     .from('courses')
-    .select('title, description, is_active')
+    .select('id, shop_id, title, description, is_active')
     .eq('id', id)
     .maybeSingle();
 
   if (!course || !course.is_active) {
     return {};
+  }
+
+  if (routeContext.mode !== 'path') {
+    const { data: shop } = await supabase
+      .from('shops')
+      .select('name, slug, status')
+      .eq('id', String(course.shop_id))
+      .eq('status', 'active')
+      .maybeSingle();
+
+    if (!shop || routeContext.shopSlug !== String(shop.slug)) {
+      return {};
+    }
+
+    return buildTenantPageMetadata({
+      shop: {
+        slug: String(shop.slug),
+        status: String(shop.status),
+      },
+      title: String(course.title),
+      description: String(course.description || 'Detalle del curso.'),
+      section: 'courses',
+      courseId: id,
+    });
   }
 
   return buildSitePageMetadata({
@@ -38,10 +65,13 @@ export async function generateMetadata({ params }: CourseDetailsPageProps): Prom
 export default async function CourseDetailsPage({ params }: CourseDetailsPageProps) {
   const { id } = await params;
   const supabase = createSupabaseAdminClient();
+  const routeContext = await getPublicTenantRouteContext();
 
   const { data: course } = await supabase
     .from('courses')
-    .select('id, shop_id, title, description, price_cents, duration_hours, level, is_active, image_url')
+    .select(
+      'id, shop_id, title, description, price_cents, duration_hours, level, is_active, image_url',
+    )
     .eq('id', id)
     .maybeSingle();
 
@@ -57,6 +87,10 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
     .maybeSingle();
 
   if (!shop) {
+    notFound();
+  }
+
+  if (routeContext.mode !== 'path' && routeContext.shopSlug !== String(shop.slug)) {
     notFound();
   }
 
@@ -152,26 +186,26 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
     submitted_at: String(r.submitted_at),
   }));
 
-  const imageUrl = typeof course.image_url === 'string' && course.image_url ? course.image_url : null;
+  const imageUrl =
+    typeof course.image_url === 'string' && course.image_url ? course.image_url : null;
   const durationHours = Number(course.duration_hours || 0);
+  const academyHref = buildTenantPublicHref(shop.slug, routeContext.mode, 'courses');
 
   return (
     <section className="space-y-10">
-      <ShopPageBreadcrumb shopName={shop.name} shopHref={buildTenantRootHref(shop.slug, 'courses')} />
+      <ShopPageBreadcrumb shopName={shop.name} shopHref={academyHref} />
       {/* ── Hero ─────────────────────────────────── */}
       <Container variant="hero" className="soft-panel overflow-hidden p-0">
         {imageUrl ? (
           <div className="relative h-48 w-full md:h-64">
-            <img
-              src={imageUrl}
-              alt={String(course.title)}
-              className="h-full w-full object-cover"
-            />
+            <img src={imageUrl} alt={String(course.title)} className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/90 via-zinc-950/40 to-transparent" />
           </div>
         ) : null}
 
-        <div className={`relative z-10 flex flex-col gap-6 px-6 py-8 md:px-10 md:py-10 lg:flex-row lg:items-end lg:justify-between ${imageUrl ? '-mt-20' : ''}`}>
+        <div
+          className={`relative z-10 flex flex-col gap-6 px-6 py-8 md:px-10 md:py-10 lg:flex-row lg:items-end lg:justify-between ${imageUrl ? '-mt-20' : ''}`}
+        >
           <div className="max-w-2xl">
             <p className="hero-eyebrow">Curso · {shop.name}</p>
             <h1 className="mt-3 font-[family-name:var(--font-heading)] text-4xl font-bold leading-tight text-ink dark:text-slate-100 md:text-[2.75rem]">
@@ -215,10 +249,8 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
 
       {/* ── Main content: two-column on desktop ── */}
       <div className="grid gap-10 lg:grid-cols-[1fr_380px] lg:items-start">
-
         {/* Left: Description + Sessions */}
         <div className="space-y-8">
-
           {/* Description */}
           {course.description ? (
             <div className="space-y-3">
@@ -303,10 +335,7 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
                     : `${seatsLeft} cupos disponibles`;
 
               return (
-                <div
-                  key={String(session.id)}
-                  className="soft-panel rounded-[1.8rem] p-6 md:p-8"
-                >
+                <div key={String(session.id)} className="soft-panel rounded-[1.8rem] p-6 md:p-8">
                   {/* Date / location */}
                   <div className="space-y-3">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500">
@@ -328,12 +357,22 @@ export default async function CourseDetailsPage({ params }: CourseDetailsPagePro
                           stroke="currentColor"
                           strokeWidth={2}
                         >
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
+                          />
                         </svg>
                         <span>{String(session.location)}</span>
                       </div>
-                      <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${seatsPillClass}`}>
+                      <span
+                        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${seatsPillClass}`}
+                      >
                         {seatsLabel}
                       </span>
                     </div>
