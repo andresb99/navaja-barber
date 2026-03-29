@@ -48,14 +48,13 @@ function isInteractiveTarget(target: EventTarget | null) {
 }
 
 export function BookShopCard({ shop }: BookShopCardProps) {
-  const marketplaceProfileHref = buildShopHref(shop.slug);
   const tenantProfileHref = buildTenantCanonicalHref(shop, 'profile');
   const bookingHref = buildShopHref(shop.slug, 'book');
   const pointerStartRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
   const pointerMovedRef = useRef(false);
 
   const navigateToProfile = () => {
-    window.location.assign(marketplaceProfileHref);
+    window.location.assign(tenantProfileHref);
   };
 
   const handleCardClickCapture = (event: { target: EventTarget | null }) => {
@@ -73,7 +72,11 @@ export function BookShopCard({ shop }: BookShopCardProps) {
     navigateToProfile();
   };
 
-  const handleCardKeyDown = (event: { key: string; target: EventTarget | null; preventDefault(): void }) => {
+  const handleCardKeyDown = (event: {
+    key: string;
+    target: EventTarget | null;
+    preventDefault(): void;
+  }) => {
     if (event.key !== 'Enter' && event.key !== ' ') {
       return;
     }
@@ -106,7 +109,11 @@ export function BookShopCard({ shop }: BookShopCardProps) {
     pointerMovedRef.current = false;
   };
 
-  const handlePointerMoveCapture = (event: { pointerId: number; clientX: number; clientY: number }) => {
+  const handlePointerMoveCapture = (event: {
+    pointerId: number;
+    clientX: number;
+    clientY: number;
+  }) => {
     const pointerStart = pointerStartRef.current;
     if (!pointerStart || pointerStart.pointerId !== event.pointerId || pointerMovedRef.current) {
       return;
@@ -183,7 +190,8 @@ export function BookShopCard({ shop }: BookShopCardProps) {
           <div className="flex w-full flex-col gap-3">
             <div className="min-w-0">
               <p className="line-clamp-2 text-sm text-white/82">
-                {shop.description || 'Servicios, staff y horarios cargados dentro de su propio workspace.'}
+                {shop.description ||
+                  'Servicios, staff y horarios cargados dentro de su propio workspace.'}
               </p>
             </div>
 
@@ -196,7 +204,9 @@ export function BookShopCard({ shop }: BookShopCardProps) {
                 {shop.activeServiceCount} servicios
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1">
-                {shop.minServicePriceCents !== null ? `Desde ${formatCurrency(shop.minServicePriceCents)}` : 'Sin precio'}
+                {shop.minServicePriceCents !== null
+                  ? `Desde ${formatCurrency(shop.minServicePriceCents)}`
+                  : 'Sin precio'}
               </span>
               {shop.isVerified && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/14 px-2.5 py-1 text-emerald-100">

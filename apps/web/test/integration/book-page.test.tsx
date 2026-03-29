@@ -67,6 +67,10 @@ describe('BookPage', () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Navaja Centro' })).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Ver perfil' })[0]).toHaveAttribute(
+      'href',
+      'http://navaja-centro.localhost:3000/',
+    );
     expect(screen.getAllByRole('link', { name: 'Agendar aqui' })[0]).toHaveAttribute(
       'href',
       '/book/navaja-centro',

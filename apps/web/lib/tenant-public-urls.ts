@@ -15,13 +15,7 @@ export interface TenantPublicAddress {
   subscriptionStatus?: string | null;
 }
 
-type TenantPublicSection =
-  | 'profile'
-  | 'book'
-  | 'jobs'
-  | 'courses'
-  | 'modelos'
-  | 'modelos_registro';
+type TenantPublicSection = 'profile' | 'book' | 'jobs' | 'courses' | 'modelos' | 'modelos_registro';
 
 function getNormalizedAppUrl() {
   const rawAppUrl = getPlatformAppUrl();
@@ -143,7 +137,31 @@ function shouldUseCanonicalHostUrls(requestOrigin: string | null | undefined) {
     return false;
   }
 
-  return !isVercelPreviewHost(originUrl.hostname, getPlatformHostConfig());
+  const platformHostConfig = getPlatformHostConfig();
+  if (!isVercelPreviewHost(originUrl.hostname, platformHostConfig)) {
+    return true;
+  }
+
+  const normalizedHostname = originUrl.hostname.trim().toLowerCase();
+  const normalizedAppHost = String(platformHostConfig.appHost || '')
+    .trim()
+    .toLowerCase();
+  const normalizedRootDomain = String(platformHostConfig.rootDomain || '')
+    .trim()
+    .toLowerCase();
+
+  if (normalizedAppHost && normalizedHostname === normalizedAppHost) {
+    return true;
+  }
+
+  if (!normalizedRootDomain) {
+    return false;
+  }
+
+  return (
+    normalizedHostname === normalizedRootDomain ||
+    normalizedHostname.endsWith(`.${normalizedRootDomain}`)
+  );
 }
 
 function buildOriginWithHost(hostname: string, requestOrigin: string | null | undefined) {
@@ -276,7 +294,10 @@ export function buildCanonicalRedirectUrlFromLegacyPath(options: {
     return null;
   }
 
-  const canonicalPath = resolveCanonicalPublicPathFromLegacyPath(options.pathname, options.shop.slug);
+  const canonicalPath = resolveCanonicalPublicPathFromLegacyPath(
+    options.pathname,
+    options.shop.slug,
+  );
   if (!canonicalPath) {
     return null;
   }

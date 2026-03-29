@@ -165,7 +165,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
                 Postularme
               </Link>
               <Link
-                href={buildTenantCanonicalHref({ slug: call.shop_slug }, 'modelos')}
+                href={buildTenantCanonicalHref({ slug: call.shop_slug }, 'profile')}
                 className="action-secondary rounded-2xl px-4 py-2 text-sm font-semibold"
               >
                 Ver barberia

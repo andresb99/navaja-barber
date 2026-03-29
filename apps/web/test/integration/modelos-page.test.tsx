@@ -137,7 +137,7 @@ describe('ModelosLandingPage', () => {
     );
     expect(screen.getAllByRole('link', { name: 'Ver barberia' })[2]).toHaveAttribute(
       'href',
-      'http://navaja-prado.localhost:3000/modelos',
+      'http://navaja-prado.localhost:3000/',
     );
   });
 });

@@ -69,6 +69,25 @@ describe('tenant public urls', () => {
     ).toBe('/book/navaja');
   });
 
+  it('keeps tenant host urls enabled on the configured vercel production domain', () => {
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://beardly.vercel.app');
+    vi.stubEnv('NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN', 'beardly.vercel.app');
+
+    expect(
+      buildTenantCanonicalHref(
+        {
+          slug: 'navaja',
+          plan: 'free',
+          subscriptionStatus: 'active',
+        },
+        'profile',
+        {
+          requestOrigin: 'https://beardly.vercel.app',
+        },
+      ),
+    ).toBe('https://navaja.beardly.vercel.app/');
+  });
+
   it('redirects legacy public shop paths to the canonical host url', () => {
     vi.stubEnv('NEXT_PUBLIC_APP_URL', 'http://localhost:3000');
     vi.stubEnv('NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN', 'localhost');
