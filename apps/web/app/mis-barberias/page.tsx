@@ -1,13 +1,16 @@
 import { Button } from '@heroui/button';
 import { Card, CardBody } from '@heroui/card';
 import { Chip } from '@heroui/chip';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import {
   WorkspaceFavoriteProvider,
   WorkspaceFavoriteToggle,
 } from '@/components/workspace-favorite-toggle';
 import { requireAuthenticated } from '@/lib/auth';
-import { buildAdminHref, buildStaffHref } from '@/lib/workspace-routes';
+import { getRequestOriginFromHeaders } from '@/lib/request-origin';
+import { buildTenantCanonicalHref } from '@/lib/tenant-public-urls';
+import { buildTenantAdminHref, buildTenantStaffHref } from '@/lib/workspace-routes';
 import {
   getAccessibleWorkspacesForCurrentUser,
   getFavoriteWorkspaceForCurrentUser,
@@ -32,10 +35,14 @@ const shopStatusLabel = {
   suspended: 'Suspendida',
 } as const;
 
-function getWorkspacePrimaryHref(shopSlug: string, accessRole: keyof typeof accessRoleLabel) {
+function getWorkspacePrimaryHref(
+  shopSlug: string,
+  accessRole: keyof typeof accessRoleLabel,
+  requestOrigin: string,
+) {
   return accessRole === 'staff'
-    ? buildStaffHref('/staff', shopSlug)
-    : buildAdminHref('/admin', shopSlug);
+    ? buildTenantStaffHref('/staff', shopSlug, undefined, { requestOrigin })
+    : buildTenantAdminHref('/admin', shopSlug, undefined, { requestOrigin });
 }
 
 function getWorkspacePrimaryLabel(accessRole: keyof typeof accessRoleLabel) {
@@ -43,6 +50,7 @@ function getWorkspacePrimaryLabel(accessRole: keyof typeof accessRoleLabel) {
 }
 
 export default async function MyBarbershopsPage({ searchParams }: MyBarbershopsPageProps) {
+  const requestOrigin = getRequestOriginFromHeaders(await headers());
   await requireAuthenticated('/mis-barberias');
   const [{ error }, catalog, selectedWorkspace, favoriteWorkspace] = await Promise.all([
     searchParams,
@@ -54,7 +62,7 @@ export default async function MyBarbershopsPage({ searchParams }: MyBarbershopsP
   const workspaces = catalog?.workspaces || [];
   const singleWorkspace = workspaces.length === 1 ? workspaces[0] : null;
   if (singleWorkspace) {
-    redirect(getWorkspacePrimaryHref(singleWorkspace.shopSlug, singleWorkspace.accessRole));
+    redirect(getWorkspacePrimaryHref(singleWorkspace.shopSlug, singleWorkspace.accessRole, requestOrigin));
   }
 
   return (
@@ -207,7 +215,11 @@ export default async function MyBarbershopsPage({ searchParams }: MyBarbershopsP
                     <div className="mt-4 flex flex-wrap gap-2">
                       <Button
                         as="a"
-                        href={getWorkspacePrimaryHref(workspace.shopSlug, workspace.accessRole)}
+                        href={getWorkspacePrimaryHref(
+                          workspace.shopSlug,
+                          workspace.accessRole,
+                          requestOrigin,
+                        )}
                         color="primary"
                         size="sm"
                         className="px-4 text-sm font-semibold"
@@ -218,7 +230,9 @@ export default async function MyBarbershopsPage({ searchParams }: MyBarbershopsP
                       {workspace.staffId && workspace.accessRole !== 'staff' ? (
                         <Button
                           as="a"
-                          href={buildStaffHref('/staff', workspace.shopSlug)}
+                          href={buildTenantStaffHref('/staff', workspace.shopSlug, undefined, {
+                            requestOrigin,
+                          })}
                           variant="flat"
                           size="sm"
                           className="px-4 text-sm font-semibold text-slate-700 dark:text-slate-200"
@@ -229,7 +243,7 @@ export default async function MyBarbershopsPage({ searchParams }: MyBarbershopsP
 
                       <Button
                         as="a"
-                        href={`/shops/${workspace.shopSlug}`}
+                        href={buildTenantCanonicalHref({ slug: workspace.shopSlug }, 'profile')}
                         variant="flat"
                         size="sm"
                         className="px-4 text-sm font-semibold text-slate-700 dark:text-slate-200"

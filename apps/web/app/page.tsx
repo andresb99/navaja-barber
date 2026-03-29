@@ -1,20 +1,23 @@
+import { headers } from 'next/headers';
 import NextLink from 'next/link';
 import { redirect } from 'next/navigation';
 import { Link } from '@heroui/link';
+import { getRequestOriginFromHeaders } from '@/lib/request-origin';
 import {
   getAccessibleWorkspacesForCurrentUser,
   getFavoriteWorkspaceForCurrentUser,
   type WorkspaceSummary,
 } from '@/lib/workspaces';
-import { buildAdminHref, buildStaffHref } from '@/lib/workspace-routes';
+import { buildTenantAdminHref, buildTenantStaffHref } from '@/lib/workspace-routes';
 
-function getWorkspaceLandingPath(workspace: WorkspaceSummary) {
+function getWorkspaceLandingPath(workspace: WorkspaceSummary, requestOrigin: string) {
   return workspace.accessRole === 'staff'
-    ? buildStaffHref('/staff', workspace.shopSlug)
-    : buildAdminHref('/admin', workspace.shopSlug);
+    ? buildTenantStaffHref('/staff', workspace.shopSlug, undefined, { requestOrigin })
+    : buildTenantAdminHref('/admin', workspace.shopSlug, undefined, { requestOrigin });
 }
 
 export default async function HomePage() {
+  const requestOrigin = getRequestOriginFromHeaders(await headers());
   const catalog = await getAccessibleWorkspacesForCurrentUser();
 
   if (catalog) {
@@ -27,13 +30,13 @@ export default async function HomePage() {
     if (workspaces.length === 1) {
       const firstWorkspace = workspaces[0];
       if (firstWorkspace) {
-        redirect(getWorkspaceLandingPath(firstWorkspace));
+        redirect(getWorkspaceLandingPath(firstWorkspace, requestOrigin));
       }
     }
 
     const favoriteWorkspace = await getFavoriteWorkspaceForCurrentUser();
     if (favoriteWorkspace) {
-      redirect(getWorkspaceLandingPath(favoriteWorkspace));
+      redirect(getWorkspaceLandingPath(favoriteWorkspace, requestOrigin));
     }
 
     redirect('/mis-barberias');

@@ -6,10 +6,10 @@ import { AdminBarbershopSettingsForm } from '@/components/admin/barbershop-setti
 import { CustomDomainSettingsForm } from '@/components/admin/custom-domain-settings-form';
 import { MercadoPagoSettingsPanel } from '@/components/admin/mercadopago-settings-panel';
 import { requireAdmin } from '@/lib/auth';
-import { buildShopHref, buildTenantRootHref } from '@/lib/shop-links';
 import { getShopMercadoPagoAccountSummary } from '@/lib/shop-payment-accounts.server';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { type SubscriptionTier } from '@/lib/subscription-plans';
+import { buildTenantCanonicalHref } from '@/lib/tenant-public-urls';
 import { buildAdminHref } from '@/lib/workspace-routes';
 import { Container } from '@/components/heroui/container';
 
@@ -53,6 +53,7 @@ interface GalleryRow {
 interface SubscriptionRow {
   shop_id: string;
   plan: SubscriptionTier;
+  status: string | null;
 }
 
 type PanelMessageTone = 'success' | 'warning' | 'error';
@@ -262,8 +263,16 @@ export default async function AdminBarbershopSettingsPage({
   const subscriptionData = (subscription as SubscriptionRow | null) || null;
   const currentPlan = resolveCurrentPlan(subscriptionData?.plan);
   const paymentsMessage = resolvePaymentsMessage(params.payments);
-  const publicProfileHref = buildShopHref(shopData?.slug || ctx.shopSlug);
-  const publicBookingsHref = buildShopHref(shopData?.slug || ctx.shopSlug, 'book');
+  const publicTenantAddress = {
+    slug: shopData?.slug || ctx.shopSlug,
+    customDomain: shopData?.custom_domain || null,
+    domainStatus: shopData?.domain_status || null,
+    plan: subscriptionData?.plan || null,
+    subscriptionStatus: subscriptionData?.status || null,
+  };
+  const publicProfileHref = buildTenantCanonicalHref(publicTenantAddress, 'profile');
+  const publicBookingsHref = buildTenantCanonicalHref(publicTenantAddress, 'book');
+  const publicTenantRootHref = buildTenantCanonicalHref(publicTenantAddress, 'profile');
   const profileScore = getProfileCompletionScore({
     description: shopData?.description || null,
     location: locationData,
@@ -510,12 +519,12 @@ export default async function AdminBarbershopSettingsPage({
                       Tu subdominio
                     </p>
                     <p className="mt-1 break-all text-sm font-semibold text-ink dark:text-slate-100">
-                      {buildTenantRootHref(shopData?.slug || ctx.shopSlug)}
+                      {publicTenantRootHref}
                     </p>
                   </div>
                   <Button
                     as="a"
-                    href={buildTenantRootHref(shopData?.slug || ctx.shopSlug)}
+                    href={publicTenantRootHref}
                     target="_blank"
                     rel="noreferrer"
                     variant="flat"

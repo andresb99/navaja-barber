@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createSupabaseAdminClient } from './supabase/admin';
 import { createSupabaseServerClient } from './supabase/server';
@@ -95,6 +96,42 @@ function resolveScopedWorkspace(
   return fallbackWorkspace || null;
 }
 
+async function getTenantScopedAuthOptions(): Promise<AuthScopeOptions | undefined> {
+  const headerStore = await headers();
+  const requestedShopId = headerStore.get('x-navaja-tenant-shop-id')?.trim() || undefined;
+  const requestedShopSlug =
+    headerStore.get('x-navaja-tenant-shop-slug')?.trim().toLowerCase() || undefined;
+
+  if (!requestedShopId && !requestedShopSlug) {
+    return undefined;
+  }
+
+  return {
+    shopId: requestedShopId,
+    shopSlug: requestedShopSlug,
+  };
+}
+
+function mergeScopeOptions(
+  explicitOptions?: AuthScopeOptions,
+  tenantOptions?: AuthScopeOptions,
+): AuthScopeOptions | undefined {
+  const shopId = tenantOptions?.shopId?.trim() || explicitOptions?.shopId?.trim() || undefined;
+  const shopSlug =
+    tenantOptions?.shopSlug?.trim().toLowerCase() ||
+    explicitOptions?.shopSlug?.trim().toLowerCase() ||
+    undefined;
+
+  if (!shopId && !shopSlug) {
+    return undefined;
+  }
+
+  return {
+    shopId,
+    shopSlug,
+  };
+}
+
 export async function getCurrentAuthContext(options?: AuthScopeOptions): Promise<AuthContext> {
   const supabase = await createSupabaseServerClient();
   const {
@@ -116,12 +153,17 @@ export async function getCurrentAuthContext(options?: AuthScopeOptions): Promise
     };
   }
 
-  const [catalog, selectedWorkspace] = await Promise.all([
+  const [catalog, selectedWorkspace, tenantScopedOptions] = await Promise.all([
     getAccessibleWorkspacesForCurrentUser(),
     getSelectedWorkspaceForCurrentUser(),
+    getTenantScopedAuthOptions(),
   ]);
   const workspaces = catalog?.workspaces || [];
-  const scopedWorkspace = resolveScopedWorkspace(workspaces, options, selectedWorkspace);
+  const scopedWorkspace = resolveScopedWorkspace(
+    workspaces,
+    mergeScopeOptions(options, tenantScopedOptions),
+    selectedWorkspace,
+  );
   const selectedRole = resolveSelectedWorkspaceRole(scopedWorkspace);
 
   if (!workspaces.length && !selectedWorkspace) {

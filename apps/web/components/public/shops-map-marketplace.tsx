@@ -28,10 +28,11 @@ import {
   X,
 } from 'lucide-react';
 import { formatCurrency } from '@navaja/shared';
+import { buildShopHref } from '@/lib/shop-links';
 import type { MarketplaceSearchMode, MarketplaceShop } from '@/lib/shops';
 import { cn } from '@/lib/cn';
-import { buildShopHref, buildTenantRootHref } from '@/lib/shop-links';
 import { MediaShowcase } from '@/components/public/media-showcase';
+import { buildTenantCanonicalHref } from '@/lib/tenant-public-urls';
 import {
   type GoogleAutocompleteService,
   type GoogleGeocoder,
@@ -554,7 +555,7 @@ const MarketplaceShopCard = memo(
 
             <div className="flex flex-wrap gap-2">
               <a
-                href={buildTenantRootHref(shop.slug)}
+                href={buildTenantCanonicalHref(shop, 'profile')}
                 className="action-secondary rounded-full px-4 py-2 text-sm font-semibold"
                 onClick={(event) => event.stopPropagation()}
               >
@@ -2653,7 +2654,7 @@ export function ShopsMapMarketplace({ initialShops = [] }: ShopsMapMarketplacePr
 
                     <div className="flex flex-wrap gap-2">
                       <a
-                        href={buildTenantRootHref(mapPreviewShop.slug)}
+                        href={buildTenantCanonicalHref(mapPreviewShop, 'profile')}
                         className="action-secondary rounded-full px-4 py-2 text-sm font-semibold"
                         onClick={(event) => event.stopPropagation()}
                       >

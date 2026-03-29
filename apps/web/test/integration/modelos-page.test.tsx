@@ -92,11 +92,11 @@ describe('ModelosLandingPage', () => {
     expect(screen.getByText('Sin notas publicas.')).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'Postularme' })[0]).toHaveAttribute(
       'href',
-      '/modelos/registro?session_id=session-1',
+      '/modelos/navaja-centro/registro?session_id=session-1',
     );
     expect(screen.getAllByRole('link', { name: 'Ver barberia' })[2]).toHaveAttribute(
       'href',
-      '/shops/navaja-prado/modelos',
+      'http://navaja-prado.localhost:3000/modelos',
     );
   });
 });

@@ -15,7 +15,7 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { buildShopHref } from '@/lib/shop-links';
+import { buildTenantCanonicalHref } from '@/lib/tenant-public-urls';
 import { buildAdminHref } from '@/lib/workspace-routes';
 
 const MAX_RECOMMENDED_SHOP_IMAGES = 3;
@@ -232,8 +232,12 @@ export function AdminBarbershopSettingsForm({
   const remainingSlots = Math.max(MAX_SHOP_IMAGES - totalImages, 0);
   const resolvedShopName = shopName.trim() || 'Tu barberia';
   const resolvedSlug = slugify(shopSlug || shopName);
-  const publicProfileHref = resolvedSlug ? buildShopHref(resolvedSlug) : '/shops';
-  const publicBookingHref = resolvedSlug ? buildShopHref(resolvedSlug, 'book') : '/shops';
+  const publicProfileHref = resolvedSlug
+    ? buildTenantCanonicalHref({ slug: resolvedSlug }, 'profile')
+    : '/shops';
+  const publicBookingHref = resolvedSlug
+    ? buildTenantCanonicalHref({ slug: resolvedSlug }, 'book')
+    : '/shops';
   const locationSummary = [locationLabel.trim(), city.trim(), region.trim(), countryCode.trim()]
     .filter(Boolean)
     .join(' - ');

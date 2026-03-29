@@ -24,7 +24,9 @@ test('filters the marketplace list down to a matching shop', async ({ page }) =>
   await page.getByRole('button', { name: 'Buscar' }).first().click();
 
   await expect(page.getByRole('heading', { name: 'Navaja Pocitos' }).first()).toBeVisible();
-  await expect(page.locator('a[href="/shops/navaja-pocitos/book"]').first()).toBeVisible();
+  await expect(
+    page.locator('a[href="/book/navaja-pocitos"]').first(),
+  ).toBeVisible();
 });
 
 test('renders the booking marketplace hub with deterministic mock data', async ({ page }) => {
@@ -37,7 +39,7 @@ test('renders the booking marketplace hub with deterministic mock data', async (
   ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Agendar aqui' }).first()).toHaveAttribute(
     'href',
-    '/shops/navaja-centro/book',
+    '/book/navaja-centro',
   );
 });
 
@@ -52,7 +54,7 @@ test('renders the marketplace jobs route with deterministic mock data', async ({
   await expect(page.getByRole('heading', { name: 'Navaja Centro' }).first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Enviar CV directo' }).first()).toHaveAttribute(
     'href',
-    '/shops/navaja-centro/jobs',
+    '/jobs/navaja-centro',
   );
 });
 

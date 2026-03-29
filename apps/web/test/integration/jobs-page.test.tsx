@@ -58,7 +58,7 @@ describe('JobsPage', () => {
     );
     expect(screen.getAllByRole('link', { name: 'Ver barberia' })[1]).toHaveAttribute(
       'href',
-      '/shops/navaja-pocitos',
+      'http://navaja-pocitos.localhost:3000/',
     );
   });
 });

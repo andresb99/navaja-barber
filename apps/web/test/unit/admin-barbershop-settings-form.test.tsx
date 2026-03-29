@@ -46,11 +46,11 @@ describe('AdminBarbershopSettingsForm', () => {
     expect(screen.getByText(/Vista previa/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ver perfil' })).toHaveAttribute(
       'href',
-      '/shops/navaja-club',
+      'http://navaja-club.localhost:3000/',
     );
     expect(screen.getByRole('button', { name: 'Ver reservas' })).toHaveAttribute(
       'href',
-      '/book/navaja-club',
+      'http://navaja-club.localhost:3000/book',
     );
   });
 
@@ -63,11 +63,11 @@ describe('AdminBarbershopSettingsForm', () => {
 
     expect(screen.getByRole('button', { name: 'Ver perfil' })).toHaveAttribute(
       'href',
-      '/shops/nueva-barberia',
+      'http://nueva-barberia.localhost:3000/',
     );
     expect(screen.getByRole('button', { name: 'Ver reservas' })).toHaveAttribute(
       'href',
-      '/book/nueva-barberia',
+      'http://nueva-barberia.localhost:3000/book',
     );
   });
 });

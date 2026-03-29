@@ -1,3 +1,6 @@
+import { normalizeShopSlug } from '@/lib/shop-links';
+import { getPlatformAppUrl, getPlatformHostConfig } from '@/lib/platform-host-config';
+
 type QueryParamPrimitive = string | number | boolean;
 type QueryParamValue =
   | QueryParamPrimitive
@@ -64,4 +67,76 @@ export function buildStaffHref(
   query?: Record<string, QueryParamValue>,
 ) {
   return buildWorkspaceHref(pathname, shopSlug, query);
+}
+
+function getOriginForTenantWorkspace(requestOrigin?: string | null) {
+  const normalizedOrigin = String(requestOrigin || '').trim() || getPlatformAppUrl() || '';
+  if (!normalizedOrigin) {
+    return null;
+  }
+
+  try {
+    const originUrl = new URL(normalizedOrigin);
+    if (originUrl.hostname === '0.0.0.0') {
+      originUrl.hostname = 'localhost';
+    }
+
+    return originUrl;
+  } catch {
+    return null;
+  }
+}
+
+function buildTenantWorkspaceOrigin(shopSlug: string, requestOrigin?: string | null) {
+  const normalizedShopSlug = normalizeShopSlug(shopSlug);
+  const originUrl = getOriginForTenantWorkspace(requestOrigin);
+  const { rootDomain } = getPlatformHostConfig();
+
+  if (!normalizedShopSlug || !originUrl || !rootDomain) {
+    return null;
+  }
+
+  return `${originUrl.protocol}//${normalizedShopSlug}.${rootDomain}${originUrl.port ? `:${originUrl.port}` : ''}`;
+}
+
+export function buildTenantWorkspaceHref(
+  pathname: string,
+  shopSlug?: string | null,
+  query?: Record<string, QueryParamValue>,
+  options?: {
+    requestOrigin?: string | null;
+  },
+) {
+  if (!shopSlug) {
+    return buildAppHref(pathname, query);
+  }
+
+  const tenantOrigin = buildTenantWorkspaceOrigin(shopSlug, options?.requestOrigin ?? null);
+  if (!tenantOrigin) {
+    return buildWorkspaceHref(pathname, shopSlug, query);
+  }
+
+  return new URL(buildAppHref(pathname, query), `${tenantOrigin}/`).toString();
+}
+
+export function buildTenantAdminHref(
+  pathname: string,
+  shopSlug?: string | null,
+  query?: Record<string, QueryParamValue>,
+  options?: {
+    requestOrigin?: string | null;
+  },
+) {
+  return buildTenantWorkspaceHref(pathname, shopSlug, query, options);
+}
+
+export function buildTenantStaffHref(
+  pathname: string,
+  shopSlug?: string | null,
+  query?: Record<string, QueryParamValue>,
+  options?: {
+    requestOrigin?: string | null;
+  },
+) {
+  return buildTenantWorkspaceHref(pathname, shopSlug, query, options);
 }

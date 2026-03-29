@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BookingFlow } from '@/components/public/booking-flow';
-import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildTenantPublicHref, buildTenantRootHref } from '@/lib/shop-links';
 import { getShopMercadoPagoAccountSummary } from '@/lib/shop-payment-accounts.server';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
@@ -36,7 +35,6 @@ export async function generateMetadata({ params }: ShopBookPageProps): Promise<M
 export default async function ShopBookPage({ params }: ShopBookPageProps) {
   const { slug } = await params;
   const shop = await getMarketplaceShopBySlug(slug);
-  const routeContext = await getPublicTenantRouteContext();
 
   if (!shop) {
     notFound();

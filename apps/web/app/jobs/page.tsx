@@ -10,6 +10,7 @@ import { PublicSectionEmptyState } from '@/components/public/public-section-empt
 import { buildShopHref } from '@/lib/shop-links';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
+import { buildTenantCanonicalHref } from '@/lib/tenant-public-urls';
 
 export const metadata: Metadata = buildSitePageMetadata({
   title: 'Trabajo en barberias',
@@ -88,7 +89,7 @@ export default async function JobsPage() {
                   Enviar CV directo
                 </Link>
                 <Link
-                  href={buildShopHref(shop.slug)}
+                  href={buildTenantCanonicalHref(shop, 'profile')}
                   className={marketingCtaClassNames.panelSecondary}
                 >
                   Ver barberia

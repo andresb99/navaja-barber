@@ -8,13 +8,18 @@ import {
   WORKSPACE_COOKIE_MAX_AGE_SECONDS,
   WORKSPACE_COOKIE_NAME,
 } from '@/lib/workspace-cookie';
-import { buildAdminHref, buildStaffHref } from '@/lib/workspace-routes';
+import { getRequestOrigin } from '@/lib/request-origin';
 import { sanitizeText } from '@/lib/sanitize';
+import { buildTenantAdminHref, buildTenantStaffHref } from '@/lib/workspace-routes';
 
-function resolveDestination(workspace: WorkspaceSummary, requestedTarget: string | null) {
+function resolveDestination(
+  workspace: WorkspaceSummary,
+  requestedTarget: string | null,
+  requestOrigin: string,
+) {
   if (requestedTarget === 'staff') {
     return workspace.staffId
-      ? buildStaffHref('/staff', workspace.shopSlug)
+      ? buildTenantStaffHref('/staff', workspace.shopSlug, undefined, { requestOrigin })
       : '/mis-barberias?error=Ese%20workspace%20no%20tiene%20vista%20de%20staff.';
   }
 
@@ -23,15 +28,19 @@ function resolveDestination(workspace: WorkspaceSummary, requestedTarget: string
       return '/mis-barberias?error=Ese%20workspace%20solo%20tiene%20acceso%20de%20staff.';
     }
 
-    return buildAdminHref('/admin', workspace.shopSlug);
+    return buildTenantAdminHref('/admin', workspace.shopSlug, undefined, { requestOrigin });
   }
 
   return workspace.accessRole === 'staff'
-    ? buildStaffHref('/staff', workspace.shopSlug)
-    : buildAdminHref('/admin', workspace.shopSlug);
+    ? buildTenantStaffHref('/staff', workspace.shopSlug, undefined, { requestOrigin })
+    : buildTenantAdminHref('/admin', workspace.shopSlug, undefined, { requestOrigin });
 }
 
 function buildRedirectUrl(request: NextRequest, destination: string) {
+  if (/^https?:\/\//i.test(destination)) {
+    return new URL(destination);
+  }
+
   const normalizedDestination = destination.startsWith('/') ? destination : `/${destination}`;
   const destinationUrl = new URL(normalizedDestination, 'http://localhost');
   const protocol =
@@ -67,7 +76,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL('/mis-barberias?error=No%20pudimos%20seleccionar%20esa%20barberia.', request.url));
   }
 
-  const destination = resolveDestination(workspace, target ?? null);
+  const destination = resolveDestination(workspace, target ?? null, getRequestOrigin(request));
   const response = NextResponse.redirect(buildRedirectUrl(request, destination));
   response.cookies.set(WORKSPACE_COOKIE_NAME, workspace.shopId, {
     path: '/',

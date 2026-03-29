@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { formatCurrency } from '@navaja/shared';
 import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
+import { getRequestOriginFromHeaders } from '@/lib/request-origin';
 import { buildTenantPublicHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
+import { buildCanonicalRedirectUrlFromLegacyPath } from '@/lib/tenant-public-urls';
 import { Container } from '@/components/heroui/container';
 
 interface ShopProfilePageProps {
@@ -37,6 +40,18 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
 
   if (!shop) {
     notFound();
+  }
+
+  if (routeContext.mode === 'path') {
+    const headerStore = await headers();
+    const canonicalRedirectUrl = buildCanonicalRedirectUrlFromLegacyPath({
+      pathname: `/shops/${shop.slug}`,
+      requestOrigin: getRequestOriginFromHeaders(headerStore),
+      shop,
+    });
+    if (canonicalRedirectUrl) {
+      redirect(canonicalRedirectUrl);
+    }
   }
 
   const supabase = createSupabaseAdminClient();

@@ -1,4 +1,8 @@
-import { normalizeHostPattern, type PlatformHostConfig } from '@/lib/custom-domains';
+import {
+  isLocalDevelopmentHost,
+  normalizeHostPattern,
+  type PlatformHostConfig,
+} from '@/lib/custom-domains';
 
 export function getPlatformAppUrl() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -16,9 +20,10 @@ function getHostFromAppUrl() {
 
 export function getPlatformHostConfig(): PlatformHostConfig {
   const appHost = normalizeHostPattern(getHostFromAppUrl());
+  const fallbackRootDomain = appHost && isLocalDevelopmentHost(appHost) ? 'localhost' : appHost;
   const rootDomain =
     normalizeHostPattern(process.env.NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN || '') ||
-    normalizeHostPattern(appHost ? appHost.replace(/^www\./, '') : '');
+    normalizeHostPattern(fallbackRootDomain ? fallbackRootDomain.replace(/^www\./, '') : '');
 
   return {
     appHost,

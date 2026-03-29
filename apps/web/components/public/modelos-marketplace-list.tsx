@@ -6,8 +6,9 @@ import { formatCurrency } from '@navaja/shared';
 import { Button } from '@heroui/button';
 import { SelectItem } from '@heroui/select';
 import { SurfaceSelect } from '@/components/heroui/surface-select';
+import { buildTenantModelRegistrationHref } from '@/lib/shop-links';
 import type { MarketplaceOpenModelCall } from '@/lib/modelos';
-import { buildTenantRootHref } from '@/lib/shop-links';
+import { buildTenantCanonicalHref } from '@/lib/tenant-public-urls';
 
 interface ModelosMarketplaceListProps {
   calls: MarketplaceOpenModelCall[];
@@ -158,13 +159,13 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
 
             <div className="mt-4 flex flex-wrap gap-3">
               <Link
-                href={`/modelos/registro?session_id=${encodeURIComponent(call.session_id)}`}
+                href={buildTenantModelRegistrationHref(call.shop_slug, 'path', call.session_id)}
                 className="action-primary rounded-2xl px-4 py-2 text-sm font-semibold"
               >
                 Postularme
               </Link>
               <Link
-                href={buildTenantRootHref(call.shop_slug, 'modelos')}
+                href={buildTenantCanonicalHref({ slug: call.shop_slug }, 'modelos')}
                 className="action-secondary rounded-2xl px-4 py-2 text-sm font-semibold"
               >
                 Ver barberia
