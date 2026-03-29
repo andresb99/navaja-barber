@@ -69,7 +69,7 @@ describe('tenant public urls', () => {
     ).toBe('/book/navaja');
   });
 
-  it('keeps tenant host urls enabled on the configured vercel production domain', () => {
+  it('keeps the legacy shop path on vercel production domains until wildcard tenants exist', () => {
     vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://beardly.vercel.app');
     vi.stubEnv('NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN', 'beardly.vercel.app');
 
@@ -85,7 +85,25 @@ describe('tenant public urls', () => {
           requestOrigin: 'https://beardly.vercel.app',
         },
       ),
-    ).toBe('https://navaja.beardly.vercel.app/');
+    ).toBe('/shops/navaja');
+  });
+
+  it('does not redirect legacy public shop paths to tenant hosts on vercel production domains', () => {
+    vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://beardly.vercel.app');
+    vi.stubEnv('NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN', 'beardly.vercel.app');
+
+    expect(
+      buildCanonicalRedirectUrlFromLegacyPath({
+        pathname: '/shops/navaja/book',
+        search: '?from=marketplace',
+        requestOrigin: 'https://beardly.vercel.app',
+        shop: {
+          slug: 'navaja',
+          plan: 'free',
+          subscriptionStatus: 'active',
+        },
+      }),
+    ).toBeNull();
   });
 
   it('redirects legacy public shop paths to the canonical host url', () => {

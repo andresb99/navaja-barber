@@ -137,31 +137,7 @@ function shouldUseCanonicalHostUrls(requestOrigin: string | null | undefined) {
     return false;
   }
 
-  const platformHostConfig = getPlatformHostConfig();
-  if (!isVercelPreviewHost(originUrl.hostname, platformHostConfig)) {
-    return true;
-  }
-
-  const normalizedHostname = originUrl.hostname.trim().toLowerCase();
-  const normalizedAppHost = String(platformHostConfig.appHost || '')
-    .trim()
-    .toLowerCase();
-  const normalizedRootDomain = String(platformHostConfig.rootDomain || '')
-    .trim()
-    .toLowerCase();
-
-  if (normalizedAppHost && normalizedHostname === normalizedAppHost) {
-    return true;
-  }
-
-  if (!normalizedRootDomain) {
-    return false;
-  }
-
-  return (
-    normalizedHostname === normalizedRootDomain ||
-    normalizedHostname.endsWith(`.${normalizedRootDomain}`)
-  );
+  return !isVercelPreviewHost(originUrl.hostname, getPlatformHostConfig());
 }
 
 function buildOriginWithHost(hostname: string, requestOrigin: string | null | undefined) {
