@@ -10,7 +10,7 @@ import {
 } from '@/lib/workspaces';
 import { buildTenantAdminHref, buildTenantStaffHref } from '@/lib/workspace-routes';
 
-function getWorkspaceLandingPath(workspace: WorkspaceSummary, requestOrigin: string) {
+function getWorkspaceLandingPath(workspace: WorkspaceSummary, requestOrigin: string | null) {
   return workspace.accessRole === 'staff'
     ? buildTenantStaffHref('/staff', workspace.shopSlug, undefined, { requestOrigin })
     : buildTenantAdminHref('/admin', workspace.shopSlug, undefined, { requestOrigin });

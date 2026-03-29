@@ -38,7 +38,7 @@ const shopStatusLabel = {
 function getWorkspacePrimaryHref(
   shopSlug: string,
   accessRole: keyof typeof accessRoleLabel,
-  requestOrigin: string,
+  requestOrigin: string | null,
 ) {
   return accessRole === 'staff'
     ? buildTenantStaffHref('/staff', shopSlug, undefined, { requestOrigin })
