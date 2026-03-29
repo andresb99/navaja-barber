@@ -18,11 +18,21 @@ function getHostFromAppUrl() {
   }
 }
 
+/** Apex for subdomain suffix checks (e.g. `tenant.${rootDomain}`); `www.` is not a valid parent for labels. */
+function normalizeExplicitRootDomain(value: string | null | undefined) {
+  const normalized = normalizeHostPattern(value || '');
+  if (!normalized) {
+    return null;
+  }
+
+  return normalized.replace(/^www\./, '') || normalized;
+}
+
 export function getPlatformHostConfig(): PlatformHostConfig {
   const appHost = normalizeHostPattern(getHostFromAppUrl());
   const fallbackRootDomain = appHost && isLocalDevelopmentHost(appHost) ? 'localhost' : appHost;
   const rootDomain =
-    normalizeHostPattern(process.env.NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN || '') ||
+    normalizeExplicitRootDomain(process.env.NEXT_PUBLIC_PLATFORM_ROOT_DOMAIN) ||
     normalizeHostPattern(fallbackRootDomain ? fallbackRootDomain.replace(/^www\./, '') : '');
 
   return {

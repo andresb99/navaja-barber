@@ -1,3 +1,5 @@
+// Next.js 16+: use this file as the network proxy (tenant headers + rewrites). Do not add a
+// separate `middleware.ts` — the build fails if both exist.
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { applyApiRateLimitHeaders, enforceApiRateLimit } from '@/lib/api-rate-limit';
