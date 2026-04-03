@@ -614,473 +614,473 @@ export function SiteHeader({ initialState = DEFAULT_SITE_HEADER_STATE }: SiteHea
   return (
     <>
       <Navbar
-      isBlurred={false}
-      maxWidth="full"
-      height="76px"
-      isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
-      className="bg-transparent px-0 pt-0"
-      classNames={{
-        wrapper: cn(
+        isBlurred={false}
+        maxWidth="full"
+        height="76px"
+        isMenuOpen={isMenuOpen}
+        onMenuOpenChange={setIsMenuOpen}
+        className="bg-transparent px-0 pt-0"
+        classNames={{
+          wrapper: cn(
             'glass-nav mx-auto w-full max-w-none px-4 md:px-6 lg:px-8',
             '![background:linear-gradient(135deg,rgb(255_255_255/0.82),rgb(250_248_245/0.76)),var(--brand-panel-aura-soft)] ![backdrop-filter:blur(16px)] ![-webkit-backdrop-filter:blur(16px)]',
             'dark:![background:rgba(9,9,11,0.65)] dark:![backdrop-filter:blur(16px)] dark:![-webkit-backdrop-filter:blur(16px)]'
           ),
-        menu: cn(
+          menu: cn(
             'mobile-nav-menu',
             '![background:linear-gradient(155deg,rgb(255_255_255/0.94),rgb(250_248_245/0.88)),var(--brand-panel-aura-strong)] ![backdrop-filter:blur(16px)] ![-webkit-backdrop-filter:blur(16px)]',
             'dark:![background:rgba(9,9,11,0.92)] dark:![backdrop-filter:blur(20px)] dark:![-webkit-backdrop-filter:blur(20px)]',
             usesCondensedAdminNavigation && 'admin-nav-menu-hidden'
           ),
-      }}
-    >
-      <NavbarContent justify="start">
-        <NavbarBrand className="h-full max-w-[10rem] min-w-0 items-center py-0 min-[360px]:max-w-[11rem] lg:w-[14rem] lg:max-w-none">
-          <NextLink
-            href={contextualHomeHref}
-            className="flex h-full min-w-0 items-center no-underline lg:w-full"
-          >
-            <HeaderBrand />
-          </NextLink>
-        </NavbarBrand>
-      </NavbarContent>
+        }}
+      >
+        <NavbarContent justify="start">
+          <NavbarBrand className="h-full max-w-[10rem] min-w-0 items-center py-0 min-[360px]:max-w-[11rem] lg:w-[14rem] lg:max-w-none">
+            <NextLink
+              href={contextualHomeHref}
+              className="flex h-full min-w-0 items-center no-underline lg:w-full"
+            >
+              <HeaderBrand />
+            </NextLink>
+          </NavbarBrand>
+        </NavbarContent>
 
-      <NavbarContent className={inlineHeaderContentClassName} justify="center">
-        {activeHeaderLinks.map((item) => {
-          const isActive = item.href === activeHeaderHref;
-          return (
-            <NavbarItem key={item.key} isActive={isActive}>
-              <NextLink
-                href={item.href}
-                aria-current={isActive ? 'page' : undefined}
-                className="nav-link-pill no-underline"
-                data-active={String(isActive)}
+        <NavbarContent className={inlineHeaderContentClassName} justify="center">
+          {activeHeaderLinks.map((item) => {
+            const isActive = item.href === activeHeaderHref;
+            return (
+              <NavbarItem key={item.key} isActive={isActive}>
+                <NextLink
+                  href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  className="nav-link-pill no-underline"
+                  data-active={String(isActive)}
+                >
+                  {item.label}
+                </NextLink>
+              </NavbarItem>
+            );
+          })}
+        </NavbarContent>
+
+        <NavbarContent justify="end">
+          {/* Back to Beardly platform — shown only on tenant subdomains/custom domains */}
+          {navigationContext === 'public' &&
+            (publicTenantMode === 'platform_subdomain' || publicTenantMode === 'custom_domain') ? (
+            <NavbarItem className={headerActionVisibilityClassName}>
+              <Button
+                as="a"
+                href={buildPlatformUrl('/shops')}
+                variant="ghost"
+                size="sm"
+                className={actionButtonClassName}
+                startContent={<ArrowLeft className="h-3.5 w-3.5" />}
               >
-                {item.label}
+                Beardly
+              </Button>
+            </NavbarItem>
+          ) : null}
+
+          {!loading && role === 'guest' ? (
+            <NavbarItem className={headerActionVisibilityClassName}>
+              <Button
+                as={NextLink}
+                href="/login"
+                variant="ghost"
+                size="sm"
+                className={actionButtonClassName}
+              >
+                Ingresar
+              </Button>
+            </NavbarItem>
+          ) : null}
+
+          {!loading && hasWorkspaceAccess && navigationContext === 'public' ? (
+            <NavbarItem className={headerActionVisibilityClassName}>
+              <Button
+                as={NextLink}
+                href={workspaceHubHref}
+                variant="ghost"
+                size="sm"
+                className={actionButtonClassName}
+              >
+                <Store className="h-4 w-4" />
+                <span>{workspaceHubLabel}</span>
+              </Button>
+            </NavbarItem>
+          ) : null}
+
+          {!loading && role !== 'guest' ? (
+            <NavbarItem className={headerActionVisibilityClassName}>
+              <Button
+                as={NextLink}
+                href={subscriptionHref}
+                variant="ghost"
+                size="sm"
+                className={subscriptionButtonClassName}
+                startContent={<CreditCard className="h-4 w-4" />}
+              >
+                Suscripcion
+              </Button>
+            </NavbarItem>
+          ) : null}
+
+          {!loading && role !== 'guest' && navigationContext === 'public' ? (
+            <NavbarItem className={headerActionVisibilityClassName}>
+              <Button
+                as={NextLink}
+                href="/onboarding/barbershop"
+                variant="ghost"
+                size="sm"
+                className={actionButtonClassName}
+              >
+                <Store className="h-4 w-4" />
+                <span>Crear barberia</span>
+              </Button>
+            </NavbarItem>
+          ) : null}
+
+          {activeWorkspaceLabel && hasMultipleWorkspaces && navigationContext !== 'public' ? (
+            <NavbarItem className={headerActionVisibilityClassName}>
+              <NextLink href={workspaceHubHref} className={workspaceSwitcherClassName}>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-white/65 bg-white/60 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
+                  <Store className="h-4 w-4" />
+                </span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink/60 dark:text-white/85">
+                    {navigationContext === 'admin' ? 'Admin activo' : 'Staff activo'}
+                  </span>
+                  <span className="max-w-[9rem] truncate text-sm font-semibold leading-tight text-ink dark:text-slate-100">
+                    {activeWorkspaceLabel}
+                  </span>
+                </span>
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-ink/65 transition-colors group-hover:text-ink dark:text-white/85 dark:group-hover:text-white">
+                  Cambiar
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </span>
               </NextLink>
             </NavbarItem>
-          );
-        })}
-      </NavbarContent>
+          ) : null}
 
-      <NavbarContent justify="end">
-        {/* Back to Beardly platform — shown only on tenant subdomains/custom domains */}
-        {navigationContext === 'public' &&
-        (publicTenantMode === 'platform_subdomain' || publicTenantMode === 'custom_domain') ? (
-          <NavbarItem className={headerActionVisibilityClassName}>
-            <Button
-              as="a"
-              href={buildPlatformUrl('/shops')}
-              variant="ghost"
-              size="sm"
-              className={actionButtonClassName}
-              startContent={<ArrowLeft className="h-3.5 w-3.5" />}
-            >
-              Beardly
-            </Button>
-          </NavbarItem>
-        ) : null}
-
-        {!loading && role === 'guest' ? (
-          <NavbarItem className={headerActionVisibilityClassName}>
-            <Button
-              as={NextLink}
-              href="/login"
-              variant="ghost"
-              size="sm"
-              className={actionButtonClassName}
-            >
-              Ingresar
-            </Button>
-          </NavbarItem>
-        ) : null}
-
-        {!loading && hasWorkspaceAccess && navigationContext === 'public' ? (
-          <NavbarItem className={headerActionVisibilityClassName}>
-            <Button
-              as={NextLink}
-              href={workspaceHubHref}
-              variant="ghost"
-              size="sm"
-              className={actionButtonClassName}
-            >
-              <Store className="h-4 w-4" />
-              <span>{workspaceHubLabel}</span>
-            </Button>
-          </NavbarItem>
-        ) : null}
-
-        {!loading && role !== 'guest' ? (
-          <NavbarItem className={headerActionVisibilityClassName}>
-            <Button
-              as={NextLink}
-              href={subscriptionHref}
-              variant="ghost"
-              size="sm"
-              className={subscriptionButtonClassName}
-              startContent={<CreditCard className="h-4 w-4" />}
-            >
-              Suscripcion
-            </Button>
-          </NavbarItem>
-        ) : null}
-
-        {!loading && role !== 'guest' && navigationContext === 'public' ? (
-          <NavbarItem className={headerActionVisibilityClassName}>
-            <Button
-              as={NextLink}
-              href="/onboarding/barbershop"
-              variant="ghost"
-              size="sm"
-              className={actionButtonClassName}
-            >
-              <Store className="h-4 w-4" />
-              <span>Crear barberia</span>
-            </Button>
-          </NavbarItem>
-        ) : null}
-
-        {activeWorkspaceLabel && hasMultipleWorkspaces && navigationContext !== 'public' ? (
-          <NavbarItem className={headerActionVisibilityClassName}>
-            <NextLink href={workspaceHubHref} className={workspaceSwitcherClassName}>
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-white/65 bg-white/60 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,0.45)] dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100">
-                <Store className="h-4 w-4" />
-              </span>
-              <span className="flex min-w-0 flex-col">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-ink/60 dark:text-white/85">
-                  {navigationContext === 'admin' ? 'Admin activo' : 'Staff activo'}
-                </span>
-                <span className="max-w-[9rem] truncate text-sm font-semibold leading-tight text-ink dark:text-slate-100">
-                  {activeWorkspaceLabel}
-                </span>
-              </span>
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-ink/65 transition-colors group-hover:text-ink dark:text-white/85 dark:group-hover:text-white">
-                Cambiar
-                <ChevronRight className="h-3.5 w-3.5" />
-              </span>
-            </NextLink>
-          </NavbarItem>
-        ) : null}
-
-        {!loading && role !== 'guest' && navigationContext === 'admin' ? (
-          <NavbarItem className="overflow-visible">
-            <Popover placement="bottom-end" offset={14}>
-              <PopoverTrigger>
-                <Button
-                  type="button"
-                  isIconOnly
-                  variant="light"
-                  aria-label="Abrir notificaciones"
-                  title="Notificaciones"
-                  className={notificationTriggerClassName}
-                >
-                  <Bell className="h-4 w-4" />
-                  {effectiveNotificationCount > 0 ? (
-                    <span className="pointer-events-none absolute right-0.5 top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold leading-none text-black">
-                      {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
-                    </span>
-                  ) : null}
-                </Button>
-              </PopoverTrigger>
-
-              <PopoverContent className={notificationDropdownContentClassName}>
-                <div className="flex max-h-[32rem] w-full flex-col">
-                  <div className="border-b border-slate-200/80 px-4 py-4 dark:border-white/10">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                          Notificaciones
-                        </p>
-                        <h3 className="mt-1 text-base font-semibold text-ink dark:text-slate-100">
-                          Local activo
-                        </h3>
-                      </div>
-                      <span
-                        className="meta-chip"
-                        data-tone={effectiveNotificationCount > 0 ? 'warning' : 'success'}
-                      >
-                        {effectiveNotificationCount > 0
-                          ? `${effectiveNotificationCount} activas`
-                          : 'Todo al dia'}
+          {!loading && role !== 'guest' && navigationContext === 'admin' ? (
+            <NavbarItem className="overflow-visible">
+              <Popover placement="bottom-end" offset={14}>
+                <PopoverTrigger>
+                  <Button
+                    type="button"
+                    isIconOnly
+                    variant="light"
+                    aria-label="Abrir notificaciones"
+                    title="Notificaciones"
+                    className={notificationTriggerClassName}
+                  >
+                    <Bell className="h-4 w-4" />
+                    {effectiveNotificationCount > 0 ? (
+                      <span className="pointer-events-none absolute right-0.5 top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold leading-none text-black">
+                        {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
                       </span>
-                    </div>
-                    <p className="mt-2 text-xs leading-6 text-slate-600 dark:text-slate-300">
-                      {effectiveNotificationCount > adminNotificationItems.length &&
-                      adminNotificationItems.length > 0
-                        ? `Mostrando ${adminNotificationItems.length} de ${effectiveNotificationCount}.`
-                        : 'Resumen rapido del inbox operativo del local.'}
-                    </p>
-                    {hasNewAdminNotifications ? (
-                      <p className="mt-1 text-[11px] font-medium text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))]">
-                        Las alertas nuevas llevan un punto lila.
-                      </p>
                     ) : null}
-                  </div>
+                  </Button>
+                </PopoverTrigger>
 
-                  <div className="max-h-[24rem] space-y-2 overflow-y-auto p-3">
-                    {adminNotificationsLoading ? (
-                      <div className="admin-premium-subcard rounded-[1.3rem] px-4 py-5 text-sm text-slate-600 dark:text-slate-300">
-                        Cargando notificaciones...
-                      </div>
-                    ) : adminNotificationsError ? (
-                      <div className="rounded-[1.3rem] border border-rose-200/80 bg-rose-50/80 px-4 py-5 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
-                        {adminNotificationsError}
-                      </div>
-                    ) : adminNotificationItems.length === 0 ? (
-                      <div className="admin-premium-subcard rounded-[1.3rem] px-4 py-5 text-sm text-slate-600 dark:text-slate-300">
-                        No hay alertas activas por ahora.
-                      </div>
-                    ) : (
-                      adminNotificationItems.map((item) => (
-                        <NextLink
-                          key={item.id}
-                          href={`${adminNotificationsHref}#${item.targetId}`}
-                          className={notificationPreviewLinkClassName}
+                <PopoverContent className={notificationDropdownContentClassName}>
+                  <div className="flex max-h-[32rem] w-full flex-col">
+                    <div className="border-b border-slate-200/80 px-4 py-4 dark:border-white/10">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                            Notificaciones
+                          </p>
+                          <h3 className="mt-1 text-base font-semibold text-ink dark:text-slate-100">
+                            Local activo
+                          </h3>
+                        </div>
+                        <span
+                          className="meta-chip"
+                          data-tone={effectiveNotificationCount > 0 ? 'warning' : 'success'}
                         >
-                          <NotificationPreviewIcon kind={item.kind} />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="truncate text-sm font-semibold text-ink dark:text-slate-100">
-                                {item.title}
+                          {effectiveNotificationCount > 0
+                            ? `${effectiveNotificationCount} activas`
+                            : 'Todo al dia'}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs leading-6 text-slate-600 dark:text-slate-300">
+                        {effectiveNotificationCount > adminNotificationItems.length &&
+                          adminNotificationItems.length > 0
+                          ? `Mostrando ${adminNotificationItems.length} de ${effectiveNotificationCount}.`
+                          : 'Resumen rapido del inbox operativo del local.'}
+                      </p>
+                      {hasNewAdminNotifications ? (
+                        <p className="mt-1 text-[11px] font-medium text-[hsl(var(--primary))] dark:text-[hsl(var(--primary))]">
+                          Las alertas nuevas llevan un punto lila.
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div className="max-h-[24rem] space-y-2 overflow-y-auto p-3">
+                      {adminNotificationsLoading ? (
+                        <div className="admin-premium-subcard rounded-[1.3rem] px-4 py-5 text-sm text-slate-600 dark:text-slate-300">
+                          Cargando notificaciones...
+                        </div>
+                      ) : adminNotificationsError ? (
+                        <div className="rounded-[1.3rem] border border-rose-200/80 bg-rose-50/80 px-4 py-5 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+                          {adminNotificationsError}
+                        </div>
+                      ) : adminNotificationItems.length === 0 ? (
+                        <div className="admin-premium-subcard rounded-[1.3rem] px-4 py-5 text-sm text-slate-600 dark:text-slate-300">
+                          No hay alertas activas por ahora.
+                        </div>
+                      ) : (
+                        adminNotificationItems.map((item) => (
+                          <NextLink
+                            key={item.id}
+                            href={`${adminNotificationsHref}#${item.targetId}`}
+                            className={notificationPreviewLinkClassName}
+                          >
+                            <NotificationPreviewIcon kind={item.kind} />
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="truncate text-sm font-semibold text-ink dark:text-slate-100">
+                                  {item.title}
+                                </p>
+                                {item.isNew ? (
+                                  <>
+                                    <span
+                                      aria-hidden="true"
+                                      className="h-2.5 w-2.5 shrink-0 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_0_4px_hsl(var(--primary)/0.18)]"
+                                    />
+                                    <span className="sr-only">Nueva notificacion</span>
+                                  </>
+                                ) : null}
+                              </div>
+                              <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
+                                {item.detail}
                               </p>
-                              {item.isNew ? (
-                                <>
-                                  <span
-                                    aria-hidden="true"
-                                    className="h-2.5 w-2.5 shrink-0 rounded-full bg-[hsl(var(--primary))] shadow-[0_0_0_4px_hsl(var(--primary)/0.18)]"
-                                  />
-                                  <span className="sr-only">Nueva notificacion</span>
-                                </>
-                              ) : null}
+                              <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
+                                {formatNotificationPreviewTime(item.createdAt)}
+                              </p>
                             </div>
-                            <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
-                              {item.detail}
-                            </p>
-                            <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
-                              {formatNotificationPreviewTime(item.createdAt)}
-                            </p>
-                          </div>
-                          <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-slate-400 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-[hsl(var(--primary))] dark:text-slate-500 dark:group-hover:text-[hsl(var(--primary))]" />
-                        </NextLink>
-                      ))
-                    )}
-                  </div>
+                            <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-slate-400 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-[hsl(var(--primary))] dark:text-slate-500 dark:group-hover:text-[hsl(var(--primary))]" />
+                          </NextLink>
+                        ))
+                      )}
+                    </div>
 
-                  <div className="border-t border-slate-200/80 p-3 dark:border-white/10">
-                    <NextLink
-                      href={adminNotificationsHref}
-                      className="admin-premium-subcard flex items-center justify-between rounded-[1.15rem] px-4 py-3 text-sm font-semibold text-ink no-underline hover:border-[hsl(var(--primary)/0.28)] dark:text-slate-100 dark:hover:border-[hsl(var(--primary)/0.24)]"
-                    >
-                      <span>Abrir inbox</span>
-                      <ChevronRight className="h-4 w-4" />
-                    </NextLink>
+                    <div className="border-t border-slate-200/80 p-3 dark:border-white/10">
+                      <NextLink
+                        href={adminNotificationsHref}
+                        className="admin-premium-subcard flex items-center justify-between rounded-[1.15rem] px-4 py-3 text-sm font-semibold text-ink no-underline hover:border-[hsl(var(--primary)/0.28)] dark:text-slate-100 dark:hover:border-[hsl(var(--primary)/0.24)]"
+                      >
+                        <span>Abrir inbox</span>
+                        <ChevronRight className="h-4 w-4" />
+                      </NextLink>
+                    </div>
                   </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </NavbarItem>
-        ) : null}
+                </PopoverContent>
+              </Popover>
+            </NavbarItem>
+          ) : null}
 
-        {!loading && role !== 'guest' ? (
-          <NavbarItem>
-            <Dropdown placement="bottom-end">
-              <DropdownTrigger>
-                <Button
-                  type="button"
-                  isIconOnly
-                  radius="full"
-                  variant="light"
-                  className="relative flex items-center rounded-full outline-none ring-offset-0 transition data-[hover=true]:opacity-90"
-                  aria-label="Abrir menu de perfil"
-                >
-                  <Avatar
-                    {...avatarProps}
-                    name={profileName || userEmail || roleLabel[role]}
-                    fallback={avatarInitials}
-                    size="sm"
-                    className="h-10 w-10 border border-white/75 bg-white/68 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.28)] dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
-                  />
-                  {navigationContext !== 'admin' && effectiveNotificationCount > 0 ? (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-black">
-                      {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
-                    </span>
+          {!loading && role !== 'guest' ? (
+            <NavbarItem>
+              <Dropdown placement="bottom-end">
+                <DropdownTrigger>
+                  <Button
+                    type="button"
+                    isIconOnly
+                    radius="full"
+                    variant="light"
+                    className="relative flex items-center rounded-full outline-none ring-offset-0 transition data-[hover=true]:opacity-90"
+                    aria-label="Abrir menu de perfil"
+                  >
+                    <Avatar
+                      {...avatarProps}
+                      name={profileName || userEmail || roleLabel[role]}
+                      fallback={avatarInitials}
+                      size="sm"
+                      className="h-10 w-10 border border-white/75 bg-white/68 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.28)] dark:border-white/10 dark:bg-white/[0.06] dark:text-white"
+                    />
+                    {navigationContext !== 'admin' && effectiveNotificationCount > 0 ? (
+                      <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-black">
+                        {effectiveNotificationCount > 9 ? '9+' : effectiveNotificationCount}
+                      </span>
+                    ) : null}
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu aria-label="Menu de perfil" onAction={handleAvatarAction}>
+                  <DropdownItem
+                    key="profile-summary"
+                    isReadOnly
+                    textValue="Perfil"
+                    className="cursor-default opacity-100"
+                    description={userEmail || roleLabel[role]}
+                  >
+                    {profileName || 'Mi perfil'}
+                  </DropdownItem>
+                  <DropdownItem key="notifications">
+                    Notificaciones
+                    {effectiveNotificationCount > 0 ? ` (${effectiveNotificationCount})` : ''}
+                  </DropdownItem>
+                  <DropdownItem key="account">Mi cuenta</DropdownItem>
+                  <DropdownItem key="subscription">Suscripcion</DropdownItem>
+                  {isPlatformAdmin ? (
+                    <DropdownItem key="app-admin">Switch de suscripciones</DropdownItem>
                   ) : null}
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="Menu de perfil" onAction={handleAvatarAction}>
-                <DropdownItem
-                  key="profile-summary"
-                  isReadOnly
-                  textValue="Perfil"
-                  className="cursor-default opacity-100"
-                  description={userEmail || roleLabel[role]}
-                >
-                  {profileName || 'Mi perfil'}
-                </DropdownItem>
-                <DropdownItem key="notifications">
-                  Notificaciones
-                  {effectiveNotificationCount > 0 ? ` (${effectiveNotificationCount})` : ''}
-                </DropdownItem>
-                <DropdownItem key="account">Mi cuenta</DropdownItem>
-                <DropdownItem key="subscription">Suscripcion</DropdownItem>
-                {isPlatformAdmin ? (
-                  <DropdownItem key="app-admin">Switch de suscripciones</DropdownItem>
-                ) : null}
-                <DropdownItem
-                  key="theme-toggle"
-                  startContent={
-                    theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />
-                  }
-                >
-                  {theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
-                </DropdownItem>
-                <DropdownItem key="create-shop">Crear barberia</DropdownItem>
-                {hasWorkspaceAccess ? (
-                  <DropdownItem key="workspaces">{workspaceHubLabel}</DropdownItem>
-                ) : null}
-                <DropdownItem key="logout" className="text-danger" color="danger">
-                  Salir
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </NavbarItem>
-        ) : null}
+                  <DropdownItem
+                    key="theme-toggle"
+                    startContent={
+                      theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />
+                    }
+                  >
+                    {theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+                  </DropdownItem>
+                  <DropdownItem key="create-shop">Crear barberia</DropdownItem>
+                  {hasWorkspaceAccess ? (
+                    <DropdownItem key="workspaces">{workspaceHubLabel}</DropdownItem>
+                  ) : null}
+                  <DropdownItem key="logout" className="text-danger" color="danger">
+                    Salir
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </NavbarItem>
+          ) : null}
 
-        {!loading && role === 'guest' ? (
-          <NavbarItem>
-            <Button
-              type="button"
-              isIconOnly
-              variant="light"
-              radius="full"
-              onPress={handleThemeToggle}
-              aria-label={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}
-              title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
-              className="h-10 w-10 min-w-10 rounded-2xl border border-white/75 bg-white/58 p-0 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition data-[hover=true]:border-white/90 data-[hover=true]:bg-white/84 data-[hover=true]:text-violet-700 data-[pressed=true]:scale-100 data-[pressed=true]:bg-white/88 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:data-[hover=true]:bg-white/[0.08] dark:data-[hover=true]:text-violet-200"
-            >
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-          </NavbarItem>
-        ) : null}
-
-        <NavbarItem className={collapsedMenuToggleClassName}>
-          <NavbarMenuToggle
-            aria-label={isMenuOpen ? 'Cerrar menu' : 'Abrir menu'}
-            className="h-10 w-10 min-w-10 rounded-2xl border border-white/75 bg-white/58 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition data-[hover=true]:border-white/90 data-[hover=true]:bg-white/84 data-[pressed=true]:scale-100 data-[pressed=true]:bg-white/88 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:data-[hover=true]:bg-white/[0.08]"
-          />
-        </NavbarItem>
-      </NavbarContent>
-
-      <NavbarMenu>
-        {activeHeaderLinks.map((item) => {
-          const isActive = item.href === activeHeaderHref;
-          return (
-            <NavbarMenuItem key={item.key} isActive={isActive}>
-              <NextLink
-                href={item.href}
-                aria-current={isActive ? 'page' : undefined}
-                onClick={() => setIsMenuOpen(false)}
-                className="nav-link-pill flex w-full justify-start no-underline"
-                data-active={String(isActive)}
+          {!loading && role === 'guest' ? (
+            <NavbarItem>
+              <Button
+                type="button"
+                isIconOnly
+                variant="light"
+                radius="full"
+                onPress={handleThemeToggle}
+                aria-label={theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}
+                title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+                className="h-10 w-10 min-w-10 rounded-2xl border border-white/75 bg-white/58 p-0 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition data-[hover=true]:border-white/90 data-[hover=true]:bg-white/84 data-[hover=true]:text-violet-700 data-[pressed=true]:scale-100 data-[pressed=true]:bg-white/88 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:data-[hover=true]:bg-white/[0.08] dark:data-[hover=true]:text-violet-200"
               >
-                {item.label}
+                {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+            </NavbarItem>
+          ) : null}
+
+          <NavbarItem className={collapsedMenuToggleClassName}>
+            <NavbarMenuToggle
+              aria-label={isMenuOpen ? 'Cerrar menu' : 'Abrir menu'}
+              className="h-10 w-10 min-w-10 rounded-2xl border border-white/75 bg-white/58 text-ink shadow-[0_16px_24px_-20px_rgba(15,23,42,0.24)] transition data-[hover=true]:border-white/90 data-[hover=true]:bg-white/84 data-[pressed=true]:scale-100 data-[pressed=true]:bg-white/88 dark:border-white/10 dark:bg-white/[0.05] dark:text-white dark:data-[hover=true]:bg-white/[0.08]"
+            />
+          </NavbarItem>
+        </NavbarContent>
+
+        <NavbarMenu>
+          {activeHeaderLinks.map((item) => {
+            const isActive = item.href === activeHeaderHref;
+            return (
+              <NavbarMenuItem key={item.key} isActive={isActive}>
+                <NextLink
+                  href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={() => setIsMenuOpen(false)}
+                  className="nav-link-pill flex w-full justify-start no-underline"
+                  data-active={String(isActive)}
+                >
+                  {item.label}
+                </NextLink>
+              </NavbarMenuItem>
+            );
+          })}
+
+          {navigationContext === 'public' &&
+            (publicTenantMode === 'platform_subdomain' || publicTenantMode === 'custom_domain') ? (
+            <NavbarMenuItem>
+              <a
+                href={buildPlatformUrl('/shops')}
+                onClick={() => setIsMenuOpen(false)}
+                className="nav-link-pill flex w-full items-center justify-start gap-2 no-underline"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Ir a Beardly
+              </a>
+            </NavbarMenuItem>
+          ) : null}
+
+          {!loading && hasWorkspaceAccess && navigationContext === 'public' ? (
+            <NavbarMenuItem>
+              <NextLink
+                href={workspaceHubHref}
+                onClick={() => setIsMenuOpen(false)}
+                className="nav-link-pill flex w-full items-center justify-start gap-2 no-underline"
+              >
+                <Store className="h-4 w-4" />
+                {workspaceHubLabel}
               </NextLink>
             </NavbarMenuItem>
-          );
-        })}
+          ) : null}
 
-        {navigationContext === 'public' &&
-        (publicTenantMode === 'platform_subdomain' || publicTenantMode === 'custom_domain') ? (
-          <NavbarMenuItem>
-            <a
-              href={buildPlatformUrl('/shops')}
-              onClick={() => setIsMenuOpen(false)}
-              className="nav-link-pill flex w-full items-center justify-start gap-2 no-underline"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Ir a Beardly
-            </a>
-          </NavbarMenuItem>
-        ) : null}
+          {navigationContext !== 'public' && hasMultipleWorkspaces ? (
+            <NavbarMenuItem>
+              <NextLink
+                href={workspaceHubHref}
+                onClick={() => setIsMenuOpen(false)}
+                className="nav-link-pill flex w-full justify-start no-underline"
+              >
+                Cambiar barberia
+              </NextLink>
+            </NavbarMenuItem>
+          ) : null}
 
-        {!loading && hasWorkspaceAccess && navigationContext === 'public' ? (
-          <NavbarMenuItem>
-            <NextLink
-              href={workspaceHubHref}
-              onClick={() => setIsMenuOpen(false)}
-              className="nav-link-pill flex w-full items-center justify-start gap-2 no-underline"
-            >
-              <Store className="h-4 w-4" />
-              {workspaceHubLabel}
-            </NextLink>
-          </NavbarMenuItem>
-        ) : null}
+          {!loading && role !== 'guest' && navigationContext === 'admin' ? (
+            <NavbarMenuItem>
+              <NextLink
+                href={adminNotificationsHref}
+                onClick={() => setIsMenuOpen(false)}
+                className="nav-link-pill flex w-full justify-start no-underline"
+              >
+                Notificaciones
+                {effectiveNotificationCount > 0 ? ` (${effectiveNotificationCount})` : ''}
+              </NextLink>
+            </NavbarMenuItem>
+          ) : null}
 
-        {navigationContext !== 'public' && hasMultipleWorkspaces ? (
-          <NavbarMenuItem>
-            <NextLink
-              href={workspaceHubHref}
-              onClick={() => setIsMenuOpen(false)}
-              className="nav-link-pill flex w-full justify-start no-underline"
-            >
-              Cambiar barberia
-            </NextLink>
-          </NavbarMenuItem>
-        ) : null}
+          {!loading && role !== 'guest' ? (
+            <NavbarMenuItem>
+              <NextLink
+                href={subscriptionHref}
+                onClick={() => setIsMenuOpen(false)}
+                className="nav-link-pill flex w-full justify-start no-underline"
+              >
+                Suscripcion
+              </NextLink>
+            </NavbarMenuItem>
+          ) : null}
 
-        {!loading && role !== 'guest' && navigationContext === 'admin' ? (
-          <NavbarMenuItem>
-            <NextLink
-              href={adminNotificationsHref}
-              onClick={() => setIsMenuOpen(false)}
-              className="nav-link-pill flex w-full justify-start no-underline"
-            >
-              Notificaciones
-              {effectiveNotificationCount > 0 ? ` (${effectiveNotificationCount})` : ''}
-            </NextLink>
-          </NavbarMenuItem>
-        ) : null}
+          {!loading && role !== 'guest' ? (
+            <NavbarMenuItem>
+              <NextLink
+                href="/onboarding/barbershop"
+                onClick={() => setIsMenuOpen(false)}
+                className="nav-link-pill flex w-full items-center justify-start gap-2 no-underline"
+              >
+                <Store className="h-4 w-4" />
+                Crear barberia
+              </NextLink>
+            </NavbarMenuItem>
+          ) : null}
 
-        {!loading && role !== 'guest' ? (
-          <NavbarMenuItem>
-            <NextLink
-              href={subscriptionHref}
-              onClick={() => setIsMenuOpen(false)}
-              className="nav-link-pill flex w-full justify-start no-underline"
-            >
-              Suscripcion
-            </NextLink>
-          </NavbarMenuItem>
-        ) : null}
-
-        {!loading && role !== 'guest' ? (
-          <NavbarMenuItem>
-            <NextLink
-              href="/onboarding/barbershop"
-              onClick={() => setIsMenuOpen(false)}
-              className="nav-link-pill flex w-full items-center justify-start gap-2 no-underline"
-            >
-              <Store className="h-4 w-4" />
-              Crear barberia
-            </NextLink>
-          </NavbarMenuItem>
-        ) : null}
-
-        {!loading && role === 'guest' ? (
-          <NavbarMenuItem>
-            <Button
-              as={NextLink}
-              href="/login"
-              variant="ghost"
-              size="sm"
-              className={cn(actionButtonClassName, 'w-full justify-center text-center')}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Ingresar
-            </Button>
-          </NavbarMenuItem>
-        ) : null}
-      </NavbarMenu>
+          {!loading && role === 'guest' ? (
+            <NavbarMenuItem>
+              <Button
+                as={NextLink}
+                href="/login"
+                variant="ghost"
+                size="sm"
+                className={cn(actionButtonClassName, 'w-full justify-center text-center')}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Ingresar
+              </Button>
+            </NavbarMenuItem>
+          ) : null}
+        </NavbarMenu>
       </Navbar>
       {shouldRenderAdminSideMenu ? (
         <div className="admin-nav-shell" aria-hidden={false}>

@@ -4,6 +4,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { applyApiRateLimitHeaders, enforceApiRateLimit } from '@/lib/api-rate-limit';
 import { getTenantPublicRewritePath } from '@/lib/custom-domains';
+import { getPlatformHostConfig } from '@/lib/platform-host-config';
 import { getRequestOrigin } from '@/lib/request-origin';
 import { resolveTenantFromHost } from '@/lib/tenant-host-resolution';
 
@@ -115,6 +116,9 @@ export async function proxy(request: NextRequest) {
     );
   }
 
+  const { rootDomain } = getPlatformHostConfig();
+  const cookieDomain = rootDomain ? `.${rootDomain}` : undefined;
+
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
@@ -122,7 +126,10 @@ export async function proxy(request: NextRequest) {
       },
       setAll(cookiesToSet: CookiePatch[]) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options as CookieOptions);
+          response.cookies.set(name, value, {
+            ...(options as CookieOptions),
+            ...(cookieDomain ? { domain: cookieDomain } : {}),
+          });
         });
       },
     },

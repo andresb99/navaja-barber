@@ -1,11 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ModelosMarketplaceList } from '@/components/public/modelos-marketplace-list';
-import {
-  MarketingHero,
-  MarketingPanel,
-  marketingCtaClassNames,
-} from '@/components/public/marketing';
+import { MarketingPanel, marketingCtaClassNames } from '@/components/public/marketing';
 import { listMarketplaceOpenModelCalls } from '@/lib/modelos';
 import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
@@ -41,31 +37,26 @@ export default async function ModelosLandingPage() {
 
   return (
     <section className="space-y-6">
-      <MarketingHero
-        eyebrow="Modelos marketplace"
-        title="Postulate a convocatorias abiertas de distintas barberias"
-        description="Puedes revisar sesiones activas por curso y registrarte una sola vez para futuras oportunidades."
-        actions={[
-          {
-            href: '/modelos/registro',
-            label: 'Crear mi perfil de modelo',
-            className: 'rounded-none px-6 py-2',
-          },
-        ]}
-        stats={[
-          {
-            label: 'Convocatorias',
-            value: openCalls.length,
-            valueClassName: 'mt-2 text-2xl font-semibold text-ink dark:text-slate-100',
-          },
-          {
-            label: 'Modo',
-            value: 'Marketplace',
-          },
-        ]}
-        layoutClassName="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end"
-        statsClassName="grid gap-3 sm:grid-cols-2"
-      />
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-black/5 pb-5 dark:border-white/[0.06]">
+        <div>
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-brass">
+            Modelos
+          </p>
+          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold text-ink dark:text-white md:text-3xl">
+            Convocatorias abiertas
+          </h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {openCalls.length > 0 ? (
+            <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-slate/70 dark:bg-white/5 dark:text-white/50">
+              {openCalls.length} convocatorias
+            </span>
+          ) : null}
+          <Link href="/modelos/registro" className="action-primary inline-flex px-6 py-2 text-sm font-semibold">
+            Crear mi perfil de modelo
+          </Link>
+        </div>
+      </div>
 
       {openCalls.length === 0 ? (
         <MarketingPanel className="p-6">

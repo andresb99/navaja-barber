@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { CoursesMarketplaceCatalog } from '@/components/public/courses-marketplace-catalog';
-import { MarketingHero, MarketingPanel } from '@/components/public/marketing';
+import { MarketingPanel } from '@/components/public/marketing';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
 import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
@@ -83,27 +83,24 @@ export default async function CoursesPage() {
 
   return (
     <section className="space-y-6">
-      <MarketingHero
-        eyebrow="Academia marketplace"
-        title="Todos los cursos activos en un solo catalogo"
-        description="Aqui comparas oferta educativa entre barberias y luego entras al detalle del tenant que publica el curso."
-        stats={[
-          {
-            label: 'Cursos',
-            value: items.length,
-            valueClassName: 'mt-2 text-2xl font-semibold text-ink dark:text-slate-100',
-          },
-          {
-            label: 'Barberias',
-            value: shops.length,
-            valueClassName: 'mt-2 text-2xl font-semibold text-ink dark:text-slate-100',
-          },
-          {
-            label: 'Cobertura',
-            value: 'Catalogo global',
-          },
-        ]}
-      />
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-black/5 pb-5 dark:border-white/[0.06]">
+        <div>
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-brass">
+            Academia
+          </p>
+          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold text-ink dark:text-white md:text-3xl">
+            Cursos activos
+          </h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-slate/70 dark:bg-white/5 dark:text-white/50">
+            {items.length} cursos
+          </span>
+          <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-slate/70 dark:bg-white/5 dark:text-white/50">
+            {shops.length} barberías
+          </span>
+        </div>
+      </div>
 
       {items.length === 0 ? (
         <MarketingPanel className="p-6">

@@ -70,7 +70,7 @@ export const surfaceTextareaClassNames: SurfaceTextareaClassNames = {
 export const surfaceCheckboxClassNames: SurfaceCheckboxClassNames = {
   base: 'group inline-flex max-w-fit items-center gap-2',
   wrapper:
-    'before:border before:border-white/65 before:bg-white/78 before:shadow-none group-data-[hover=true]:before:border-[hsl(var(--primary)/0.34)] group-data-[selected=true]:before:border-[hsl(var(--primary))] group-data-[selected=true]:before:bg-[hsl(var(--primary))] dark:before:border-white/12 dark:before:bg-white/[0.05] dark:group-data-[hover=true]:before:border-[hsl(var(--primary)/0.34)] dark:group-data-[selected=true]:before:border-[hsl(var(--primary))] dark:group-data-[selected=true]:before:bg-[hsl(var(--primary))]',
+    '!rounded-[4px] before:!rounded-[4px] after:!rounded-[4px] before:border before:border-white/65 before:bg-white/78 before:shadow-none group-data-[hover=true]:before:border-[hsl(var(--primary)/0.34)] group-data-[selected=true]:before:border-[hsl(var(--primary))] group-data-[selected=true]:before:bg-[hsl(var(--primary))] dark:before:border-white/25 dark:before:bg-white/[0.08] dark:group-data-[hover=true]:before:border-[hsl(var(--primary)/0.34)] dark:group-data-[selected=true]:before:border-[hsl(var(--primary))] dark:group-data-[selected=true]:before:bg-[hsl(var(--primary))]',
   label: 'text-sm font-medium text-ink dark:text-slate-100',
   icon: 'text-white',
 };

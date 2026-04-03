@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { modelRegistrationInputSchema } from '@navaja/shared';
-import { Button, Input, Select, SelectItem } from '@heroui/react';
-import { SurfaceCheckbox } from '@/components/heroui/surface-field';
+import { Button, Checkbox, CheckboxGroup, Input, Select, SelectItem } from '@heroui/react';
 
 interface SessionOption {
   session_id: string;
@@ -262,24 +261,20 @@ export function ModelRegistrationForm({
         ))}
       </Select>
 
-      <div>
-        <p className="mb-2 text-sm font-medium text-slate/90">Preferencias (opcional)</p>
-        <div className="list-check grid gap-2 sm:grid-cols-2">
-          {preferenceOptions.map((option) => (
-            <SurfaceCheckbox
-              key={option.value}
-              isSelected={preferences.includes(option.value)}
-              onValueChange={() => togglePreference(option.value)}
-              classNames={{
-                base: 'max-w-full rounded-lg border border-slate/20 bg-white/85 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/70',
-                label: 'text-sm text-slate/90 dark:text-slate-100',
-              }}
-            >
-              {option.label}
-            </SurfaceCheckbox>
-          ))}
-        </div>
-      </div>
+      <CheckboxGroup
+        label="Preferencias (opcional)"
+        value={preferences}
+        onChange={(vals) => setPreferences(vals as string[])}
+        classNames={{
+          label: 'text-sm font-medium text-slate/80 dark:text-slate-300',
+        }}
+      >
+        {preferenceOptions.map((option) => (
+          <Checkbox key={option.value} value={option.value}>
+            {option.label}
+          </Checkbox>
+        ))}
+      </CheckboxGroup>
 
       <div className="rounded-lg border border-dashed border-slate/30 bg-slate/5 p-3 text-sm text-slate/70 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300">
         <p className="font-medium text-slate/80">Fotos (opcional)</p>
@@ -291,12 +286,12 @@ export function ModelRegistrationForm({
       </div>
 
       <div className="space-y-2">
-        <SurfaceCheckbox isSelected={consentPhotos} onValueChange={setConsentPhotos}>
+        <Checkbox isSelected={consentPhotos} onValueChange={setConsentPhotos}>
           Acepto que me saquen fotos o videos durante la practica.
-        </SurfaceCheckbox>
-        <SurfaceCheckbox isSelected={marketingOptIn} onValueChange={setMarketingOptIn}>
+        </Checkbox>
+        <Checkbox isSelected={marketingOptIn} onValueChange={setMarketingOptIn}>
           Quiero recibir novedades de cursos y convocatorias.
-        </SurfaceCheckbox>
+        </Checkbox>
       </div>
 
       {error ? <p className="status-banner error">{error}</p> : null}

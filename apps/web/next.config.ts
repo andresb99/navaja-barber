@@ -8,6 +8,16 @@ const nextConfig = {
   },
   images: {
     qualities: [75, 100],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.in',
+      },
+    ],
   },
   transpilePackages: ['@navaja/shared'],
 };

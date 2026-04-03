@@ -778,12 +778,12 @@ export function LoginForm({
               </div>
 
               {/* Social buttons */}
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-3">
                 <Button
                   type="button"
                   variant="flat"
                   radius="lg"
-                  className="login-social-btn login-social-google w-full gap-3 px-4 py-3 text-left text-sm font-semibold transition-all duration-200 active:scale-[0.98] md:px-5"
+                  className="login-social-btn login-social-google w-full gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98]"
                   isLoading={activeAction === 'google'}
                   isDisabled={isBusy}
                   onClick={() => {
@@ -810,7 +810,7 @@ export function LoginForm({
                   type="button"
                   variant="flat"
                   radius="lg"
-                  className="login-social-btn login-social-facebook w-full gap-3 px-4 py-3 text-left text-sm font-semibold transition-all duration-200 active:scale-[0.98] md:px-5"
+                  className="login-social-btn login-social-facebook w-full gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98]"
                   isLoading={activeAction === 'facebook'}
                   isDisabled={isBusy}
                   onClick={() => {
@@ -835,7 +835,7 @@ export function LoginForm({
                 type="button"
                 variant="flat"
                 radius="lg"
-                className="login-social-btn login-social-apple w-full gap-3 px-4 py-3 text-left text-sm font-semibold transition-all duration-200 active:scale-[0.98] md:px-5"
+                className="login-social-btn login-social-apple w-full gap-3 px-4 py-3 text-sm font-semibold transition-all duration-200 active:scale-[0.98]"
                 isLoading={activeAction === 'apple'}
                 isDisabled={isBusy}
                 onClick={() => {

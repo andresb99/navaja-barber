@@ -1,11 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MarketplaceJobsForm } from '@/components/public/marketplace-jobs-form';
-import {
-  MarketingHero,
-  MarketingPanel,
-  marketingCtaClassNames,
-} from '@/components/public/marketing';
+import { MarketingPanel, marketingCtaClassNames } from '@/components/public/marketing';
 import { PublicSectionEmptyState } from '@/components/public/public-section-empty-state';
 import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildShopHref } from '@/lib/shop-links';
@@ -52,26 +48,21 @@ export default async function JobsPage() {
 
   return (
     <section className="space-y-6">
-      <MarketingHero
-        eyebrow="Empleo marketplace"
-        title="Postulate a una barberia o deja tu CV en la bolsa general"
-        description="El marketplace ya no te manda a una barberia arbitraria: puedes elegir destino o dejar tu perfil para toda la red."
-        stats={[
-          {
-            label: 'Barberias',
-            value: shops.length,
-            valueClassName: 'mt-2 text-2xl font-semibold text-ink dark:text-slate-100',
-          },
-          {
-            label: 'Modalidad',
-            value: 'Directa o red',
-          },
-          {
-            label: 'CV',
-            value: 'Un solo upload',
-          },
-        ]}
-      />
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3 border-b border-black/5 pb-5 dark:border-white/[0.06]">
+        <div>
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-brass">
+            Empleo
+          </p>
+          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold text-ink dark:text-white md:text-3xl">
+            Bolsa de trabajo
+          </h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-slate/70 dark:bg-white/5 dark:text-white/50">
+            {shops.length} barberías
+          </span>
+        </div>
+      </div>
 
       <MarketplaceJobsForm
         shops={shops.map((shop) => ({

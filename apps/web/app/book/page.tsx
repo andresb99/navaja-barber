@@ -4,7 +4,6 @@ import { BookPageContent } from '@/components/public/book-page-content';
 import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
-import { Container } from '@/components/heroui/container';
 import ShopBookPage, { generateMetadata as generateShopBookMetadata } from '@/app/book/[slug]/page';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,44 +44,19 @@ export default async function BookPage() {
 
   return (
     <section className="space-y-6">
-      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-          <div>
-            <p className="hero-eyebrow">Reservas marketplace</p>
-            <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.35rem] dark:text-slate-100">
-              Selecciona una barberia y entra a su agenda
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
-              Busca por nombre o zona, filtra por calificacion y reserva directo en tu barberia.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Barberias
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                {shops.length}
-              </p>
-            </div>
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Cobertura
-              </p>
-              <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">Uruguay</p>
-            </div>
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Flujo
-              </p>
-              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
-                Elegir y reservar
-              </p>
-            </div>
-          </div>
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-black/5 pb-5 dark:border-white/[0.06]">
+        <div>
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-brass">
+            Reservas
+          </p>
+          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold text-ink dark:text-white md:text-3xl">
+            Elegí tu barbería
+          </h1>
         </div>
-      </Container>
+        <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-slate/70 dark:bg-white/5 dark:text-white/50">
+          {shops.length} barberías
+        </span>
+      </div>
 
       <BookPageContent shops={shops} />
     </section>

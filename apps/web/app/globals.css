@@ -50,11 +50,11 @@
   --login-input-border-hover: rgba(148, 163, 184, 0.45);
   --login-label-color: rgba(71, 85, 105, 0.7);
   --login-text-color: rgb(15, 23, 42);
-  --login-social-bg: rgb(248, 250, 252);
-  --login-social-border: rgb(226, 232, 240);
+  --login-social-bg: rgb(255, 255, 255);
+  --login-social-border: rgb(234, 236, 240);
   --login-social-color: rgb(30, 41, 59);
-  --login-social-hover-bg: rgb(241, 245, 249);
-  --login-social-hover-border: rgb(203, 213, 225);
+  --login-social-hover-bg: rgb(249, 250, 251);
+  --login-social-hover-border: rgb(220, 224, 230);
   --login-cta-bg: #0f1c2e;
   --login-cta-hover-bg: #16263d;
   --login-cta-color: #ffffff;
@@ -111,8 +111,7 @@ body::before {
 
 html.dark body::before {
   background:
-    radial-gradient(800px 400px at 50% 0%, rgba(63, 63, 70, 0.25) 0%, transparent 100%),
-    radial-gradient(400px 200px at 50% 0%, rgba(139, 92, 246, 0.12) 0%, transparent 100%);
+    radial-gradient(800px 400px at 50% 0%, rgba(40, 40, 40, 0.3) 0%, transparent 100%);
 }
 
 html.dark body::after {
@@ -157,6 +156,8 @@ p {
 html.dark {
   color-scheme: dark;
   --page-bg: 9 9 11;
+
+  /* intentionally empty — see .dark selector below */
   --surface-sheet: 9 9 11;
   --brand-surface-dark: linear-gradient(180deg, rgb(24 24 27), rgb(var(--page-bg)));
   --brand-surface-dark-strong: linear-gradient(180deg, rgb(39 39 42), rgb(24 24 27));
@@ -204,6 +205,29 @@ html.dark {
   --login-plan-badge-bg: rgba(139, 92, 246, 0.18);
   --login-plan-badge-border: rgba(196, 181, 253, 0.45);
   --login-plan-badge-text: rgb(237, 233, 254);
+}
+
+/* HeroUI applies its dark theme colors on `.dark` — override here to kill the navy tint.
+   Values are in HSL components: "hue sat% lightness%" */
+.dark {
+  --heroui-background: 0 0% 4%;
+  --heroui-foreground: 0 0% 98%;
+  --heroui-content1: 0 0% 9%;
+  --heroui-content2: 0 0% 15%;
+  --heroui-content3: 0 0% 22%;
+  --heroui-content4: 0 0% 30%;
+  --heroui-default-50: 0 0% 9%;
+  --heroui-default-100: 0 0% 15%;
+  --heroui-default-200: 0 0% 22%;
+  --heroui-default-300: 0 0% 30%;
+  --heroui-default-400: 0 0% 44%;
+  --heroui-default-500: 0 0% 60%;
+  --heroui-default-600: 0 0% 76%;
+  --heroui-default-700: 0 0% 87%;
+  --heroui-default-800: 0 0% 93%;
+  --heroui-default-900: 0 0% 98%;
+  --heroui-default: 0 0% 22%;
+  --heroui-default-foreground: 0 0% 98%;
 }
 
 html.dark *::selection {
@@ -583,7 +607,7 @@ html.dark .soft-panel {
   color: var(--login-social-color) !important;
   border: 1px solid var(--login-social-border) !important;
   min-height: 3.25rem !important;
-  justify-content: flex-start !important;
+  justify-content: center !important;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
   transition: all 150ms ease;
 }
@@ -596,28 +620,67 @@ html.dark .soft-panel {
 
 .login-social-icon {
   display: inline-flex;
-  height: 1.75rem;
-  width: 1.75rem;
+  height: 1.25rem;
+  width: 1.25rem;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Force all social icons to the same size */
+.login-social-icon svg {
+  width: 1.0625rem !important;
+  height: 1.0625rem !important;
 }
 
 .login-social-icon-google {
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 10px 20px -16px rgba(15, 23, 42, 0.8);
+  background: transparent;
+  box-shadow: none;
 }
 
 .login-social-icon-facebook {
-  background: #1877f2;
-  color: #ffffff;
-  box-shadow: 0 10px 20px -16px rgba(24, 119, 242, 0.9);
+  background: transparent;
+  color: #1877f2;
+  box-shadow: none;
 }
 
 .login-social-icon-apple {
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: inherit;
+}
+
+/* Provider-specific button overrides — uniform border style */
+.login-social-google,
+.login-social-facebook,
+.login-social-apple {
+  background: var(--login-social-bg) !important;
+  color: var(--login-social-color) !important;
+  border-color: var(--login-social-border) !important;
+}
+.login-social-google:hover,
+.login-social-facebook:hover,
+.login-social-apple:hover {
+  background: var(--login-social-hover-bg) !important;
+  border-color: var(--login-social-hover-border) !important;
+}
+
+/* Icon containers — same fixed size and position, no background */
+.login-social-icon-google,
+.login-social-icon-facebook,
+.login-social-icon-apple {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  flex-shrink: 0;
   color: inherit;
 }
 

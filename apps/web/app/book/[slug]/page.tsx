@@ -54,21 +54,21 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
 
   const { data: profile } = user?.id
     ? await sessionSupabase
-        .from('user_profiles')
-        .select(
-          'full_name, phone, preferred_payment_method, preferred_card_brand, preferred_card_last4',
-        )
-        .eq('auth_user_id', user.id)
-        .maybeSingle()
+      .from('user_profiles')
+      .select(
+        'full_name, phone, preferred_payment_method, preferred_card_brand, preferred_card_last4',
+      )
+      .eq('auth_user_id', user.id)
+      .maybeSingle()
     : {
-        data: null as {
-          full_name?: string | null;
-          phone?: string | null;
-          preferred_payment_method?: string | null;
-          preferred_card_brand?: string | null;
-          preferred_card_last4?: string | null;
-        } | null,
-      };
+      data: null as {
+        full_name?: string | null;
+        phone?: string | null;
+        preferred_payment_method?: string | null;
+        preferred_card_brand?: string | null;
+        preferred_card_last4?: string | null;
+      } | null,
+    };
 
   const initialCustomerName =
     (typeof profile?.full_name === 'string' && profile.full_name.trim()) || metadataFullName || '';

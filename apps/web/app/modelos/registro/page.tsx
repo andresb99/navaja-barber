@@ -5,7 +5,6 @@ import { listMarketplaceOpenModelCalls } from '@/lib/modelos';
 import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
 import { buildSitePageMetadata } from '@/lib/site-metadata';
 import { listMarketplaceShops } from '@/lib/shops';
-import { Container } from '@/components/heroui/container';
 import ShopModelRegistrationPage, {
   generateMetadata as generateShopModelRegistrationMetadata,
 } from '@/app/modelos/[slug]/registro/page';
@@ -61,39 +60,21 @@ export default async function ModelRegistrationPage({ searchParams }: ModelRegis
 
   return (
     <section className="space-y-6">
-      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-          <div>
-            <p className="hero-eyebrow">Registro de modelos</p>
-            <h1 className="font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.3rem] dark:text-slate-100">
-              Crea tu perfil y postulate a distintas barberias
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
-              Puedes elegir una barberia concreta o registrarte para futuras convocatorias de su
-              academia.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Barberias
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                {shops.length}
-              </p>
-            </div>
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Sesiones abiertas
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                {openCalls.length}
-              </p>
-            </div>
-          </div>
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-black/5 pb-5 dark:border-white/[0.06]">
+        <div>
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-brass">
+            Modelos
+          </p>
+          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold text-ink dark:text-white md:text-3xl">
+            Registro de modelo
+          </h1>
         </div>
-      </Container>
+        {openCalls.length > 0 && (
+          <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-slate/70 dark:bg-white/5 dark:text-white/50">
+            {openCalls.length} sesiones abiertas
+          </span>
+        )}
+      </div>
 
       <ModelRegistrationForm
         shops={shops.map((shop) => ({
