@@ -50,41 +50,39 @@ export default async function ShopModelRegistrationPage({
   const openCalls = await getOpenModelCalls(shop.id);
 
   return (
-    <section className="space-y-6">
-      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-          <div>
-            <p className="hero-eyebrow">Registro de modelos</p>
-            <h1 className="font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.3rem] dark:text-slate-100">
-              Postulate para las practicas de {shop.name}
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
-              Tu perfil y tus preferencias se guardan solo dentro de este workspace.
-            </p>
-            <Link
-              href={buildTenantPublicHref(shop.slug, routeContext.mode, 'modelos')}
-              className="mt-4 inline-flex text-sm font-semibold text-ink dark:text-slate-100"
-            >
-              Ver convocatorias abiertas
-            </Link>
-          </div>
+    <section className="min-h-screen bg-[#131315] font-sans text-white pb-16 sm:pb-32">
+      <div className="px-3 sm:px-6 pt-4 sm:pt-6">
+        <Container variant="hero" className="relative px-4 py-8 sm:px-6 md:px-16 md:py-24 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-[#0e0e10] ring-1 ring-white/5 shadow-2xl max-w-[1440px] mx-auto">
+          <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+            <div>
+              <p className="hero-eyebrow text-[#a078ff]" style={{ letterSpacing: '0.3em', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>Registro de modelos</p>
+              <h1 className="mt-4 font-[family-name:var(--font-heading)] text-4xl sm:text-5xl font-bold text-white tracking-tighter">
+                Postulate para las practicas de {shop.name}
+              </h1>
+              <p className="mt-3 max-w-2xl text-sm text-white/60">
+                Tu perfil y tus preferencias se guardan solo dentro de este workspace.
+              </p>
+              <Link
+                href={buildTenantPublicHref(shop.slug, routeContext.mode, 'modelos')}
+                className="mt-4 inline-flex text-sm font-semibold text-[#a078ff] hover:text-[#d0bcff] transition-colors"
+              >
+                Ver convocatorias abiertas
+              </Link>
+            </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Sesion
-              </p>
-              <p className="mt-2 text-lg font-semibold text-ink dark:text-slate-100">Opcional</p>
-            </div>
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Tenant
-              </p>
-              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">{shop.slug}</p>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="rounded-[1.5rem] bg-[#201f22]/80 p-5 sm:p-6 backdrop-blur-xl ring-1 ring-white/10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a078ff]">Sesion</p>
+                <p className="mt-2 text-lg font-semibold text-white">Opcional</p>
+              </div>
+              <div className="rounded-[1.5rem] bg-[#201f22]/80 p-5 sm:p-6 backdrop-blur-xl ring-1 ring-white/10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a078ff]">Tenant</p>
+                <p className="mt-2 text-sm font-semibold text-white truncate">{shop.slug}</p>
+              </div>
             </div>
           </div>
-        </div>
-      </Container>
+        </Container>
+      </div>
 
       <ModelRegistrationForm
         shopId={shop.id}

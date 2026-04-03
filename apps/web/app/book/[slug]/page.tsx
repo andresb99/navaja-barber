@@ -201,12 +201,12 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
   }
 
   return (
-    <section className="min-h-screen bg-[#111111] font-sans text-white pb-32">
-      <div className="max-w-[1240px] mx-auto px-6 pt-16">
+    <section className="min-h-screen font-sans text-white pb-16 sm:pb-32">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-8 sm:pt-10 sm:pt-16">
         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#b388ff]">
           RESERVATION PORTAL
         </p>
-        <h1 className="mt-3 font-[family-name:var(--font-heading)] text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase tracking-tighter text-white leading-none">
+        <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl sm:text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase tracking-tighter text-white leading-none">
           CURATE YOUR <span className="text-[#b388ff]">LOOK</span>
         </h1>
         <p className="mt-4 text-base text-[#8a8a93] font-normal leading-relaxed max-w-xl">
@@ -214,31 +214,31 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
         </p>
       </div>
 
-      <div className="max-w-[1240px] mx-auto px-6 mt-12 mb-24 relative">
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 mt-6 sm:mt-8 sm:mt-12 mb-12 sm:mb-16 md:mb-24 relative">
 
-      <BookingFlow
-        shopId={shop.id}
-        shopSlug={shop.slug}
-        shopName={shop.name}
-        shopTimezone={shop.timezone}
-        initialCustomerEmail={user?.email || ''}
-        initialCustomerName={initialCustomerName}
-        initialCustomerPhone={initialCustomerPhone}
-        preferredPaymentMethod={preferredPaymentMethod}
-        supportsOnlinePayment={supportsOnlinePayment}
-        cancellationNoticeHours={shop.bookingCancellationNoticeHours}
-        staffCancellationRefundMode={shop.bookingStaffCancellationRefundMode}
-        cancellationPolicyText={shop.bookingCancellationPolicyText}
-        services={(services || []).map((item) => ({
-          id: item.id as string,
-          name: item.name as string,
-          price_cents: item.price_cents as number,
-          duration_minutes: item.duration_minutes as number,
-        }))}
-        staff={(staff || []).map((item) => ({
-          id: item.id as string,
-          name: item.name as string,
-        }))}
+        <BookingFlow
+          shopId={shop.id}
+          shopSlug={shop.slug}
+          shopName={shop.name}
+          shopTimezone={shop.timezone}
+          initialCustomerEmail={user?.email || ''}
+          initialCustomerName={initialCustomerName}
+          initialCustomerPhone={initialCustomerPhone}
+          preferredPaymentMethod={preferredPaymentMethod}
+          supportsOnlinePayment={supportsOnlinePayment}
+          cancellationNoticeHours={shop.bookingCancellationNoticeHours}
+          staffCancellationRefundMode={shop.bookingStaffCancellationRefundMode}
+          cancellationPolicyText={shop.bookingCancellationPolicyText}
+          services={(services || []).map((item) => ({
+            id: item.id as string,
+            name: item.name as string,
+            price_cents: item.price_cents as number,
+            duration_minutes: item.duration_minutes as number,
+          }))}
+          staff={(staff || []).map((item) => ({
+            id: item.id as string,
+            name: item.name as string,
+          }))}
         />
       </div>
     </section>

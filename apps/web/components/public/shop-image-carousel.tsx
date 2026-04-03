@@ -9,7 +9,7 @@ interface ShopImageCarouselProps {
   ratio?: string;
 }
 
-export function ShopImageCarousel({ images, shopName, ratio = '16/9' }: ShopImageCarouselProps) {
+export function ShopImageCarousel({ images, shopName, ratio }: ShopImageCarouselProps) {
   const [current, setCurrent] = useState(0);
   const [visible, setVisible] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -30,42 +30,45 @@ export function ShopImageCarousel({ images, shopName, ratio = '16/9' }: ShopImag
   useEffect(() => {
     const id = setTimeout(() => setVisible(current), 500);
     return () => clearTimeout(id);
-  }, [current]);
+  }, [current, visible]);
 
   useEffect(() => {
     if (count <= 1 || isHovered) return;
-    timerRef.current = setTimeout(() => next(), 4000);
+    timerRef.current = setTimeout(() => next(), 5000); // 5s for premium rhythm
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, [count, isHovered, next, current]);
 
+  // Use defined ratio or default to 16/9 only if not in a h-full parent context
+  const containerStyle: React.CSSProperties = {
+    position: 'relative',
+    width: '100%',
+    height: ratio ? 'auto' : '100%',
+    aspectRatio: ratio,
+    overflow: 'hidden',
+  };
+
   if (count === 0) {
     return (
-      <div className="relative w-full overflow-hidden" style={{ aspectRatio: ratio }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0a0f18] via-[#111827] to-[#1a1208]">
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle at 20% 80%, rgba(234,176,72,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(234,176,72,0.15) 0%, transparent 40%)',
-            }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px), repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px)',
-            }}
-          />
+      <div style={containerStyle} className="bg-[#0c0c0e]">
+        {/* Midnight Atelier Premium Fallback */}
+        <div className="absolute inset-0 z-0">
+           <div 
+             className="absolute inset-0 opacity-[0.2]" 
+             style={{ 
+               backgroundImage: 'radial-gradient(circle at 100% 0%, rgba(160,120,255,0.15), transparent 40%), radial-gradient(circle at 0% 100%, rgba(139,92,246,0.1), transparent 30%)',
+               backgroundSize: 'cover'
+             }} 
+           />
+           <div className="absolute inset-0 z-10 metal-grid opacity-[0.05]" />
         </div>
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-          <span className="text-7xl opacity-20" style={{ filter: 'grayscale(1)' }}>✂</span>
-          <p
-            className="font-[family-name:var(--font-heading)] text-3xl font-bold tracking-tight text-white/30"
-          >
-            {shopName}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 z-20">
+          <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-[#a078ff]/40 to-transparent" />
+          <p className="font-[family-name:var(--font-heading)] text-2xl font-bold tracking-[0.3em] text-white/10 uppercase italic">
+            Atelier Collective
           </p>
+          <div className="h-[1px] w-24 bg-gradient-to-r from-transparent via-[#a078ff]/40 to-transparent" />
         </div>
       </div>
     );
@@ -73,15 +76,14 @@ export function ShopImageCarousel({ images, shopName, ratio = '16/9' }: ShopImag
 
   return (
     <div
-      className="relative w-full overflow-hidden"
-      style={{ aspectRatio: ratio }}
+      style={containerStyle}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {images.map((src, i) => (
         <div
           key={src}
-          className="absolute inset-0 transition-opacity duration-700"
+          className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
           style={{
             opacity: i === current ? 1 : 0,
             zIndex: i === current ? 1 : i === visible ? 0 : 0,
@@ -91,48 +93,49 @@ export function ShopImageCarousel({ images, shopName, ratio = '16/9' }: ShopImag
             src={src}
             alt={`${shopName} — imagen ${i + 1}`}
             fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 100vw"
+            className="object-cover scale-105" // Slight scale for premium feel
+            sizes="100vw"
             priority={i === 0}
           />
         </div>
       ))}
 
-      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-t from-black/60 via-black/10 to-black/20" />
+      {/* Editorial Overlay */}
+      <div className="absolute inset-0 z-10 pointer-events-none bg-black/40" />
 
       {count > 1 && (
         <>
           <button
             onClick={prev}
-            aria-label="Imagen anterior"
-            className="absolute left-4 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-md border border-white/10 transition hover:bg-black/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass"
+            className="absolute left-3 sm:left-8 top-1/2 z-20 -translate-y-1/2 flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/5 text-white/50 backdrop-blur-xl ring-1 ring-white/10 transition-all hover:bg-white/10 hover:text-white hover:scale-110 active:scale-95"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
           </button>
           <button
             onClick={next}
-            aria-label="Siguiente imagen"
-            className="absolute right-4 top-1/2 z-20 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/30 text-white backdrop-blur-md border border-white/10 transition hover:bg-black/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass"
+            className="absolute right-3 sm:right-8 top-1/2 z-20 -translate-y-1/2 flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/5 text-white/50 backdrop-blur-xl ring-1 ring-white/10 transition-all hover:bg-white/10 hover:text-white hover:scale-110 active:scale-95"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
           </button>
-        </>
-      )}
 
-      {count > 1 && (
-        <div className="absolute bottom-4 right-5 z-20 flex gap-1.5">
-          {images.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goTo(i)}
-              aria-label={`Ir a imagen ${i + 1}`}
-              className={[
-                'h-1.5 rounded-full transition-all duration-300 focus-visible:outline-none',
-                i === current ? 'w-6 bg-brass' : 'w-1.5 bg-white/40',
-              ].join(' ')}
-            />
-          ))}
-        </div>
+          <div className="absolute bottom-4 right-4 sm:bottom-12 sm:right-12 z-20 flex items-center gap-4">
+             <span className="text-[10px] font-bold tracking-[.3em] text-white/40 uppercase">
+               0{current + 1} / 0{count}
+             </span>
+             <div className="flex gap-1.5">
+               {images.map((_, i) => (
+                 <button
+                   key={i}
+                   onClick={() => goTo(i)}
+                   className={[
+                     'h-1 rounded-full transition-all duration-500',
+                     i === current ? 'w-8 bg-[#a078ff]' : 'w-2 bg-white/20',
+                   ].join(' ')}
+                 />
+               ))}
+             </div>
+          </div>
+        </>
       )}
     </div>
   );

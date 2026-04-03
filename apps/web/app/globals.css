@@ -21,27 +21,21 @@
   --brand-panel-aura-strong:
     radial-gradient(circle at 100% 0%, rgba(139, 92, 246, 0.18), transparent 34%),
     radial-gradient(circle at 0% 100%, rgba(217, 70, 239, 0.12), transparent 30%);
-  --brand-premium-shell-light: linear-gradient(
-    118deg,
-    rgba(250, 248, 245, 0.97) 0%,
-    rgba(248, 244, 240, 0.95) 24%,
-    rgba(248, 245, 250, 0.92) 58%,
-    rgba(252, 245, 248, 0.95) 100%
-  );
+  --brand-premium-shell-light: linear-gradient(118deg,
+      rgba(250, 248, 245, 0.97) 0%,
+      rgba(248, 244, 240, 0.95) 24%,
+      rgba(248, 245, 250, 0.92) 58%,
+      rgba(252, 245, 248, 0.95) 100%);
   --brand-premium-aura-light:
     radial-gradient(circle at 100% 0%, rgba(168, 85, 247, 0.26), transparent 34%),
     radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.14), transparent 28%),
     radial-gradient(circle at 100% 100%, rgba(217, 70, 239, 0.18), transparent 30%);
-  --brand-panel-shell-light: linear-gradient(
-    140deg,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(250, 248, 245, 0.78) 100%
-  );
-  --brand-panel-shell-light-soft: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.82) 0%,
-    rgba(250, 248, 245, 0.76) 100%
-  );
+  --brand-panel-shell-light: linear-gradient(140deg,
+      rgba(255, 255, 255, 0.92) 0%,
+      rgba(250, 248, 245, 0.78) 100%);
+  --brand-panel-shell-light-soft: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.82) 0%,
+      rgba(250, 248, 245, 0.76) 100%);
 
   /* Login Tokens */
   --login-panel-bg: #ffffff;
@@ -168,18 +162,14 @@ html.dark {
   --brand-panel-aura-strong:
     radial-gradient(circle at 114% 2%, rgba(255, 255, 255, 0.06), transparent 30%),
     radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.04), transparent 34%);
-  --brand-panel-shell-dark: linear-gradient(
-    140deg,
-    rgba(24, 24, 27, 0.94) 0%,
-    rgba(9, 9, 11, 0.92) 58%,
-    rgba(24, 24, 27, 0.92) 100%
-  );
-  --brand-panel-shell-dark-soft: linear-gradient(
-    150deg,
-    rgba(39, 39, 42, 0.88) 0%,
-    rgba(9, 9, 11, 0.84) 58%,
-    rgba(24, 24, 27, 0.86) 100%
-  );
+  --brand-panel-shell-dark: linear-gradient(140deg,
+      rgba(24, 24, 27, 0.94) 0%,
+      rgba(9, 9, 11, 0.92) 58%,
+      rgba(24, 24, 27, 0.92) 100%);
+  --brand-panel-shell-dark-soft: linear-gradient(150deg,
+      rgba(39, 39, 42, 0.88) 0%,
+      rgba(9, 9, 11, 0.84) 58%,
+      rgba(24, 24, 27, 0.86) 100%);
 
   /* Login Tokens Dark */
   --login-panel-bg: rgba(24, 24, 27, 0.4);
@@ -284,9 +274,7 @@ label {
   letter-spacing: 0.005em;
 }
 
-input:not([data-slot='input']):not([type='hidden']):not([type='checkbox']):not([type='radio']):not(
-    [type='file']
-  ),
+input:not([data-slot='input']):not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='file']),
 select:not([data-slot]),
 textarea:not([data-slot='input']) {
   @apply text-[16px];
@@ -295,22 +283,15 @@ textarea:not([data-slot='input']) {
   border-radius: 1rem;
 }
 
-html.dark
-  input:not([data-slot='input']):not([type='hidden']):not([type='checkbox']):not(
-    [type='radio']
-  ):not([type='file']),
+html.dark input:not([data-slot='input']):not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='file']),
 html.dark select:not([data-slot]),
 html.dark textarea:not([data-slot='input']) {
   border-color: rgb(255 255 255 / 0.08);
   background-color: rgb(255 255 255 / 0.035);
 }
 
-input:not([data-slot='input']):not([type='hidden']):not([type='checkbox']):not([type='radio']):not(
-    [type='file']
-  ):focus,
-input:not([data-slot='input']):not([type='hidden']):not([type='checkbox']):not([type='radio']):not(
-    [type='file']
-  ):focus-visible,
+input:not([data-slot='input']):not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='file']):focus,
+input:not([data-slot='input']):not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='file']):focus-visible,
 select:not([data-slot]):focus,
 select:not([data-slot]):focus-visible,
 textarea:not([data-slot='input']):focus,
@@ -530,6 +511,7 @@ html.dark .bg-white\/55 {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -661,6 +643,7 @@ html.dark .soft-panel {
   color: var(--login-social-color) !important;
   border-color: var(--login-social-border) !important;
 }
+
 .login-social-google:hover,
 .login-social-facebook:hover,
 .login-social-apple:hover {
@@ -968,13 +951,18 @@ html.dark .list-check input[type='checkbox'] {
   margin-inline: auto;
   width: 100%;
   max-width: none;
-  padding: 1.25rem clamp(1rem, 3vw, 2rem) 4rem;
+  padding: 1rem;
 }
 
 @media (min-width: 768px) {
   .main-shell {
-    padding: 1.75rem clamp(1.5rem, 4vw, 3.5rem) 4.5rem;
+    padding: 1.5rem;
   }
+}
+
+/* Tenant pages are edge-to-edge — no shell padding */
+.main-shell:has(> .tenant-atelier) {
+  padding: 0;
 }
 
 .glass-nav {
@@ -1385,7 +1373,7 @@ html.dark .places-search-empty {
   pointer-events: none;
 }
 
-.spotlight-card > * {
+.spotlight-card>* {
   position: relative;
   z-index: 1;
 }
@@ -1408,13 +1396,11 @@ html.dark .places-search-empty {
   position: absolute;
   inset: 0.9rem 1rem auto;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    rgb(56 189 248 / 0),
-    rgb(56 189 248 / 0.34),
-    rgb(244 63 94 / 0.22),
-    rgb(244 63 94 / 0)
-  );
+  background: linear-gradient(90deg,
+      rgb(56 189 248 / 0),
+      rgb(56 189 248 / 0.34),
+      rgb(244 63 94 / 0.22),
+      rgb(244 63 94 / 0));
 }
 
 html.dark .stat-tile {
@@ -1426,12 +1412,10 @@ html.dark .stat-tile {
 }
 
 html.dark .stat-tile::before {
-  background: linear-gradient(
-    90deg,
-    rgb(255 255 255 / 0),
-    rgb(255 255 255 / 0.1),
-    rgb(255 255 255 / 0)
-  );
+  background: linear-gradient(90deg,
+      rgb(255 255 255 / 0),
+      rgb(255 255 255 / 0.1),
+      rgb(255 255 255 / 0));
 }
 
 .admin-stage {
@@ -1480,13 +1464,11 @@ html.dark .admin-stage::before {
   position: absolute;
   inset: 0 1rem auto;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    rgb(56 189 248 / 0),
-    rgb(56 189 248 / 0.42),
-    rgb(244 63 94 / 0.28),
-    rgb(244 63 94 / 0)
-  );
+  background: linear-gradient(90deg,
+      rgb(56 189 248 / 0),
+      rgb(56 189 248 / 0.42),
+      rgb(244 63 94 / 0.28),
+      rgb(244 63 94 / 0));
 }
 
 html.dark .data-card {
@@ -1498,12 +1480,10 @@ html.dark .data-card {
 }
 
 html.dark .data-card::before {
-  background: linear-gradient(
-    90deg,
-    rgb(255 255 255 / 0),
-    rgb(255 255 255 / 0.1),
-    rgb(255 255 255 / 0)
-  );
+  background: linear-gradient(90deg,
+      rgb(255 255 255 / 0),
+      rgb(255 255 255 / 0.1),
+      rgb(255 255 255 / 0));
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1540,13 +1520,11 @@ html.dark .data-card::before {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(
-      118deg,
+    linear-gradient(118deg,
       rgb(255 255 255 / 0.2),
       transparent 38%,
       rgb(255 255 255 / 0.14) 64%,
-      transparent 100%
-    ),
+      transparent 100%),
     radial-gradient(circle at 88% 14%, rgba(255, 255, 255, 0.26), transparent 18%);
   pointer-events: none;
 }
@@ -1565,13 +1543,11 @@ html.dark .admin-premium-hero {
 html.dark .admin-premium-hero::before {
   background:
     radial-gradient(circle at 22% 18%, rgba(139, 92, 246, 0.1), transparent 24%),
-    linear-gradient(
-      90deg,
+    linear-gradient(90deg,
       rgba(124, 58, 237, 0.04),
       transparent 22%,
       transparent 78%,
-      rgba(236, 72, 153, 0.03)
-    );
+      rgba(236, 72, 153, 0.03));
 }
 
 .admin-premium-card {
@@ -1722,7 +1698,7 @@ html.dark .meta-chip[data-tone='danger'] {
   pointer-events: none;
 }
 
-.mobile-marketplace-sheet > * {
+.mobile-marketplace-sheet>* {
   position: relative;
   z-index: 1;
 }
@@ -1843,17 +1819,39 @@ html.dark .marketplace-pin[data-active='true'] {
 }
 
 @keyframes map-dot-wave {
-  0%, 100% { transform: scale(1) translateZ(0); opacity: 1; }
-  25%      { transform: scale(0) translateZ(0); opacity: 0.4; }
-  50%      { transform: scale(1) translateZ(0); opacity: 1; }
+
+  0%,
+  100% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
+
+  25% {
+    transform: scale(0) translateZ(0);
+    opacity: 0.4;
+  }
+
+  50% {
+    transform: scale(1) translateZ(0);
+    opacity: 1;
+  }
 }
 
 .map-loading-dot {
   will-change: transform, opacity;
 }
-.map-loading-dot:nth-child(1) { animation: map-dot-wave 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-.map-loading-dot:nth-child(2) { animation: map-dot-wave 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.2s infinite; }
-.map-loading-dot:nth-child(3) { animation: map-dot-wave 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.4s infinite; }
+
+.map-loading-dot:nth-child(1) {
+  animation: map-dot-wave 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.map-loading-dot:nth-child(2) {
+  animation: map-dot-wave 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.2s infinite;
+}
+
+.map-loading-dot:nth-child(3) {
+  animation: map-dot-wave 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.4s infinite;
+}
 
 .map-overlay-chip {
   position: absolute;
@@ -1910,6 +1908,7 @@ html.dark .map-overlay-chip {
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 258 50% 2.5%;
     --foreground: 210 40% 98%;
@@ -1980,4 +1979,112 @@ html.dark [data-selected="true"][data-selection-end="true"][data-range-selection
 
 html.dark [role="button"][data-today="true"]:not([data-selection-start="true"]):not([data-selection-end="true"]) {
   box-shadow: inset 0 0 0 1.5px rgb(167 139 250 / 0.4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   TENANT ATELIER — Design tokens for tenant-facing pages.
+   Dark values are the DEFAULT (Midnight Atelier aesthetic, untouched).
+   Light overrides sit under html:not(.dark).
+   ══════════════════════════════════════════════════════════════════════ */
+
+.tenant-atelier {
+  /* Page & surface backgrounds */
+  --at-page: 19 19 21;
+  --at-deep: 10 10 12;
+  --at-surface: 14 14 16;
+  --at-raised: 26 24 30;
+  --at-elevated: 32 31 34;
+  --at-accent-bg: 42 36 56;
+  --at-accent-bg-h: 63 54 82;
+  --at-modal: 17 17 19;
+
+  /* Text hierarchy */
+  --at-heading: 255 255 255;
+  --at-body: 229 225 228;
+  --at-muted: 203 195 215;
+  --at-faint: 138 138 147;
+  --at-ghost: 85 85 85;
+
+  /* Accent palette */
+  --at-accent: 160 120 255;
+  --at-accent-light: 208 188 255;
+  --at-accent-mid: 179 136 255;
+  --at-accent-hover: 233 221 255;
+  --at-accent-on: 35 0 92;
+
+  /* Borders & dividers (channel values — pair with /alpha) */
+  --at-border: 255 255 255;
+  --at-divider: 51 51 51;
+}
+
+html:not(.dark) .tenant-atelier {
+  /* Page & surface backgrounds — warm editorial cream */
+  --at-page: 250 248 246;
+  --at-deep: 244 240 237;
+  --at-surface: 255 255 255;
+  --at-raised: 247 244 242;
+  --at-elevated: 241 237 234;
+  --at-accent-bg: 238 233 248;
+  --at-accent-bg-h: 226 217 242;
+  --at-modal: 255 255 255;
+
+  /* Text hierarchy — warm deep tones */
+  --at-heading: 28 25 32;
+  --at-body: 61 54 72;
+  --at-muted: 107 100 120;
+  --at-faint: 142 135 154;
+  --at-ghost: 179 171 188;
+
+  /* Accent palette — deeper purples for contrast on light */
+  --at-accent: 124 58 237;
+  --at-accent-light: 124 58 237;
+  --at-accent-mid: 139 92 246;
+  --at-accent-hover: 109 40 217;
+  --at-accent-on: 255 255 255;
+
+  /* Borders & dividers (flip to dark channel) */
+  --at-border: 0 0 0;
+  --at-divider: 232 228 224;
+}
+
+/* Tenant atelier form inputs — override global input styles within tenant context */
+.tenant-atelier input:not([data-slot='input']):not([type='hidden']):not([type='checkbox']):not([type='radio']):not([type='file']),
+.tenant-atelier select:not([data-slot]),
+.tenant-atelier textarea:not([data-slot='input']) {
+  border-color: rgb(var(--at-border) / 0.08);
+  background-color: rgb(var(--at-raised));
+  color: rgb(var(--at-heading));
+}
+
+.tenant-atelier input:not([data-slot='input'])::placeholder,
+.tenant-atelier textarea:not([data-slot='input'])::placeholder {
+  color: rgb(var(--at-ghost));
+}
+
+.tenant-atelier input:not([data-slot='input']):focus,
+.tenant-atelier textarea:not([data-slot='input']):focus {
+  border-color: rgb(var(--at-accent) / 0.42) !important;
+  box-shadow: 0 0 0 1px rgb(var(--at-accent) / 0.42) !important;
+}
+
+.tenant-atelier label {
+  color: rgb(var(--at-faint));
+}
+
+/* ── Scrollbar hide utility ───────────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Mobile touch improvements for tenant pages ───────────────── */
+@media (max-width: 640px) {
+  .tenant-atelier,
+  .min-h-screen.font-sans.text-white {
+    overflow-x: hidden;
+  }
 }

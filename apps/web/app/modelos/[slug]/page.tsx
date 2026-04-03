@@ -41,20 +41,20 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
   const openCalls = await getOpenModelCalls(shop.id);
 
   return (
-    <section className="min-h-screen bg-[#131315] font-sans text-white pb-32">
-      <div className="px-6 pt-6">
-        <Container variant="hero" className="relative px-6 py-20 md:px-16 md:py-32 overflow-hidden rounded-[2.5rem] bg-[#0e0e10] ring-1 ring-white/5 shadow-2xl max-w-[1440px] mx-auto">
+    <section className="min-h-screen bg-[#131315] font-sans text-white pb-16 sm:pb-32">
+      <div className="px-3 sm:px-6 pt-4 sm:pt-6">
+        <Container variant="hero" className="relative px-4 py-8 sm:px-6 md:px-16 md:py-32 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] sm:rounded-[2.5rem] bg-[#0e0e10] ring-1 ring-white/5 shadow-2xl max-w-[1440px] mx-auto">
           <div className="absolute inset-0 z-0">
             <div className="absolute inset-0 bg-[#0e0e10]/70 backdrop-blur-[2px] z-10" />
             <img
-              src="https://images.unsplash.com/photo-1541577141970-1bc56ea474eb?q=80&w=2670&auto=format&fit=crop"
+              src={shop.imageUrls[0] || "https://images.unsplash.com/photo-1541577141970-1bc56ea474eb?q=80&w=2670&auto=format&fit=crop"}
               alt="Modelos Showcase"
               className="h-full w-full object-cover opacity-50 grayscale"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#131315] via-[#131315]/80 to-transparent z-10" />
           </div>
 
-          <div className="relative z-10 grid gap-12 lg:grid-cols-[1fr_auto] lg:items-end w-full">
+          <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end w-full">
             <div className="max-w-3xl">
               <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#a078ff]">
                 The Showcase
@@ -68,14 +68,14 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
               <div className="mt-8">
                 <Link
                   href={buildTenantModelRegistrationHref(shop.slug, routeContext.mode)}
-                  className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-[2rem] bg-[#d0bcff] px-10 py-6 text-sm font-bold uppercase tracking-widest text-[#23005c] transition-all hover:bg-[#e9ddff] hover:scale-105 shadow-[0_0_60px_-15px_rgba(208,188,255,0.5)]"
+                  className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-[#d0bcff] px-6 sm:px-10 py-4 sm:py-6 text-xs sm:text-sm font-bold uppercase tracking-widest text-[#23005c] transition-all hover:bg-[#e9ddff] hover:scale-105 shadow-[0_0_60px_-15px_rgba(208,188,255,0.5)]"
                 >
                   Postular al Casting General
                 </Link>
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:w-[450px]">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:w-[450px]">
               <div className="rounded-[1.5rem] bg-[#201f22]/80 p-6 backdrop-blur-xl ring-1 ring-white/10 transition-transform duration-300 hover:-translate-y-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a078ff]">Sesiones</p>
                 <p className="mt-2 text-3xl font-bold text-white">{openCalls.length}</p>
@@ -89,11 +89,11 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
         </Container>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-6 mt-24">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 mt-8 sm:mt-12 md:mt-24">
         <h2 className="font-[family-name:var(--font-heading)] text-3xl font-bold tracking-tighter text-white uppercase mb-12">
           CASTINGS Y SESIONES ABIERTAS
         </h2>
-        
+
         {openCalls.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-white/5 bg-[#201f22]/50 py-32 text-center backdrop-blur-sm">
             <p className="text-sm font-bold uppercase tracking-widest text-[#cbc3d7]">
@@ -102,12 +102,12 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
           </div>
         ) : null}
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {openCalls.map((call) => {
             const modelCategories = Array.isArray(call.model_categories) ? call.model_categories : [];
 
             return (
-              <article key={call.session_id} className="group overflow-hidden rounded-[2.5rem] bg-[#0e0e10] ring-1 ring-white/5 transition-all hover:bg-[#201f22] hover:-translate-y-2 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.5)] flex flex-col justify-between p-8 sm:p-12">
+              <article key={call.session_id} className="group overflow-hidden rounded-[1.5rem] sm:rounded-[2.5rem] bg-[#0e0e10] ring-1 ring-white/5 transition-all hover:bg-[#201f22] hover:-translate-y-2 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.5)] flex flex-col justify-between p-5 sm:p-8 md:p-12">
                 <div>
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-8 border-b border-white/5 pb-8">
                     <div>
@@ -122,7 +122,7 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
                       </p>
                     </div>
 
-                    <div className="bg-[#1a191c] rounded-2xl p-6 ring-1 ring-white/10 text-center sm:text-right min-w-[180px]">
+                    <div className="bg-[#1a191c] rounded-2xl p-4 sm:p-6 ring-1 ring-white/10 text-center min-w-[140px] sm:min-w-[180px]">
                       <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#a078ff] mb-2">
                         Compensación
                       </p>
@@ -142,7 +142,7 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
                   <p className="text-base text-[#cbc3d7] leading-relaxed mb-6 font-medium max-w-xl">
                     {call.notes_public || 'Participa en esta sesión exclusiva. Buscamos perfiles acordes al estilo y técnica propuesta.'}
                   </p>
-                  
+
                   {modelCategories.length > 0 && (
                     <div className="flex flex-wrap gap-3 mb-10">
                       {modelCategories.map((category) => (

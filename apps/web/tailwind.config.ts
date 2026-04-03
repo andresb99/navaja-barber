@@ -20,6 +20,27 @@ const config: Config = {
   			focusDark: 'rgb(var(--focus-dark) / <alpha-value>)',
   			'page-bg': 'rgb(var(--page-bg) / <alpha-value>)',
   			'surface-sheet': 'rgb(var(--surface-sheet) / <alpha-value>)',
+  			/* ── Tenant Atelier tokens ── */
+  			'at-page': 'rgb(var(--at-page) / <alpha-value>)',
+  			'at-deep': 'rgb(var(--at-deep) / <alpha-value>)',
+  			'at-surface': 'rgb(var(--at-surface) / <alpha-value>)',
+  			'at-raised': 'rgb(var(--at-raised) / <alpha-value>)',
+  			'at-elevated': 'rgb(var(--at-elevated) / <alpha-value>)',
+  			'at-accent-bg': 'rgb(var(--at-accent-bg) / <alpha-value>)',
+  			'at-accent-bg-h': 'rgb(var(--at-accent-bg-h) / <alpha-value>)',
+  			'at-modal': 'rgb(var(--at-modal) / <alpha-value>)',
+  			'at-heading': 'rgb(var(--at-heading) / <alpha-value>)',
+  			'at-body': 'rgb(var(--at-body) / <alpha-value>)',
+  			'at-muted': 'rgb(var(--at-muted) / <alpha-value>)',
+  			'at-faint': 'rgb(var(--at-faint) / <alpha-value>)',
+  			'at-ghost': 'rgb(var(--at-ghost) / <alpha-value>)',
+  			'at-accent': 'rgb(var(--at-accent) / <alpha-value>)',
+  			'at-accent-light': 'rgb(var(--at-accent-light) / <alpha-value>)',
+  			'at-accent-mid': 'rgb(var(--at-accent-mid) / <alpha-value>)',
+  			'at-accent-hover': 'rgb(var(--at-accent-hover) / <alpha-value>)',
+  			'at-accent-on': 'rgb(var(--at-accent-on) / <alpha-value>)',
+  			'at-border': 'rgb(var(--at-border) / <alpha-value>)',
+  			'at-divider': 'rgb(var(--at-divider) / <alpha-value>)',
   			ring: 'hsl(var(--ring))',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -81,6 +102,9 @@ const config: Config = {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
+  		},
+  		screens: {
+  			xs: '480px',
   		}
   	}
   },
