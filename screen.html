@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&amp;family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;family=Epilogue:wght@100..900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed-variant": "#503f79",
+                      "on-surface-variant": "#acaaad",
+                      "secondary-container": "#5424af",
+                      "on-error-container": "#ffb2b9",
+                      "on-secondary-fixed-variant": "#5e32b9",
+                      "primary": "#d0bcff",
+                      "on-error": "#490013",
+                      "surface-container-high": "#1f1f22",
+                      "on-tertiary-fixed": "#494454",
+                      "tertiary-fixed": "#f3eaff",
+                      "on-primary-container": "#28174f",
+                      "surface-tint": "#d0bcff",
+                      "outline": "#767577",
+                      "secondary-fixed-dim": "#ceb9ff",
+                      "surface-variant": "#252528",
+                      "on-surface": "#f6f3f5",
+                      "on-tertiary-fixed-variant": "#666071",
+                      "on-tertiary": "#625c6d",
+                      "inverse-primary": "#665590",
+                      "surface": "#0e0e10",
+                      "surface-dim": "#0e0e10",
+                      "error-container": "#a70138",
+                      "background": "#0e0e10",
+                      "surface-container-highest": "#252528",
+                      "outline-variant": "#48474a",
+                      "on-tertiary-container": "#5a5465",
+                      "inverse-surface": "#fcf8fb",
+                      "secondary-dim": "#ac8aff",
+                      "on-primary": "#47366f",
+                      "inverse-on-surface": "#555557",
+                      "surface-container-low": "#131315",
+                      "surface-container-lowest": "#000000",
+                      "surface-bright": "#2c2c2f",
+                      "primary-container": "#a996d7",
+                      "error-dim": "#d73357",
+                      "on-secondary-fixed": "#40009a",
+                      "primary-fixed": "#d0bcff",
+                      "primary-fixed-dim": "#c2aff1",
+                      "tertiary-fixed-dim": "#e5dcf1",
+                      "secondary": "#ac8aff",
+                      "tertiary": "#fdf7ff",
+                      "on-primary-fixed": "#322159",
+                      "secondary-fixed": "#dac9ff",
+                      "on-secondary": "#290067",
+                      "tertiary-dim": "#e5dcf1"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Sora", "sans-serif"],
+                      "body": ["Plus Jakarta Sans", "sans-serif"],
+                      "label": ["Plus Jakarta Sans", "sans-serif"]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0e0e10;
+        }
+        .sora-display {
+            font-family: 'Sora', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#0e0e10]/80 backdrop-blur-xl shadow-[0px_20px_40px_rgba(0,0,0,0.4)]">
+<div class="flex justify-between items-center px-6 md:px-12 py-6 max-w-[1440px] mx-auto">
+<div class="text-2xl font-black tracking-tighter text-[#e5e1e4] uppercase sora-display">
+                MIDNIGHT ATELIER
+            </div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#acaaad] font-medium hover:text-[#d0bcff] transition-colors duration-300" href="#">Services</a>
+<a class="text-[#acaaad] font-medium hover:text-[#d0bcff] transition-colors duration-300" href="#">Barbers</a>
+<a class="text-[#acaaad] font-medium hover:text-[#d0bcff] transition-colors duration-300" href="#">Locations</a>
+<a class="text-[#acaaad] font-medium hover:text-[#d0bcff] transition-colors duration-300" href="#">Journal</a>
+</div>
+<button class="bg-primary text-on-primary-container px-6 py-2.5 rounded-full text-sm font-bold hover:scale-95 transition-all uppercase">
+                BOOK NOW
+            </button>
+</div>
+</nav>
+<!-- Hero Section -->
+<header class="relative h-[614px] min-h-[500px] flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Barbershop Interior" class="w-full h-full object-cover opacity-50 grayscale" data-alt="Moody dark high-end barbershop interior with leather chairs, warm hanging Edison bulbs, and vintage wooden accents in low light." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCp5GbpYs4nHtYbqIoQS4DLpGmgKYq6P9DDWyx5JusS6DEAAlsYr-IP4B6K1_MalFDpocISEEJe5HGk3jhs0iBENRm5ex5Cb7YKyyecd2JHWO_x2dUCy5FyW3kq1UDBRFV8sDWwecM3LteFktxOwuDotTekpBtMCH4T377qMiCcv9mXE2_hByCnQ5qYf0XQiBEcKkc9J1Qo2tWrOyxod_aQhFHJTECln0Rq4OsBMmL2ifnCUftK8grVFvIZ8M4w5XoNR9kcvAcq21gP"/>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent to-background"></div>
+</div>
+<div class="relative z-10 text-center px-4">
+<span class="block text-primary tracking-[0.3em] uppercase text-sm mb-4 font-bold label-md">RESERVAR</span>
+<h1 class="sora-display text-5xl md:text-8xl font-black tracking-tighter text-on-surface uppercase leading-none">
+                AGENDAR CITA
+            </h1>
+</div>
+<!-- Atmospheric Glow -->
+<div class="absolute -bottom-1/2 -left-1/4 w-[600px] h-[600px] bg-secondary opacity-10 blur-[150px] rounded-full pointer-events-none"></div>
+</header>
+<main class="max-w-[1440px] mx-auto px-6 md:px-12 pb-32">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Booking Flow -->
+<div class="lg:col-span-8 space-y-16">
+<!-- Step 1: Select Service -->
+<section>
+<div class="flex items-center gap-4 mb-8">
+<span class="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-high text-primary border border-outline-variant/20 font-bold">1</span>
+<h2 class="sora-display text-3xl font-bold tracking-tight">Select Service</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Service Card 1 -->
+<div class="group relative bg-[#1f1f22] p-8 rounded-xl border border-outline-variant/10 hover:border-primary/40 transition-all cursor-pointer">
+<div class="flex flex-col h-full justify-between">
+<div>
+<h3 class="text-xl font-bold mb-2">Master Cut</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">Signature precision haircut including wash and styling.</p>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold text-lg">$45</span>
+<span class="text-xs text-on-surface-variant flex items-center gap-1 uppercase tracking-widest">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 45 MIN
+                                        </span>
+</div>
+</div>
+</div>
+<div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary" data-weight="fill">check_circle</span>
+</div>
+</div>
+<!-- Service Card 2 (Active State) -->
+<div class="group relative bg-[#1f1f22] p-8 rounded-xl border-2 border-primary transition-all cursor-pointer shadow-[0_0_20px_rgba(208,188,255,0.1)]">
+<div class="flex flex-col h-full justify-between">
+<div>
+<h3 class="text-xl font-bold mb-2">Beard Sculpting</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">Professional grooming and shaping using premium oils and hot towels.</p>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold text-lg">$35</span>
+<span class="text-xs text-on-surface-variant flex items-center gap-1 uppercase tracking-widest">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 30 MIN
+                                        </span>
+</div>
+</div>
+</div>
+<div class="absolute top-4 right-4 opacity-100">
+<span class="material-symbols-outlined text-primary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Service Card 3 -->
+<div class="group relative bg-[#1f1f22] p-8 rounded-xl border border-outline-variant/10 hover:border-primary/40 transition-all cursor-pointer">
+<div class="flex flex-col h-full justify-between">
+<div>
+<h3 class="text-xl font-bold mb-2">Royal Shave</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">Traditional straight razor shave with essential oils and hot wrap.</p>
+</div>
+<div>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold text-lg">$55</span>
+<span class="text-xs text-on-surface-variant flex items-center gap-1 uppercase tracking-widest">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 60 MIN
+                                        </span>
+</div>
+</div>
+</div>
+<div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-primary" data-weight="fill">check_circle</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Step 2: Choose Barber -->
+<section>
+<div class="flex items-center gap-4 mb-8">
+<span class="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-high text-primary border border-outline-variant/20 font-bold">2</span>
+<h2 class="sora-display text-3xl font-bold tracking-tight">Choose Barber</h2>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+<!-- Barber 1 -->
+<div class="flex flex-col items-center group cursor-pointer">
+<div class="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-transparent group-hover:border-primary transition-all p-1">
+<img alt="Julian M." class="w-full h-full object-cover rounded-full" data-alt="Professional male barber Julian with short hair and modern style looking confidently at camera in dark studio." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoDZPgI04cxfrwzqw5DVfznCyb4IlCz-zNWm0cnm9E-ow7ZMyRWmrF4wO_H8tFknct_NGK-yvpB8pQXJPXqXpdvGnSDfgBa5Qu6JDFQ65bxhC-HyR0DFHJbPHKNcc4Xjr4B6lYlIbrXFjpscjaY-Nb5jvlLYOFzd90SfQbfSXRMXad_cuWKBfjc5vSOw0npPBjJIdmFd4XX6xTALrxvaOJ1_YYJIjf34IQ7BUYSDlsMzyUb4X4keuB5LNksq09TSrC55d5-Z103zw_"/>
+</div>
+<span class="font-bold text-sm">Julian M.</span>
+<span class="text-xs text-on-surface-variant uppercase tracking-widest mt-1">Senior</span>
+</div>
+<!-- Barber 2 -->
+<div class="flex flex-col items-center group cursor-pointer">
+<div class="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-primary transition-all p-1">
+<img alt="Lucas G." class="w-full h-full object-cover rounded-full" data-alt="Modern stylish barber Lucas G. with expressive eyes and professional poise in black and white portrait." src="https://lh3.googleusercontent.com/aida-public/AB6AXuANVR02SAA62bu712UBTwq0ZMuGX1SY1g3k1Tp6twg8-zAYPNOQW6aj372eJVidyDCVIlKva2XEzG6KTU6femFUD2aAOgLoaexEtm6iGQ1EpAGCg9UvP9Ccekfoe6QuFAKUYTsEjxuG8MCAV3ohx3UDcfCn-2K62dDuElXxTqqjioVa1AQKgtNtRcwl-L3ErKCn02mQC6l00EKBZiRhJ6TOoAhP4EhamYJ-OIYIHWOzRESWWCDdDG90zoht7wEqiw65D9AJr2xRVVkU"/>
+</div>
+<span class="font-bold text-sm text-primary">Lucas G.</span>
+<span class="text-xs text-primary uppercase tracking-widest mt-1">Master</span>
+</div>
+<!-- Barber 3 -->
+<div class="flex flex-col items-center group cursor-pointer">
+<div class="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-transparent group-hover:border-primary transition-all p-1">
+<img alt="Mateo R." class="w-full h-full object-cover rounded-full" data-alt="Close up portrait of Mateo, a talented barber with trendy hair and welcoming expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSKTRrQtX61Gp0Z8ksCL9koCyw5nXemvNJZLPhzESO7mZwEPRohQ_0ovV_gOSAIbRO1C16X20IOMioWbAzjZ3qufWLTYObFq4gxHb1E2FIjODXGdQ-G6Wo9lxrnpLGijcudnRUO4p-f7EpgNscaC4iE7nLdoikiUxpka7MkH1SLF3vrBPwOKdQYN5_pWtcSSqy_AD-1kLgnIituHnoQTmzfRyIXHXkjulT65Uv-fQj4lTCYS6gkseGhhrjgZ0SdTZ4S81s_4oX_knp"/>
+</div>
+<span class="font-bold text-sm">Mateo R.</span>
+<span class="text-xs text-on-surface-variant uppercase tracking-widest mt-1">Creative</span>
+</div>
+<!-- Barber 4 -->
+<div class="flex flex-col items-center group cursor-pointer">
+<div class="w-24 h-24 rounded-full overflow-hidden mb-4 border-2 border-transparent group-hover:border-primary transition-all p-1">
+<img alt="Enzo S." class="w-full h-full object-cover rounded-full" data-alt="Edgy barber Enzo S. with tattoos and clean haircut, showcasing modern atelier style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD75bkNpmPunVIlA8NU2Xpz4V9V89kjQcDLjyEIAdagPL9CNlRV-1028RwulPER96VDj5HaFVuy5MndSt3C8AqOnmUTMyBLNTglxgNJ6mOJDSy2gp4nwR_ImVnlADkm8qi_cSeZX4-BkfrUj5IAslUIXRkze-Sh6hP140MHgdJ-beBfgSWmk_r7QgR2k0k3mQaBhdCVwjxqN0l24POwfZjy__2PpCJ_NtjC3b2couLo29TzMgPvg65GP_sYsRlc4qsIsXM6kyiT1H_a"/>
+</div>
+<span class="font-bold text-sm">Enzo S.</span>
+<span class="text-xs text-on-surface-variant uppercase tracking-widest mt-1">Lead</span>
+</div>
+</div>
+</section>
+<!-- Step 3: Date & Time -->
+<section>
+<div class="flex items-center gap-4 mb-8">
+<span class="flex items-center justify-center w-10 h-10 rounded-full bg-surface-container-high text-primary border border-outline-variant/20 font-bold">3</span>
+<h2 class="sora-display text-3xl font-bold tracking-tight">Select Date &amp; Time</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+<!-- Minimalist Calendar -->
+<div class="bg-surface-container-high p-8 rounded-xl">
+<div class="flex justify-between items-center mb-8">
+<span class="font-bold uppercase tracking-widest">October 2024</span>
+<div class="flex gap-4">
+<button class="material-symbols-outlined text-[#acaaad] hover:text-primary">chevron_left</button>
+<button class="material-symbols-outlined text-[#acaaad] hover:text-primary">chevron_right</button>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-2 text-center text-xs text-on-surface-variant font-bold mb-4">
+<div>MO</div><div>TU</div><div>WE</div><div>TH</div><div>FR</div><div>SA</div><div>SU</div>
+</div>
+<div class="grid grid-cols-7 gap-2">
+<button class="h-10 flex items-center justify-center text-on-surface-variant/40">28</button>
+<button class="h-10 flex items-center justify-center text-on-surface-variant/40">29</button>
+<button class="h-10 flex items-center justify-center text-on-surface-variant/40">30</button>
+<button class="h-10 flex items-center justify-center font-bold">1</button>
+<button class="h-10 flex items-center justify-center font-bold">2</button>
+<button class="h-10 flex items-center justify-center font-bold bg-primary text-on-primary-container rounded-full">3</button>
+<button class="h-10 flex items-center justify-center font-bold">4</button>
+<!-- ... more days ... -->
+<button class="h-10 flex items-center justify-center font-bold">5</button>
+<button class="h-10 flex items-center justify-center font-bold">6</button>
+<button class="h-10 flex items-center justify-center font-bold">7</button>
+<button class="h-10 flex items-center justify-center font-bold">8</button>
+<button class="h-10 flex items-center justify-center font-bold">9</button>
+<button class="h-10 flex items-center justify-center font-bold">10</button>
+<button class="h-10 flex items-center justify-center font-bold">11</button>
+</div>
+</div>
+<!-- Time Slots Grid -->
+<div class="grid grid-cols-2 gap-4">
+<button class="py-4 rounded-xl border border-outline-variant/10 bg-surface-container-low hover:border-primary/50 font-medium transition-all">09:00 AM</button>
+<button class="py-4 rounded-xl border border-outline-variant/10 bg-surface-container-low hover:border-primary/50 font-medium transition-all">10:30 AM</button>
+<button class="py-4 rounded-xl border-2 border-primary bg-primary/10 text-primary font-bold transition-all shadow-[0_0_15px_rgba(208,188,255,0.05)]">11:45 AM</button>
+<button class="py-4 rounded-xl border border-outline-variant/10 bg-surface-container-low hover:border-primary/50 font-medium transition-all">01:15 PM</button>
+<button class="py-4 rounded-xl border border-outline-variant/10 bg-surface-container-low hover:border-primary/50 font-medium transition-all">02:45 PM</button>
+<button class="py-4 rounded-xl border border-outline-variant/10 bg-surface-container-low hover:border-primary/50 font-medium transition-all">04:00 PM</button>
+<button class="py-4 rounded-xl border border-outline-variant/10 bg-surface-container-low hover:border-primary/50 font-medium transition-all">05:30 PM</button>
+<button class="py-4 rounded-xl border border-outline-variant/10 bg-surface-container-low hover:border-primary/50 font-medium transition-all">07:00 PM</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Summary Panel -->
+<aside class="lg:col-span-4 sticky top-32">
+<div class="bg-[#201f22] rounded-xl p-10 border border-outline-variant/10 shadow-2xl">
+<h3 class="sora-display text-2xl font-bold mb-10 tracking-tight uppercase">Resumen</h3>
+<div class="space-y-8 mb-12">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-xs text-on-surface-variant uppercase tracking-widest block mb-1">Servicio</span>
+<p class="font-bold text-lg">Beard Sculpting</p>
+</div>
+<span class="text-primary font-bold">$35</span>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<span class="text-xs text-on-surface-variant uppercase tracking-widest block mb-1">Barbero</span>
+<p class="font-bold text-lg">Lucas G.</p>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<span class="text-xs text-on-surface-variant uppercase tracking-widest block mb-1">Fecha y Hora</span>
+<p class="font-bold text-lg">3 Octubre, 11:45 AM</p>
+</div>
+</div>
+</div>
+<div class="pt-8 border-t border-outline-variant/20 mb-10">
+<div class="flex justify-between items-center">
+<span class="text-lg uppercase tracking-[0.2em] font-bold">Total</span>
+<span class="text-3xl font-black text-primary sora-display">$35</span>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary-container font-black py-6 rounded-full sora-display uppercase tracking-widest hover:scale-[0.98] transition-transform active:opacity-80">
+                        CONFIRMAR RESERVA
+                    </button>
+<p class="text-center text-on-surface-variant text-[10px] mt-6 uppercase tracking-widest">Cancelación gratuita hasta 24h antes.</p>
+</div>
+<!-- Subtle Purple Glow under Panel -->
+<div class="absolute -z-10 -bottom-10 -right-10 w-64 h-64 bg-secondary opacity-5 blur-[100px] rounded-full"></div>
+</aside>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-[#000000] w-full py-20 px-6 md:px-12 border-t border-[#48474a]/20">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8 w-full max-w-[1440px] mx-auto">
+<div class="text-lg font-bold text-[#e5e1e4] sora-display uppercase">MIDNIGHT ATELIER</div>
+<div class="flex flex-wrap justify-center gap-8">
+<a class="text-xs text-[#acaaad] uppercase tracking-widest hover:text-[#e5e1e4] transition-all" href="#">Privacy Policy</a>
+<a class="text-xs text-[#acaaad] uppercase tracking-widest hover:text-[#e5e1e4] transition-all" href="#">Terms of Service</a>
+<a class="text-xs text-[#acaaad] uppercase tracking-widest hover:text-[#e5e1e4] transition-all" href="#">Accessibility</a>
+<a class="text-xs text-[#acaaad] uppercase tracking-widest hover:text-[#e5e1e4] transition-all" href="#">Contact</a>
+</div>
+<div class="text-[10px] text-[#acaaad] uppercase tracking-widest">
+                © 2024 MIDNIGHT ATELIER. ALL RIGHTS RESERVED.
+            </div>
+</div>
+</footer>
+</body></html>

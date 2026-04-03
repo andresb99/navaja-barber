@@ -201,49 +201,20 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
   }
 
   return (
-    <section className="space-y-6">
-      <ShopBreadcrumb shopName={shop.name} shopHref={profileHref} />
-      <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
-          <div>
-            <p className="hero-eyebrow">Reservas online</p>
-            <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.4rem] dark:text-slate-100">
-              Agenda en {shop.name}
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
-              El flujo queda aislado por tenant: solo veras servicios, staff y horarios de esta
-              barbershop.
-            </p>
-          </div>
+    <section className="min-h-screen bg-[#111111] font-sans text-white pb-32">
+      <div className="max-w-[1240px] mx-auto px-6 pt-16">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#b388ff]">
+          RESERVATION PORTAL
+        </p>
+        <h1 className="mt-3 font-[family-name:var(--font-heading)] text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase tracking-tighter text-white leading-none">
+          CURATE YOUR <span className="text-[#b388ff]">LOOK</span>
+        </h1>
+        <p className="mt-4 text-base text-[#8a8a93] font-normal leading-relaxed max-w-xl">
+          Precision grooming meets nocturnal luxury. Experience the obsidian standard.
+        </p>
+      </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Servicios
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                {(services || []).length}
-              </p>
-            </div>
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Staff
-              </p>
-              <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
-                {(staff || []).length}
-              </p>
-            </div>
-            <div className="stat-tile">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
-                Zona horaria
-              </p>
-              <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
-                {shop.timezone}
-              </p>
-            </div>
-          </div>
-        </div>
-      </Container>
+      <div className="max-w-[1240px] mx-auto px-6 mt-12 mb-24 relative">
 
       <BookingFlow
         shopId={shop.id}
@@ -268,7 +239,8 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
           id: item.id as string,
           name: item.name as string,
         }))}
-      />
+        />
+      </div>
     </section>
   );
 }

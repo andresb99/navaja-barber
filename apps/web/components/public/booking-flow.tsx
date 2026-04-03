@@ -339,253 +339,262 @@ export function BookingFlow({
   }
 
   return (
-    <Card className="soft-panel overflow-hidden rounded-[2rem] border-0 shadow-none">
-      <CardBody className="space-y-6 px-5 py-5 md:px-6 md:py-6">
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-          {stepLabels.map((item) => (
-            <span
-              key={item.id}
-              className="pill-toggle justify-start sm:justify-center"
-              data-active={String(step >= item.id)}
-              aria-current={step === item.id ? 'step' : undefined}
-            >
-              {item.id}. {item.label}
-            </span>
-          ))}
-        </div>
-
-        {error ? (
-          <p className="status-banner error" role="alert" aria-live="assertive">
-            {error}
-          </p>
-        ) : null}
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className={`surface-card spotlight-card ${step >= 1 ? '' : 'opacity-60'}`}>
-            <h3 className="text-xl font-semibold text-ink dark:text-slate-100">1. Servicio</h3>
-            <p className="text-sm text-slate/80 dark:text-slate-300">
-              Elegi que quieres hacerte hoy.
-            </p>
-            <Select
-              aria-label="Servicio"
-              label="Servicio"
-              labelPlacement="inside"
-              className="mt-2"
-              selectedKeys={serviceId ? [serviceId] : []}
-              disallowEmptySelection={false}
-              placeholder="Selecciona un servicio"
-              classNames={{
-                label: 'text-slate/55 dark:text-slate-400',
-                value: 'text-ink dark:text-slate-100',
-              }}
-              renderValue={() =>
-                selectedService
-                  ? `${selectedService.name} - ${formatCurrency(selectedService.price_cents)} (${selectedService.duration_minutes}m)`
-                  : null
-              }
-              onSelectionChange={handleServiceSelectionChange}
-            >
-              {services.map((item) => (
-                <SelectItem
-                  key={item.id}
-                  textValue={`${item.name} - ${formatCurrency(item.price_cents)} (${item.duration_minutes}m)`}
-                >
-                  {item.name} - {formatCurrency(item.price_cents)} ({item.duration_minutes}m)
-                </SelectItem>
-              ))}
-            </Select>
+    <div className="grid lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px] gap-10 lg:gap-16 items-start mt-10">
+      {/* LEFT COLUMN: THE STEPS */}
+      <div className="space-y-12">
+        {/* Step 1 */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#2a2438] text-white text-xs font-bold ring-1 ring-white/5">01</span>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Select Service</h2>
           </div>
-
-          <div className={`surface-card spotlight-card ${step >= 2 ? '' : 'opacity-60'}`}>
-            <h3 className="text-xl font-semibold text-ink dark:text-slate-100">2. Barbero</h3>
-            <p className="text-sm text-slate/80 dark:text-slate-300">
-              Selecciona un barbero o te asignamos el primero disponible.
-            </p>
-            <Select
-              aria-label="Barbero"
-              label="Barbero"
-              labelPlacement="inside"
-              className="mt-2"
-              selectedKeys={staffId ? [staffId] : []}
-              disallowEmptySelection={false}
-              placeholder="Primero disponible"
-              classNames={{
-                label: 'text-slate/55 dark:text-slate-400',
-                value: 'text-ink dark:text-slate-100',
-              }}
-              renderValue={() => (selectedStaff ? selectedStaff.name : null)}
-              onSelectionChange={handleStaffSelectionChange}
-              isDisabled={!serviceId}
-            >
-              {staff.map((item) => (
-                <SelectItem key={item.id} textValue={item.name}>
-                  {item.name}
-                </SelectItem>
-              ))}
-            </Select>
-          </div>
-        </div>
-
-        <div className={`surface-card spotlight-card ${step >= 3 ? '' : 'opacity-60'}`}>
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h3 className="text-xl font-semibold text-ink dark:text-slate-100">
-                3. Fecha y hora
-              </h3>
-              <p className="text-sm text-slate/80 dark:text-slate-300">
-                La disponibilidad se actualiza en franjas de 15 minutos.
-              </p>
-            </div>
-            <div className="w-full max-w-xs">
-              <SurfaceDatePicker
-                id="booking-date"
-                value={date}
-                onValueChange={setDate}
-                isDisabled={!serviceId}
-                label="Fecha"
-                labelPlacement="inside"
-              />
-            </div>
-          </div>
-
-          <div className="mt-4 grid max-h-72 gap-2 overflow-auto md:grid-cols-3">
-            {loadingSlots ? <p className="text-sm text-slate/70">Cargando horarios...</p> : null}
-            {!loadingSlots && slots.length === 0 ? (
-              <p className="text-sm text-slate/70">No hay horarios disponibles para esta fecha.</p>
-            ) : null}
-            {renderedSlots.map((item) => {
-              const { slot, isSelected } = item;
+          <div className="grid sm:grid-cols-2 gap-4">
+            {services.map((item) => {
+              const isSelected = item.id === serviceId;
               return (
-                <Button
-                  type="button"
-                  key={item.key}
-                  variant="light"
-                  className={`rounded-2xl border border-transparent px-3 py-3 text-left text-xs transition ${
+                <div
+                  key={item.id}
+                  onClick={() => handleServiceSelectionChange([item.id])}
+                  role="button"
+                  tabIndex={0}
+                  className={`text-left relative p-6 rounded-[1rem] border transition-all flex flex-col justify-between min-h-[220px] cursor-pointer outline-none ${
                     isSelected
-                      ? 'border-violet-400/38 bg-violet-500/[0.1] dark:border-violet-300/22 dark:bg-violet-400/[0.08]'
-                      : 'bg-white/58 md:hover:bg-white/78 dark:bg-white/[0.03] dark:md:hover:bg-white/[0.05]'
+                      ? 'bg-[#1a181e] border-[#b388ff] shadow-[0_0_20px_-5px_rgba(179,136,255,0.3)]'
+                      : 'bg-[#1a181e] border-white/5 hover:border-white/20'
                   }`}
-                  onPress={() => handleSelectSlot(slot)}
                 >
-                  <p className="font-semibold text-ink dark:text-slate-100">
-                    {item.startTimeLabel}
-                  </p>
-                  <p className="mt-1 text-slate/70 dark:text-slate-400">{slot.staff_name}</p>
-                </Button>
+                  <div>
+                    <div className="flex justify-between items-start mb-6 w-full">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isSelected ? 'bg-[#b388ff] text-black' : 'bg-[#2a2438] text-[#8a8a93]'}`}>
+                        <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.121 14.121L19 19m-7-7l-7-7m0 7l7-7m0 7l-7 7m7-7l7 7" />
+                        </svg>
+                      </div>
+                      <span className={`font-bold text-lg whitespace-nowrap pl-2 ${isSelected ? 'text-[#b388ff]' : 'text-white'}`}>
+                        {formatCurrency(item.price_cents)}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white mb-2">{item.name}</h3>
+                    <p className="text-sm text-[#8a8a93] line-clamp-2 leading-relaxed">
+                      Precision grooming and styling session tailored for you.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-[#8a8a93] font-semibold tracking-wider mt-6">
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    {item.duration_minutes} MIN
+                  </div>
+                  {isSelected && (
+                    <div className="absolute top-4 right-4 w-5 h-5 rounded-full bg-[#b388ff] flex items-center justify-center">
+                      <svg className="w-3 h-3 text-[#111] fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
         </div>
 
-        <div className={`surface-card spotlight-card ${step >= 4 ? '' : 'opacity-60'}`}>
-          <h3 className="text-xl font-semibold text-ink dark:text-slate-100">4. Tus datos</h3>
-          <p className="text-sm text-slate/80 dark:text-slate-300">
-            Usamos esta informacion para confirmar tu cita.
-          </p>
+        {/* Step 2 */}
+        <div className={`space-y-6 transition-opacity ${step >= 2 ? '' : 'opacity-40 pointer-events-none'}`}>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#2a2438] text-white text-xs font-bold ring-1 ring-white/5">02</span>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Select Professional</h2>
+          </div>
+          <div className="flex flex-nowrap overflow-x-auto gap-6 pb-4 pt-4 px-4 -mx-4 scrollbar-hide">
+            {staff.map((member, index) => {
+              const isSelected = member.id === staffId;
+              return (
+                <button key={member.id} onClick={() => handleStaffSelectionChange([member.id])} className="text-center group flex flex-col items-center min-w-[80px]">
+                  <div className={`relative mb-3 rounded-full transition-all ${isSelected ? 'ring-[3px] ring-offset-4 ring-offset-[#111] ring-[#b388ff] scale-105' : 'ring-1 ring-transparent group-hover:ring-[#333] group-hover:ring-offset-2 group-hover:ring-offset-[#111]'}`}>
+                    <img src={`https://i.pravatar.cc/150?u=${member.id}`} className={`w-20 h-20 rounded-full object-cover transition-all ${isSelected ? 'grayscale-0' : 'grayscale'}`} alt={member.name} />
+                    {isSelected && (
+                      <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-[#b388ff] flex items-center justify-center border-[3px] border-[#111]">
+                        <svg className="w-3 h-3 text-[#111] fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
+                      </div>
+                    )}
+                  </div>
+                  <span className={`block font-bold mt-1 text-sm ${isSelected ? 'text-white' : 'text-[#8a8a93]'}`}>{member.name}</span>
+                  <span className="block text-[9px] font-bold text-[#555] uppercase tracking-wider">{index === 0 ? 'MASTER' : 'ARTISAN'}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-          <div className="mt-3 grid gap-3 md:grid-cols-2">
-            <Input
-              id="customerName"
-              label="Nombre y apellido"
-              labelPlacement="inside"
-              value={customerName}
-              onChange={(event) => setCustomerName(event.target.value)}
-            />
-            <Input
-              id="customerPhone"
-              label="Telefono"
-              labelPlacement="inside"
-              value={customerPhone}
-              onChange={(event) => setCustomerPhone(event.target.value)}
-            />
-            <Input
-              id="customerEmail"
-              type="email"
-              label={requiresOnlinePayment ? 'Email (requerido para pago online)' : 'Email (opcional)'}
-              labelPlacement="inside"
-              value={customerEmail}
-              onChange={(event) => setCustomerEmail(event.target.value)}
-              required={requiresOnlinePayment}
-            />
-            <Textarea
-              id="notes"
-              className="md:col-span-2"
-              rows={3}
-              label="Notas (opcional)"
-              labelPlacement="inside"
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-            />
-            <div className="md:col-span-2">
-              {supportsOnlinePayment ? (
-                <>
-                  <Checkbox isSelected={payInStore} onValueChange={setPayInStore}>
-                    Pagar en el local
-                  </Checkbox>
-                  <p className="mt-1 text-[11px] text-slate/70 dark:text-slate-400">
-                    Si no marcas esta opcion y el servicio requiere cobro, te enviaremos al
-                    checkout online para completar la reserva.
-                  </p>
-                </>
-              ) : (
-                <div className="rounded-[1.2rem] border border-violet-300/45 bg-violet-50/85 px-4 py-3 text-sm text-violet-950 shadow-[0_16px_30px_-26px_rgba(139,92,246,0.32)] dark:border-violet-200/16 dark:bg-violet-300/[0.08] dark:text-violet-100">
-                  Esta barberia confirma reservas pagando en el local. El checkout online no esta
-                  disponible por ahora.
+        {/* Step 3 */}
+        <div className={`space-y-6 transition-opacity ${step >= 3 ? '' : 'opacity-40 pointer-events-none'}`}>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#2a2438] text-white text-xs font-bold ring-1 ring-white/5">03</span>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Date & Time</h2>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 items-start">
+             <div className="bg-[#1a181e] rounded-[1rem] p-6">
+                <div className="flex items-center justify-between mb-8">
+                  <span className="text-sm font-bold tracking-widest uppercase text-white">
+                    {new Date(date + 'T00:00:00').toLocaleDateString('en-US', {month: 'long', year: 'numeric'})}
+                  </span>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => {
+                        const d = new Date(date + 'T00:00:00'); d.setMonth(d.getMonth() - 1); setDate(d.toISOString().split('T')[0] as string);
+                    }} className="w-8 h-8 rounded-full bg-[#2a2438] flex items-center justify-center text-white hover:bg-[#3f3652] transition-colors"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg></button>
+                    <button type="button" onClick={() => {
+                        const d = new Date(date + 'T00:00:00'); d.setMonth(d.getMonth() + 1); setDate(d.toISOString().split('T')[0] as string);
+                    }} className="w-8 h-8 rounded-full bg-[#2a2438] flex items-center justify-center text-white hover:bg-[#3f3652] transition-colors"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg></button>
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
-          {supportsOnlinePayment && preferredPaymentMethod ? (
-            <p className="mt-2 text-[11px] text-slate/70 dark:text-slate-400">
-              Metodo guardado: {preferredPaymentMethod}
-            </p>
-          ) : null}
-          <div className="mt-4 rounded-[1.4rem] border border-amber-300/40 bg-amber-50/80 p-4 text-sm text-slate-800 shadow-[0_18px_34px_-28px_rgba(146,64,14,0.28)] dark:border-amber-200/12 dark:bg-amber-300/[0.07] dark:text-slate-200">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-700/90 dark:text-amber-200/80">
-              Politica de reserva
-            </p>
-            <p className="mt-2">
-              {cancellationNoticeHours === 0
-                ? 'Puedes cancelar sin friccion hasta el momento de la cita.'
-                : `Puedes cancelar sin friccion hasta ${cancellationNoticeHours} horas antes de la cita.`}
-            </p>
-            <p className="mt-2">
-              {staffCancellationRefundMode === 'automatic_full'
-                ? 'Si la barberia cancela una cita pagada, el reembolso se procesa automaticamente al 100%.'
-                : 'Si la barberia cancela una cita pagada, el reembolso queda marcado para revision manual del local.'}
-            </p>
-            {cancellationPolicyText ? <p className="mt-2">{cancellationPolicyText}</p> : null}
+                <div className="grid grid-cols-7 gap-1 text-center mb-4">
+                  {['M','T','W','T','F','S','S'].map((day, i) => <div key={i} className="text-[10px] font-bold text-[#555] uppercase">{day}</div>)}
+                </div>
+                <div className="grid grid-cols-7 gap-y-2 gap-x-1">
+                  {(() => {
+                    const d = new Date(date + 'T00:00:00');
+                    const month = d.getMonth();
+                    const year = d.getFullYear();
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+                    const firstDay = new Date(year, month, 1).getDay();
+                    const startRaw = firstDay === 0 ? 6 : firstDay - 1; // 0=Mon, ... 6=Sun
+                    
+                    const cells = [];
+                    for (let i = 0; i < startRaw; i++) {
+                      cells.push(<div key={`empty-${i}`} className="p-2"></div>);
+                    }
+                    for (let i = 1; i <= daysInMonth; i++) {
+                      const cur = new Date(year, month, i);
+                      const isoDate = cur.toISOString().split('T')[0] as string;
+                      const isSelected = date === isoDate;
+                      cells.push(
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setDate(isoDate)}
+                          className={`w-10 h-10 mx-auto rounded-lg text-sm font-bold flex items-center justify-center transition-all ${
+                            isSelected ? 'bg-[#b388ff] text-[#111] shadow-[0_0_15px_-3px_rgba(179,136,255,0.4)]' : 'text-white hover:bg-[#2a2438]'
+                          }`}
+                        >
+                          {i.toString().padStart(2, '0')}
+                        </button>
+                      );
+                    }
+                    return cells;
+                  })()}
+                </div>
+             </div>
+             
+             <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-white mb-4">AVAILABLE SLOTS</p>
+                <div className="grid grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-2">
+                   {loadingSlots ? <p className="text-sm text-[#8a8a93] col-span-2">Cargando...</p> : null}
+                   {!loadingSlots && slots.length === 0 ? (
+                      <p className="text-sm text-[#8a8a93] col-span-2">No hay horarios disponibles.</p>
+                   ) : null}
+                   {renderedSlots.map((item) => {
+                     const { slot, isSelected } = item;
+                     return (
+                        <button key={item.key} onClick={() => handleSelectSlot(slot)} className={`py-4 rounded-[0.8rem] text-sm font-bold text-center transition-all ${
+                          isSelected ? 'bg-[#b388ff] text-[#111] shadow-[0_0_15px_-3px_rgba(179,136,255,0.4)]' : 'bg-[#1a181e] text-[#8a8a93] hover:bg-[#201f22] hover:text-white border border-transparent'
+                        }`}>
+                          {item.startTimeLabel}
+                        </button>
+                     )
+                   })}
+                </div>
+             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/55 pt-4 dark:border-white/8">
-          <p className="text-sm text-slate/80 dark:text-slate-300">
-            {selectedService
-              ? `Seleccionado: ${selectedService.name}`
-              : 'Elige un servicio para comenzar'}
-          </p>
-          <Button
-            onClick={submitBooking}
-            isDisabled={
-              !selectedSlot ||
-              !customerName ||
-              !customerPhone ||
-              (requiresOnlinePayment && !customerEmail) ||
-              submitting
-            }
-            isLoading={submitting}
-            className="action-primary px-5 text-sm font-semibold data-[disabled=true]:opacity-50"
-          >
-            {submitting
-              ? 'Creando...'
-              : !selectedSlot
-                ? 'Elige horario'
-                : requiresOnlinePayment
-                  ? 'Continuar al pago'
-                  : 'Confirmar reserva'}
-          </Button>
+        {/* Step 4 */}
+        <div className={`space-y-6 transition-opacity ${step >= 4 ? '' : 'opacity-40 pointer-events-none'}`}>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#2a2438] text-white text-xs font-bold ring-1 ring-white/5">04</span>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Client Profile</h2>
+          </div>
+          
+          <div className="grid sm:grid-cols-2 gap-4">
+             <div>
+                <label className="block text-[9px] font-bold uppercase text-[#8a8a93] mb-2 tracking-widest">FULL NAME</label>
+                <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="John Wick" className="w-full bg-[#1a181e] rounded-[0.8rem] px-4 py-4 text-sm text-white placeholder-[#555] focus:outline-none focus:ring-1 focus:ring-[#b388ff] border-0" />
+             </div>
+             <div>
+                <label className="block text-[9px] font-bold uppercase text-[#8a8a93] mb-2 tracking-widest">MOBILE NUMBER</label>
+                <input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="+1 (555) 000-0000" className="w-full bg-[#1a181e] rounded-[0.8rem] px-4 py-4 text-sm text-white placeholder-[#555] focus:outline-none focus:ring-1 focus:ring-[#b388ff] border-0" />
+             </div>
+             {requiresOnlinePayment && (
+                <div className="sm:col-span-2">
+                  <label className="block text-[9px] font-bold uppercase text-[#8a8a93] mb-2 tracking-widest">EMAIL (Required for Payment)</label>
+                  <input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} placeholder="hello@example.com" className="w-full bg-[#1a181e] rounded-[0.8rem] px-4 py-4 text-sm text-white placeholder-[#555] focus:outline-none focus:ring-1 focus:ring-[#b388ff] border-0" />
+                </div>
+             )}
+             <div className="sm:col-span-2">
+                <label className="block text-[9px] font-bold uppercase text-[#8a8a93] mb-2 tracking-widest">SPECIAL INSTRUCTIONS</label>
+                <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Low skin fade, keep the top long. No beard trimmer." className="w-full bg-[#1a181e] rounded-[0.8rem] px-4 py-4 text-sm text-white placeholder-[#555] focus:outline-none focus:ring-1 focus:ring-[#b388ff] resize-none border-0"></textarea>
+             </div>
+          </div>
+          {error ? <p className="text-red-400 text-sm mt-4 font-bold bg-red-500/10 p-4 rounded-lg">{error}</p> : null}
         </div>
-      </CardBody>
-    </Card>
+      </div>
+      
+      {/* RIGHT COLUMN: APPOINTMENT SUMMARY */}
+      <div className="sticky top-24 pb-8">
+        <div className="bg-[#1a181e] rounded-[1.5rem] p-6 sm:p-8 shadow-2xl ring-1 ring-white/5">
+           <div className="flex items-center gap-3 mb-8">
+             <div className="w-8 h-8 rounded-lg bg-[#b388ff] flex items-center justify-center flex-shrink-0">
+               <svg className="w-4 h-4 text-[#111]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+             </div>
+             <h3 className="text-xl font-bold text-white tracking-tight">Appointment Summary</h3>
+           </div>
+           
+           <div className="space-y-6">
+             <div className="flex justify-between items-start gap-4">
+               <div className="min-w-0 flex-1">
+                 <p className="text-[9px] font-bold text-[#555] uppercase tracking-widest mb-1">SERVICE</p>
+                 <p className="text-sm font-bold text-white truncate">{selectedService ? selectedService.name : '--'}</p>
+               </div>
+               <span className="text-sm font-bold text-[#b388ff] flex-shrink-0 whitespace-nowrap">
+                 {selectedService ? formatCurrency(selectedService.price_cents) : '--'}
+               </span>
+             </div>
+             
+             <div>
+                 <p className="text-[9px] font-bold text-[#555] uppercase tracking-widest mb-1">BARBER</p>
+                 <p className="text-sm font-bold text-white">{selectedStaff ? selectedStaff.name : '--'}</p>
+             </div>
+             
+             <div>
+                 <p className="text-[9px] font-bold text-[#555] uppercase tracking-widest mb-1">DATE & TIME</p>
+                 <p className="text-sm font-bold text-white">{selectedSlot ? `${new Date(selectedSlot.start_at).toLocaleDateString('en-US', {month: 'short', day: '2-digit', year: 'numeric'})} at ${renderedSlots.find((r) => r.slot.start_at === selectedSlot.start_at)?.startTimeLabel}` : '--'}</p>
+             </div>
+             
+             <div className="border-t border-[#333] pt-6 space-y-3 mt-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-[#8a8a93]">Subtotal</span>
+                  <span className="font-bold text-white">{selectedService ? formatCurrency(selectedService.price_cents) : '--'}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-[#8a8a93]">Booking Fee</span>
+                  <span className="font-bold text-white">$0.00</span>
+                </div>
+             </div>
+             
+             <div className="flex justify-between items-end pt-4 mb-2">
+                <span className="text-lg font-bold text-white">Total</span>
+                <span className="text-2xl sm:text-3xl font-extrabold text-[#b388ff]">{selectedService ? formatCurrency(selectedService.price_cents) : '--'}</span>
+             </div>
+             
+             <button
+               disabled={!selectedSlot || !customerName || !customerPhone || submitting}
+               onClick={submitBooking}
+               className="w-full bg-[#b388ff] text-[#111] font-bold text-sm uppercase tracking-[0.1em] py-5 mt-2 rounded-[1rem] hover:bg-[#c9a6ff] hover:scale-[1.02] shadow-[0_0_30px_-10px_rgba(179,136,255,0.4)] transition-all disabled:opacity-50 disabled:bg-[#333] disabled:text-[#8a8a93] disabled:hover:scale-100 disabled:shadow-none"
+             >
+               {submitting ? 'PROCESSING...' : 'CONFIRM APPOINTMENT'}
+             </button>
+             
+             <p className="text-[8px] font-bold text-[#555] tracking-widest text-center uppercase">
+                {supportsOnlinePayment && requiresOnlinePayment ? 'YOU WILL BE REDIRECTED TO PAYMENT.' : 'PAY AT THE SHOP AFTER YOUR SERVICE.'}
+             </p>
+           </div>
+        </div>
+      </div>
+    </div>
   );
 }
