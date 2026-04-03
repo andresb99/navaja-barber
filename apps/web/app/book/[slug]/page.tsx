@@ -126,42 +126,42 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
       : 'El local ya publico servicios, pero todavia no asigno staff activo para recibir reservas.';
 
     return (
-      <section className="space-y-6">
+      <section className="space-y-6 tenant-atelier min-h-screen bg-at-page text-at-body">
         <ShopBreadcrumb shopName={shop.name} shopHref={profileHref} />
         <Container variant="hero" className="px-6 py-7 md:px-8 md:py-9">
           <div className="relative z-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
             <div>
-              <p className="hero-eyebrow">Reservas online</p>
-              <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-ink md:text-[2.4rem] dark:text-slate-100">
+              <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-at-accent">Reservas online</p>
+              <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl font-bold text-at-heading md:text-[2.4rem]">
                 Agenda en {shop.name}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
+              <p className="mt-3 max-w-2xl text-sm text-at-muted">
                 {emptyDescription}
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="stat-tile">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+              <div className="rounded-[1.5rem] bg-at-raised/80 p-6 backdrop-blur-xl ring-1 ring-at-border/10">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-at-accent">
                   Servicios
                 </p>
-                <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                <p className="mt-2 text-2xl font-bold text-at-heading">
                   {(services || []).length}
                 </p>
               </div>
-              <div className="stat-tile">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+              <div className="rounded-[1.5rem] bg-at-raised/80 p-6 backdrop-blur-xl ring-1 ring-at-border/10">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-at-accent">
                   Staff
                 </p>
-                <p className="mt-2 text-2xl font-semibold text-ink dark:text-slate-100">
+                <p className="mt-2 text-2xl font-bold text-at-heading">
                   {(staff || []).length}
                 </p>
               </div>
-              <div className="stat-tile">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate/60 dark:text-slate-400">
+              <div className="rounded-[1.5rem] bg-at-raised/80 p-6 backdrop-blur-xl ring-1 ring-at-border/10">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-at-accent">
                   Zona horaria
                 </p>
-                <p className="mt-2 text-sm font-semibold text-ink dark:text-slate-100">
+                <p className="mt-2 text-sm font-bold text-at-heading truncate">
                   {shop.timezone}
                 </p>
               </div>
@@ -169,28 +169,28 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
           </div>
         </Container>
 
-        <div className="soft-panel rounded-[2rem] p-6">
-          <h2 className="font-[family-name:var(--font-heading)] text-2xl font-semibold text-ink dark:text-slate-100">
+        <div className="bg-at-deep ring-1 ring-at-border/5 rounded-[2rem] p-6">
+          <h2 className="font-[family-name:var(--font-heading)] text-2xl font-bold text-at-heading">
             {emptyTitle}
           </h2>
-          <p className="mt-3 max-w-2xl text-sm text-slate/80 dark:text-slate-300">
+          <p className="mt-3 max-w-2xl text-sm text-at-muted">
             Para evitar una reserva frustrada, ocultamos la agenda hasta que el local termine esa
             configuracion.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <Link href={profileHref} className="action-primary px-5 py-2 text-sm font-semibold">
+            <Link href={profileHref} className="rounded-2xl bg-at-accent-light px-5 py-2 text-xs font-bold uppercase tracking-widest text-at-accent-on transition-all hover:bg-at-accent-hover shadow-lg inline-flex items-center justify-center text-center">
               Volver al perfil
             </Link>
             {shop.phone ? (
               <a
                 href={`tel:${shop.phone}`}
-                className="action-secondary px-5 py-2 text-sm font-semibold"
+                className="rounded-2xl bg-at-border/5 ring-1 ring-at-border/10 px-5 py-2 text-xs font-bold uppercase tracking-widest text-at-heading transition-all hover:bg-at-border/10 inline-flex items-center justify-center text-center"
               >
                 Llamar al local
               </a>
             ) : (
-              <Link href="/shops" className="action-secondary px-5 py-2 text-sm font-semibold">
+              <Link href="/shops" className="rounded-2xl bg-at-border/5 ring-1 ring-at-border/10 px-5 py-2 text-xs font-bold uppercase tracking-widest text-at-heading transition-all hover:bg-at-border/10 inline-flex items-center justify-center text-center">
                 Ver otras barberias
               </Link>
             )}
@@ -201,15 +201,15 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
   }
 
   return (
-    <section className="min-h-screen font-sans text-white pb-16 sm:pb-32">
+    <section className="min-h-screen font-sans text-at-body pb-16 sm:pb-32 bg-at-page tenant-atelier">
       <div className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-8 sm:pt-10 sm:pt-16">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#b388ff]">
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-at-accent">
           RESERVATION PORTAL
         </p>
-        <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl sm:text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase tracking-tighter text-white leading-none">
-          CURATE YOUR <span className="text-[#b388ff]">LOOK</span>
+        <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl sm:text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase tracking-tighter text-at-heading leading-none">
+          CURATE YOUR <span className="text-at-accent-light">LOOK</span>
         </h1>
-        <p className="mt-4 text-base text-[#8a8a93] font-normal leading-relaxed max-w-xl">
+        <p className="mt-4 text-base text-at-muted font-normal leading-relaxed max-w-xl">
           Precision grooming meets nocturnal luxury. Experience the obsidian standard.
         </p>
       </div>

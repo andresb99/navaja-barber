@@ -50,34 +50,34 @@ export default async function ShopModelRegistrationPage({
   const openCalls = await getOpenModelCalls(shop.id);
 
   return (
-    <section className="min-h-screen bg-[#131315] font-sans text-white pb-16 sm:pb-32">
+    <section className="min-h-screen bg-at-page font-sans text-at-body pb-16 sm:pb-32 tenant-atelier">
       <div className="px-3 sm:px-6 pt-4 sm:pt-6">
-        <Container variant="hero" className="relative px-4 py-8 sm:px-6 md:px-16 md:py-24 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-[#0e0e10] ring-1 ring-white/5 shadow-2xl max-w-[1440px] mx-auto">
+        <Container variant="hero" className="relative px-4 py-8 sm:px-6 md:px-16 md:py-24 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-at-deep ring-1 ring-at-border/5 shadow-2xl max-w-[1440px] mx-auto">
           <div className="relative z-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
             <div>
-              <p className="hero-eyebrow text-[#a078ff]" style={{ letterSpacing: '0.3em', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>Registro de modelos</p>
-              <h1 className="mt-4 font-[family-name:var(--font-heading)] text-4xl sm:text-5xl font-bold text-white tracking-tighter">
+              <p className="hero-eyebrow text-at-accent" style={{ letterSpacing: '0.3em', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>Registro de modelos</p>
+              <h1 className="mt-4 font-[family-name:var(--font-heading)] text-4xl sm:text-5xl font-bold text-at-heading tracking-tighter">
                 Postulate para las practicas de {shop.name}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm text-white/60">
+              <p className="mt-3 max-w-2xl text-sm text-at-muted">
                 Tu perfil y tus preferencias se guardan solo dentro de este workspace.
               </p>
               <Link
                 href={buildTenantPublicHref(shop.slug, routeContext.mode, 'modelos')}
-                className="mt-4 inline-flex text-sm font-semibold text-[#a078ff] hover:text-[#d0bcff] transition-colors"
+                className="mt-4 inline-flex text-sm font-semibold text-at-accent hover:text-at-accent-hover transition-colors"
               >
                 Ver convocatorias abiertas
               </Link>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              <div className="rounded-[1.5rem] bg-[#201f22]/80 p-5 sm:p-6 backdrop-blur-xl ring-1 ring-white/10">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a078ff]">Sesion</p>
-                <p className="mt-2 text-lg font-semibold text-white">Opcional</p>
+              <div className="rounded-[1.5rem] bg-at-raised/80 p-5 sm:p-6 backdrop-blur-xl ring-1 ring-at-border/10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-at-accent">Sesion</p>
+                <p className="mt-2 text-lg font-semibold text-at-heading">Opcional</p>
               </div>
-              <div className="rounded-[1.5rem] bg-[#201f22]/80 p-5 sm:p-6 backdrop-blur-xl ring-1 ring-white/10">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a078ff]">Tenant</p>
-                <p className="mt-2 text-sm font-semibold text-white truncate">{shop.slug}</p>
+              <div className="rounded-[1.5rem] bg-at-raised/80 p-5 sm:p-6 backdrop-blur-xl ring-1 ring-at-border/10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-at-accent">Tenant</p>
+                <p className="mt-2 text-sm font-semibold text-at-heading truncate">{shop.slug}</p>
               </div>
             </div>
           </div>

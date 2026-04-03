@@ -136,7 +136,7 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
   const workingDays = Array.from(hoursByDay.entries()).sort(([a], [b]) => a - b);
 
   return (
-    <div className="min-h-screen bg-[#131315] text-[#e5e1e4] selection:bg-[#a078ff]/30 selection:text-white font-sans antialiased overflow-hidden">
+    <div className="min-h-screen bg-at-page text-at-body selection:bg-at-accent/30 selection:text-at-heading font-sans antialiased overflow-hidden tenant-atelier">
 
       {/* ── IMMERSIVE HERO ──────────────────────────────────────────────────────── */}
       <div className="relative w-full h-[70vh] sm:h-[85vh] min-h-[480px] flex items-end">
@@ -147,8 +147,8 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
           <ShopImageCarousel images={shop.imageUrls ?? []} shopName={shop.name} />
 
           {/* Deep obsidian fade overlay - specifically tuned for Midnight Atelier */}
-          <div className="absolute inset-0 z-20 bg-gradient-to-t from-[#131315] via-[#131315]/70 to-transparent" />
-          <div className="absolute inset-0 z-20 bg-gradient-to-b from-[#131315]/40 via-transparent to-transparent opacity-60" />
+          <div className="absolute inset-0 z-20 bg-gradient-to-t from-at-page via-at-page/70 to-transparent" />
+          <div className="absolute inset-0 z-20 bg-gradient-to-b from-at-page/40 via-transparent to-transparent opacity-60" />
         </div>
 
         <div className="absolute top-6 left-6 z-20">
@@ -158,19 +158,19 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
         <div className="relative z-20 w-full px-4 sm:px-6 md:px-12 lg:px-20 pb-10 sm:pb-16 md:pb-24">
           <div className="max-w-4xl">
             {shop.isVerified && (
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/5 backdrop-blur-md ring-1 ring-white/10 px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-[#cbc3d7]">
-                <CheckCircle2 className="h-4 w-4 text-[#a078ff]" />
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-at-border/5 backdrop-blur-md ring-1 ring-at-border/10 px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-at-muted">
+                <CheckCircle2 className="h-4 w-4 text-at-accent" />
                 Tenant Verificado
               </div>
             )}
 
-            <h1 className="font-[family-name:var(--font-heading)] text-4xl xs:text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter text-white drop-shadow-2xl leading-[0.9]">
+            <h1 className="font-[family-name:var(--font-heading)] text-4xl xs:text-5xl sm:text-6xl md:text-8xl font-bold tracking-tighter text-at-heading drop-shadow-2xl leading-[0.9]">
               {shop.name.toUpperCase()}
             </h1>
 
             {locationLabel && (
-              <p className="mt-8 text-sm sm:text-lg text-[#cbc3d7] font-medium tracking-wide flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-[#a078ff]" />
+              <p className="mt-8 text-sm sm:text-lg text-at-muted font-medium tracking-wide flex items-center gap-3">
+                <MapPin className="h-5 w-5 text-at-accent" />
                 {locationLabel}
               </p>
             )}
@@ -179,7 +179,7 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
               {canBook && (
                 <Link
                   href={buildTenantPublicHref(shop.slug, routeContext.mode, 'book')}
-                  className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-2xl bg-[#d0bcff] px-6 sm:px-8 py-4 sm:py-5 text-xs sm:text-sm font-bold uppercase tracking-widest text-[#23005c] transition-all hover:bg-[#e9ddff] hover:scale-[1.02] active:scale-95 shadow-[0_0_40px_-10px_rgba(208,188,255,0.4)]"
+                  className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-2xl bg-at-accent-light px-6 sm:px-8 py-4 sm:py-5 text-xs sm:text-sm font-bold uppercase tracking-widest text-at-accent-on transition-all hover:bg-at-accent-hover hover:scale-[1.02] active:scale-95 shadow-[0_0_40px_-10px_rgba(var(--at-accent-light),0.4)]"
                 >
                   <Scissors className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>Reservar The Experience</span>
@@ -188,7 +188,7 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
               {shop.phone && (
                 <a
                   href={`tel:${shop.phone}`}
-                  className="inline-flex items-center justify-center gap-3 rounded-2xl bg-white/5 ring-1 ring-white/10 backdrop-blur-md px-6 sm:px-8 py-4 sm:py-5 text-xs sm:text-sm font-bold uppercase tracking-widest text-white transition-all hover:bg-white/10"
+                  className="inline-flex items-center justify-center gap-3 rounded-2xl bg-at-border/5 ring-1 ring-at-border/10 backdrop-blur-md px-6 sm:px-8 py-4 sm:py-5 text-xs sm:text-sm font-bold uppercase tracking-widest text-at-heading transition-all hover:bg-at-border/10"
                 >
                   <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
                   Contacto
@@ -207,42 +207,42 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
         <section id="services" className="scroll-mt-40">
           <div className="mb-16 flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="max-w-2xl">
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#a078ff]">La Colección</p>
-              <h2 className="font-[family-name:var(--font-heading)] text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-white leading-none">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-at-accent">La Colección</p>
+              <h2 className="font-[family-name:var(--font-heading)] text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-at-heading leading-none">
                 SERVICIOS
               </h2>
             </div>
           </div>
 
           {(services || []).length === 0 ? (
-            <p className="text-[#cbc3d7]">Sin servicios disponibles.</p>
+            <p className="text-at-muted">Sin servicios disponibles.</p>
           ) : (
             <div className="grid gap-6">
               {(services || []).map((service) => (
                 <div
                   key={String(service.id)}
-                  className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-6 rounded-[2rem] bg-[#0e0e10] p-8 sm:p-10 transition-all hover:bg-[#201f22]"
+                  className="group relative flex flex-col sm:flex-row sm:items-center justify-between gap-6 rounded-[2rem] bg-at-deep p-8 sm:p-10 transition-all hover:bg-at-surface"
                 >
                   <div className="flex items-center gap-6 z-10">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#1c1b1d] group-hover:bg-[#a078ff]/10 transition-colors">
-                      <Scissors className="h-6 w-6 text-white group-hover:text-[#a078ff] transition-colors" />
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-at-raised group-hover:bg-at-accent/10 transition-colors">
+                      <Scissors className="h-6 w-6 text-at-heading group-hover:text-at-accent transition-colors" />
                     </div>
                     <div>
-                      <p className="text-xl sm:text-2xl font-bold text-white tracking-tight">{String(service.name)}</p>
-                      <div className="mt-2 flex items-center gap-2 text-sm text-[#cbc3d7]">
+                      <p className="text-xl sm:text-2xl font-bold text-at-heading tracking-tight">{String(service.name)}</p>
+                      <div className="mt-2 flex items-center gap-2 text-sm text-at-muted">
                         <Clock className="h-4 w-4 opacity-50" />
                         <span>{Number(service.duration_minutes || 0)} MINUTOS</span>
                       </div>
                     </div>
                   </div>
                   <div className="z-10 flex items-center justify-between sm:justify-end gap-8 w-full sm:w-auto mt-4 sm:mt-0">
-                    <span className="text-2xl sm:text-3xl font-bold text-[#d0bcff] tracking-tighter">
+                    <span className="text-2xl sm:text-3xl font-bold text-at-accent-light tracking-tighter">
                       {formatCurrency(Number(service.price_cents || 0))}
                     </span>
                     {canBook && (
                       <Link
                         href={buildTenantPublicHref(shop.slug, routeContext.mode, 'book')}
-                        className="flex h-14 w-14 items-center justify-center rounded-full bg-white/5 ring-1 ring-white/10 text-white transition hover:bg-white/10 hover:scale-110"
+                        className="flex h-14 w-14 items-center justify-center rounded-full bg-at-border/5 ring-1 ring-at-border/10 text-at-heading transition hover:bg-at-border/10 hover:scale-110"
                       >
                         <ChevronRight className="h-6 w-6" />
                       </Link>
@@ -258,8 +258,8 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
         {staffMembers.length > 0 && (
           <section id="equipo" className="scroll-mt-40">
             <div className="mb-20">
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#a078ff]">Los Artesanos</p>
-              <h2 className="font-[family-name:var(--font-heading)] text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-white leading-none">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-at-accent">Los Artesanos</p>
+              <h2 className="font-[family-name:var(--font-heading)] text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-at-heading leading-none">
                 BARBEROS
               </h2>
             </div>
@@ -269,9 +269,9 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
                 <div key={person.id} className="group flex flex-col items-center">
                   <div className="relative mb-6 transition-transform duration-500 group-hover:scale-110">
                     {/* Premium Purple Ring */}
-                    <div className="absolute inset-0 rounded-full ring-[2px] ring-[#a078ff] ring-offset-[4px] sm:ring-offset-[6px] ring-offset-[#131315] transition-all duration-500 group-hover:ring-[4px] group-hover:ring-offset-[6px] sm:group-hover:ring-offset-[8px]" />
+                    <div className="absolute inset-0 rounded-full ring-[2px] ring-at-accent ring-offset-[4px] sm:ring-offset-[6px] ring-offset-at-page transition-all duration-500 group-hover:ring-[4px] group-hover:ring-offset-[6px] sm:group-hover:ring-offset-[8px]" />
 
-                    <div className="relative h-24 w-24 sm:h-36 sm:w-36 overflow-hidden rounded-full bg-[#1a1a1c] ring-1 ring-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+                    <div className="relative h-24 w-24 sm:h-36 sm:w-36 overflow-hidden rounded-full bg-at-surface ring-1 ring-at-border/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
                       {person.avatarUrl ? (
                         <img
                           src={person.avatarUrl}
@@ -279,23 +279,23 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
                           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#2a2a2d] to-[#1a1a1c] text-3xl font-bold text-white/20">
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-at-raised to-at-surface text-3xl font-bold text-at-heading/20">
                           {person.displayName.split(' ').map(n => n[0]).join('')}
                         </div>
                       )}
                     </div>
 
                     {/* Heart Icon Badge */}
-                    <div className="absolute bottom-0 right-0 sm:bottom-2 sm:right-2 rounded-full bg-[#a078ff] h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center text-[#23005c] shadow-[0_0_20px_rgba(160,120,255,0.4)] ring-[4px] sm:ring-[6px] ring-[#131315] transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12">
+                    <div className="absolute bottom-0 right-0 sm:bottom-2 sm:right-2 rounded-full bg-at-accent h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center text-at-accent-on shadow-[0_0_20px_rgba(var(--at-accent),0.4)] ring-[4px] sm:ring-[6px] ring-at-page transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12">
                       <Heart className="h-4 w-4 sm:h-5 sm:w-5 fill-current" />
                     </div>
                   </div>
 
                   <div className="text-center">
-                    <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-tight group-hover:text-[#a078ff] transition-colors">
+                    <h3 className="text-lg sm:text-xl font-bold text-at-heading tracking-tight leading-tight group-hover:text-at-accent transition-colors">
                       {person.displayName}
                     </h3>
-                    <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.25em] text-white/20 mt-2 sm:mt-3">
+                    <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.25em] text-at-heading/20 mt-2 sm:mt-3">
                       {isOwnerRole(String(person.role)) ? 'MASTER' : 'ARTESANO'}
                     </p>
                   </div>
@@ -309,8 +309,8 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
         {(reviews || []).length > 0 && (
           <section>
             <div className="mb-16">
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#a078ff]">El Veredicto</p>
-              <h2 className="font-[family-name:var(--font-heading)] text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-white leading-none">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-at-accent">El Veredicto</p>
+              <h2 className="font-[family-name:var(--font-heading)] text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-at-heading leading-none">
                 RESEÑAS
               </h2>
             </div>
@@ -322,24 +322,24 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
                 return (
                   <div
                     key={`${String(review.staff_id)}-${index}`}
-                    className="relative flex flex-col justify-between rounded-[2rem] bg-[#0e0e10] p-10 ring-1 ring-white/5 hover:ring-[#a078ff]/30 transition-all"
+                    className="relative flex flex-col justify-between rounded-[2rem] bg-at-deep p-10 ring-1 ring-at-border/5 hover:ring-at-accent/30 transition-all"
                   >
                     <div className="flex gap-1 mb-6">
                       {Array.from({ length: 5 }, (_, i) => (
-                        <Star key={i} className={`h-4 w-4 ${i < rating ? 'fill-[#d0bcff] text-[#d0bcff]' : 'text-white/10'}`} />
+                        <Star key={i} className={`h-4 w-4 ${i < rating ? 'fill-at-accent-light text-at-accent-light' : 'text-at-border/10'}`} />
                       ))}
                     </div>
-                    <p className="text-lg md:text-xl font-medium leading-relaxed text-[#e5e1e4] mb-10">
+                    <p className="text-lg md:text-xl font-medium leading-relaxed text-at-body mb-10">
                       "{String(review.comment || 'Experiencia inigualable.')}"
                     </p>
                     <div className="flex items-center gap-4 mt-auto">
-                      <div className="h-10 w-10 flex items-center justify-center rounded-full bg-white/5 text-xs font-bold text-white/50 ring-1 ring-white/10 uppercase">
+                      <div className="h-10 w-10 flex items-center justify-center rounded-full bg-at-border/5 text-xs font-bold text-at-heading/50 ring-1 ring-at-border/10 uppercase">
                         {barber.charAt(0)}
                       </div>
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.1em] text-[#a078ff]">{barber}</p>
+                        <p className="text-xs font-bold uppercase tracking-[0.1em] text-at-accent">{barber}</p>
                         {review.submitted_at && (
-                          <p suppressHydrationWarning className="text-[10px] text-white/30 uppercase tracking-widest mt-1">
+                          <p suppressHydrationWarning className="text-[10px] text-at-heading/30 uppercase tracking-widest mt-1">
                             {new Date(String(review.submitted_at)).toLocaleDateString('es-UY', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
                         )}
@@ -356,17 +356,17 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
         {workingDays.length > 0 && (
           <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-16 items-start">
             <div className="lg:sticky lg:top-32">
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#a078ff]">El Tiempo</p>
-              <h2 className="font-[family-name:var(--font-heading)] text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-white leading-none mb-10">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-at-accent">El Tiempo</p>
+              <h2 className="font-[family-name:var(--font-heading)] text-4xl sm:text-5xl md:text-7xl font-bold tracking-tighter text-at-heading leading-none mb-10">
                 HORARIOS
               </h2>
-              <p className="text-[#cbc3d7] text-lg max-w-sm leading-relaxed">
+              <p className="text-at-muted text-lg max-w-sm leading-relaxed">
                 Nuestra firma se rige por la precisión. Encontrá el momento perfecto para tu próxima sesión.
               </p>
             </div>
 
-            <div className="rounded-[2rem] sm:rounded-[2.5rem] bg-[#201f22] p-8 sm:p-10 md:p-12 shadow-2xl ring-1 ring-white/5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 bg-[#a078ff]/5 blur-3xl rounded-full" />
+            <div className="rounded-[2rem] sm:rounded-[2.5rem] bg-at-raised p-8 sm:p-10 md:p-12 shadow-2xl ring-1 ring-at-border/5 relative overflow-hidden">
+              <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 bg-at-accent/5 blur-3xl rounded-full" />
 
               <div className="space-y-12 relative z-10">
                 {(() => {
@@ -397,16 +397,16 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
                     const label = endLabel ? `${startLabel} a ${endLabel}` : startLabel;
 
                     return (
-                      <div key={idx} className={idx < summaries.length - 1 ? "border-b border-white/5 pb-10" : ""}>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-[#a078ff] mb-8">{label}</p>
+                      <div key={idx} className={idx < summaries.length - 1 ? "border-b border-at-border/5 pb-10" : ""}>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-at-accent mb-8">{label}</p>
                         <div className="space-y-6">
                           {group.slots.map((timeRange, ti) => (
                             <div key={ti} className="flex items-center gap-6">
-                              <div className="h-[1px] flex-1 bg-gradient-to-r from-[#a078ff]/20 to-transparent" />
-                              <span className="text-lg sm:text-2xl md:text-4xl font-bold text-white tracking-tighter whitespace-nowrap">
+                              <div className="h-[1px] flex-1 bg-gradient-to-r from-at-accent/20 to-transparent" />
+                              <span className="text-lg sm:text-2xl md:text-4xl font-bold text-at-heading tracking-tighter whitespace-nowrap">
                                 {timeRange}
                               </span>
-                              <div className="h-[1px] flex-1 bg-gradient-to-l from-[#a078ff]/10 to-transparent" />
+                              <div className="h-[1px] flex-1 bg-gradient-to-l from-at-accent/10 to-transparent" />
                             </div>
                           ))}
                         </div>
@@ -416,8 +416,8 @@ export default async function ShopProfilePage({ params }: ShopProfilePageProps) 
                 })()}
               </div>
 
-              <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-white/20">
+              <div className="mt-12 pt-8 border-t border-at-border/5 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-at-heading/20">
                   <Clock className="h-4 w-4" />
                   <span className="text-[10px] font-semibold uppercase tracking-widest">Hora Local: Uruguay</span>
                 </div>

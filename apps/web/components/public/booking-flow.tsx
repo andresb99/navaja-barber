@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { bookingInputSchema, formatCurrency } from '@navaja/shared';
 import {
@@ -144,6 +144,41 @@ export function BookingFlow({
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const staffScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const isInfinite = staff.length >= 4;
+  const loopedStaff = useMemo(() => isInfinite ? Array(30).fill(staff).flat() : staff, [staff, isInfinite]);
+
+  const checkScroll = useCallback(() => {
+    if (staffScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = staffScrollRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(Math.ceil(scrollLeft) < scrollWidth - clientWidth - 1);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    window.addEventListener('resize', checkScroll);
+    return () => window.removeEventListener('resize', checkScroll);
+  }, [checkScroll, loopedStaff]);
+
+  useEffect(() => {
+    if (staffScrollRef.current && isInfinite && staff.length > 0) {
+      const container = staffScrollRef.current;
+      // Wait for next tick so DOM is painted with all copies
+      setTimeout(() => {
+        const middleStartIndex = 15 * staff.length;
+        const middleItem = container.children[middleStartIndex] as HTMLElement;
+        if (middleItem) {
+          container.scrollLeft = middleItem.offsetLeft;
+        }
+      }, 50);
+    }
+  }, [staff, isInfinite]);
 
   const selectedService = useMemo(
     () => services.find((item) => item.id === serviceId) || null,
@@ -345,8 +380,8 @@ export function BookingFlow({
         {/* Step 1 */}
         <div className="space-y-6">
           <div className="flex items-center gap-4">
-            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#2a2438] text-white text-xs font-bold ring-1 ring-white/5">01</span>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Select Service</h2>
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-at-raised text-at-heading text-xs font-bold ring-1 ring-at-border/5">01</span>
+            <h2 className="text-2xl font-bold text-at-heading tracking-tight">Select Service</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {services.map((item) => {
@@ -358,30 +393,30 @@ export function BookingFlow({
                   role="button"
                   tabIndex={0}
                   className={`text-left relative p-4 sm:p-6 rounded-[1rem] border transition-all flex flex-col justify-between min-h-[180px] sm:min-h-[220px] cursor-pointer outline-none ${isSelected
-                      ? 'bg-[#1a181e] border-[#b388ff] shadow-[0_0_20px_-5px_rgba(179,136,255,0.3)]'
-                      : 'bg-[#1a181e] border-white/5 hover:border-white/20'
+                      ? 'bg-at-deep border-at-accent-light shadow-[0_0_20px_-5px_rgba(var(--at-accent),0.3)]'
+                      : 'bg-at-deep border-at-border/5 hover:border-at-border/20'
                     }`}
                 >
                   <div>
                     <div className="flex justify-between items-start mb-4 w-full">
-                      <h3 className="text-xl font-bold text-white pr-4 leading-tight">{item.name}</h3>
-                      <span className={`font-bold text-lg whitespace-nowrap flex-shrink-0 ${isSelected ? 'text-[#b388ff]' : 'text-white'}`}>
+                      <h3 className="text-xl font-bold text-at-heading pr-4 leading-tight">{item.name}</h3>
+                      <span className={`font-bold text-lg whitespace-nowrap flex-shrink-0 ${isSelected ? 'text-at-accent-light' : 'text-at-heading'}`}>
                         {formatCurrency(item.price_cents)}
                       </span>
                     </div>
-                    <p className="text-sm text-[#8a8a93] line-clamp-3 leading-relaxed">
+                    <p className="text-sm text-at-muted line-clamp-3 leading-relaxed">
                       Precision grooming and styling session tailored for you.
                     </p>
                   </div>
 
                   <div className="flex items-center justify-between mt-6">
-                    <div className="flex items-center gap-2 text-xs text-[#8a8a93] font-semibold tracking-wider">
+                    <div className="flex items-center gap-2 text-xs text-at-muted font-semibold tracking-wider">
                       <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       {item.duration_minutes} MIN
                     </div>
                     {isSelected && (
-                      <div className="w-6 h-6 rounded-full bg-[#b388ff] flex items-center justify-center shadow-[0_0_15px_rgba(179,136,255,0.4)]">
-                        <svg className="w-4 h-4 text-[#111] fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                      <div className="w-6 h-6 rounded-full bg-at-accent-light flex items-center justify-center shadow-[0_0_15px_rgba(var(--at-accent),0.4)]">
+                        <svg className="w-4 h-4 text-at-accent-on fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                       </div>
                     )}
                   </div>
@@ -393,28 +428,61 @@ export function BookingFlow({
 
         {/* Step 2 */}
         <div className={`space-y-6 transition-opacity ${step >= 2 ? '' : 'opacity-40 pointer-events-none'}`}>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#2a2438] text-white text-xs font-bold ring-1 ring-white/5">02</span>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Select Professional</h2>
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-at-raised text-at-heading text-xs font-bold ring-1 ring-at-border/5">02</span>
+              <h2 className="text-2xl font-bold text-at-heading tracking-tight">Select Professional</h2>
+            </div>
+            
+            {(canScrollLeft || canScrollRight) && (
+              <div className="flex gap-2 hidden sm:flex">
+                <button 
+                  type="button" 
+                  onClick={() => staffScrollRef.current?.scrollBy({ left: -200, behavior: 'smooth' })}
+                  disabled={!canScrollLeft} 
+                  className="w-8 h-8 rounded-full bg-at-raised flex items-center justify-center text-at-heading hover:bg-at-surface transition-colors disabled:opacity-30 disabled:hover:bg-at-raised"
+                >
+                  <svg className="w-4 h-4 ml-[-2px]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => staffScrollRef.current?.scrollBy({ left: 200, behavior: 'smooth' })}
+                  disabled={!canScrollRight} 
+                  className="w-8 h-8 rounded-full bg-at-raised flex items-center justify-center text-at-heading hover:bg-at-surface transition-colors disabled:opacity-30 disabled:hover:bg-at-raised"
+                >
+                  <svg className="w-4 h-4 ml-[2px]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                </button>
+              </div>
+            )}
           </div>
-          <div className="w-full min-w-0 relative">
-            <div className="flex flex-nowrap overflow-x-auto gap-4 sm:gap-6 pb-4 pt-4 px-2 -mx-2 scrollbar-hide">
-              {staff.map((member, index) => {
+          <div className="w-full min-w-0 relative group">
+            {canScrollLeft && (
+              <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-at-page to-transparent z-10 pointer-events-none sm:hidden" />
+            )}
+            {canScrollRight && (
+              <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-at-page to-transparent z-10 pointer-events-none sm:hidden" />
+            )}
+            <div 
+              ref={staffScrollRef}
+              onScroll={checkScroll}
+              className="flex flex-nowrap overflow-x-auto gap-4 sm:gap-6 pb-6 pt-4 scrollbar-hide snap-x"
+            >
+              {loopedStaff.map((member, index) => {
               const isSelected = member.id === staffId;
               return (
-                <button key={member.id} onClick={() => handleStaffSelectionChange([member.id])} className="text-center group flex flex-col items-center w-[76px] sm:w-[90px] shrink-0">
-                  <div className={`relative mb-3 rounded-full transition-all ${isSelected ? 'ring-[3px] ring-offset-4 ring-offset-[#111] ring-[#b388ff] scale-105' : 'ring-1 ring-transparent group-hover:ring-[#333] group-hover:ring-offset-2 group-hover:ring-offset-[#111]'}`}>
-                    <img src={`https://i.pravatar.cc/150?u=${member.id}`} className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover transition-all ${isSelected ? 'grayscale-0' : 'grayscale'}`} alt={member.name} />
+                <button key={`${member.id}-${index}`} onClick={() => handleStaffSelectionChange([member.id])} className="text-center group flex flex-col items-center w-[76px] sm:w-[90px] shrink-0 snap-start">
+                  <div className={`relative mb-3 rounded-full transition-all ${isSelected ? 'ring-[3px] ring-offset-4 ring-offset-at-page ring-at-accent-light scale-105' : 'ring-1 ring-transparent group-hover:ring-at-border/20 group-hover:ring-offset-2 group-hover:ring-offset-at-page'}`}>
+                    <img src={`https://i.pravatar.cc/150?u=${member.id}`} loading="lazy" className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full object-cover transition-all ${isSelected ? 'grayscale-0' : 'grayscale'}`} alt={member.name} />
                     {isSelected && (
-                      <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-[#b388ff] flex items-center justify-center border-[3px] border-[#111]">
-                        <svg className="w-3 h-3 text-[#111] fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
+                      <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-at-accent-light flex items-center justify-center border-[3px] border-at-page">
+                        <svg className="w-3 h-3 text-at-accent-on fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>
                       </div>
                     )}
                   </div>
-                  <span className={`block font-bold mt-1 text-sm w-full truncate px-1 ${isSelected ? 'text-white' : 'text-[#8a8a93]'}`}>
+                  <span className={`block font-bold mt-1 text-sm w-full truncate px-1 ${isSelected ? 'text-at-heading' : 'text-at-muted'}`}>
                     {member.name.split(' ')[0]}
                   </span>
-                  <span className="block text-[9px] font-bold text-[#555] uppercase tracking-wider">{index === 0 ? 'MASTER' : 'ARTISAN'}</span>
+                  <span className="block text-[9px] font-bold text-at-muted/50 uppercase tracking-wider">{(index % staff.length) === 0 ? 'MASTER' : 'ARTISAN'}</span>
                 </button>
               )
             })}
@@ -427,27 +495,27 @@ export function BookingFlow({
         {/* Step 3 */}
         <div className={`space-y-6 transition-opacity ${step >= 3 ? '' : 'opacity-40 pointer-events-none'}`}>
           <div className="flex items-center gap-4">
-            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#2a2438] text-white text-xs font-bold ring-1 ring-white/5">03</span>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Date & Time</h2>
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-at-raised text-at-heading text-xs font-bold ring-1 ring-at-border/5">03</span>
+            <h2 className="text-2xl font-bold text-at-heading tracking-tight">Date & Time</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start w-full min-w-0">
-            <div className="bg-[#1a181e] rounded-[1rem] p-6 w-full min-w-0">
+            <div className="bg-at-deep rounded-[1rem] p-6 w-full min-w-0">
               <div className="flex items-center justify-between mb-8">
-                <span className="text-sm font-bold tracking-widest uppercase text-white">
+                <span className="text-sm font-bold tracking-widest uppercase text-at-heading">
                   {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </span>
                 <div className="flex gap-2">
                   <button type="button" onClick={() => {
                     const d = new Date(date + 'T00:00:00'); d.setMonth(d.getMonth() - 1); setDate(d.toISOString().split('T')[0] as string);
-                  }} className="w-8 h-8 rounded-full bg-[#2a2438] flex items-center justify-center text-white hover:bg-[#3f3652] transition-colors"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg></button>
+                  }} className="w-8 h-8 rounded-full bg-at-raised flex items-center justify-center text-at-heading hover:bg-at-surface transition-colors"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" /></svg></button>
                   <button type="button" onClick={() => {
                     const d = new Date(date + 'T00:00:00'); d.setMonth(d.getMonth() + 1); setDate(d.toISOString().split('T')[0] as string);
-                  }} className="w-8 h-8 rounded-full bg-[#2a2438] flex items-center justify-center text-white hover:bg-[#3f3652] transition-colors"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg></button>
+                  }} className="w-8 h-8 rounded-full bg-at-raised flex items-center justify-center text-at-heading hover:bg-at-surface transition-colors"><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg></button>
                 </div>
               </div>
               <div className="grid grid-cols-7 gap-1 text-center mb-4">
-                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => <div key={i} className="text-[10px] font-bold text-[#555] uppercase">{day}</div>)}
+                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => <div key={i} className="text-[10px] font-bold text-at-muted/50 uppercase">{day}</div>)}
               </div>
               <div className="grid grid-cols-7 gap-y-2 gap-x-1">
                 {(() => {
@@ -471,7 +539,7 @@ export function BookingFlow({
                         key={i}
                         type="button"
                         onClick={() => setDate(isoDate)}
-                        className={`w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center transition-all ${isSelected ? 'bg-[#b388ff] text-[#111] shadow-[0_0_15px_-3px_rgba(179,136,255,0.4)]' : 'text-white hover:bg-[#2a2438]'
+                        className={`w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center transition-all ${isSelected ? 'bg-at-accent-light text-at-accent-on shadow-[0_0_15px_-3px_rgba(var(--at-accent),0.4)]' : 'text-at-heading hover:bg-at-raised'
                           }`}
                       >
                         {i.toString().padStart(2, '0')}
@@ -484,16 +552,16 @@ export function BookingFlow({
             </div>
 
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-white mb-4">AVAILABLE SLOTS</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-at-heading mb-4">AVAILABLE SLOTS</p>
               <div className="grid grid-cols-3 sm:grid-cols-2 gap-2 sm:gap-3 max-h-72 overflow-y-auto pr-1 sm:pr-2">
-                {loadingSlots ? <p className="text-sm text-[#8a8a93] col-span-2">Cargando...</p> : null}
+                {loadingSlots ? <p className="text-sm text-at-muted col-span-2">Cargando...</p> : null}
                 {!loadingSlots && slots.length === 0 ? (
-                  <p className="text-sm text-[#8a8a93] col-span-2">No hay horarios disponibles.</p>
+                  <p className="text-sm text-at-muted col-span-2">No hay horarios disponibles.</p>
                 ) : null}
                 {renderedSlots.map((item) => {
                   const { slot, isSelected } = item;
                   return (
-                    <button key={item.key} onClick={() => handleSelectSlot(slot)} className={`py-4 rounded-[0.8rem] text-sm font-bold text-center transition-all ${isSelected ? 'bg-[#b388ff] text-[#111] shadow-[0_0_15px_-3px_rgba(179,136,255,0.4)]' : 'bg-[#1a181e] text-[#8a8a93] hover:bg-[#201f22] hover:text-white border border-transparent'
+                    <button key={item.key} onClick={() => handleSelectSlot(slot)} className={`py-4 rounded-[0.8rem] text-sm font-bold text-center transition-all ${isSelected ? 'bg-at-accent-light text-at-accent-on shadow-[0_0_15px_-3px_rgba(var(--at-accent),0.4)]' : 'bg-at-deep text-at-muted hover:bg-at-raised/80 hover:text-at-heading border border-transparent'
                       }`}>
                       {item.startTimeLabel}
                     </button>
@@ -507,28 +575,28 @@ export function BookingFlow({
         {/* Step 4 */}
         <div className={`space-y-6 transition-opacity ${step >= 4 ? '' : 'opacity-40 pointer-events-none'}`}>
           <div className="flex items-center gap-4">
-            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-[#2a2438] text-white text-xs font-bold ring-1 ring-white/5">04</span>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Client Profile</h2>
+            <span className="flex items-center justify-center w-8 h-8 rounded-full bg-at-raised text-at-heading text-xs font-bold ring-1 ring-at-border/5">04</span>
+            <h2 className="text-2xl font-bold text-at-heading tracking-tight">Client Profile</h2>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4 w-full min-w-0">
             <div>
-              <label className="block text-[9px] font-bold uppercase text-[#8a8a93] mb-2 tracking-widest">FULL NAME</label>
-              <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="John Wick" className="w-full bg-[#1a181e] rounded-[0.8rem] px-4 py-4 text-sm text-white placeholder-[#555] focus:outline-none focus:ring-1 focus:ring-[#b388ff] border-0" />
+              <label className="block text-[9px] font-bold uppercase text-at-muted mb-2 tracking-widest">FULL NAME</label>
+              <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="John Wick" className="w-full bg-at-deep rounded-[0.8rem] px-4 py-4 text-sm text-at-heading placeholder-at-muted/40 focus:outline-none focus:ring-1 focus:ring-at-accent-light border-0" />
             </div>
             <div>
-              <label className="block text-[9px] font-bold uppercase text-[#8a8a93] mb-2 tracking-widest">MOBILE NUMBER</label>
-              <input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="+1 (555) 000-0000" className="w-full bg-[#1a181e] rounded-[0.8rem] px-4 py-4 text-sm text-white placeholder-[#555] focus:outline-none focus:ring-1 focus:ring-[#b388ff] border-0" />
+              <label className="block text-[9px] font-bold uppercase text-at-muted mb-2 tracking-widest">MOBILE NUMBER</label>
+              <input type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="+1 (555) 000-0000" className="w-full bg-at-deep rounded-[0.8rem] px-4 py-4 text-sm text-at-heading placeholder-at-muted/40 focus:outline-none focus:ring-1 focus:ring-at-accent-light border-0" />
             </div>
             {requiresOnlinePayment && (
               <div className="sm:col-span-2">
-                <label className="block text-[9px] font-bold uppercase text-[#8a8a93] mb-2 tracking-widest">EMAIL (Required for Payment)</label>
-                <input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} placeholder="hello@example.com" className="w-full bg-[#1a181e] rounded-[0.8rem] px-4 py-4 text-sm text-white placeholder-[#555] focus:outline-none focus:ring-1 focus:ring-[#b388ff] border-0" />
+                <label className="block text-[9px] font-bold uppercase text-at-muted mb-2 tracking-widest">EMAIL (Required for Payment)</label>
+                <input type="email" value={customerEmail} onChange={e => setCustomerEmail(e.target.value)} placeholder="hello@example.com" className="w-full bg-at-deep rounded-[0.8rem] px-4 py-4 text-sm text-at-heading placeholder-at-muted/40 focus:outline-none focus:ring-1 focus:ring-at-accent-light border-0" />
               </div>
             )}
             <div className="sm:col-span-2">
-              <label className="block text-[9px] font-bold uppercase text-[#8a8a93] mb-2 tracking-widest">SPECIAL INSTRUCTIONS</label>
-              <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Low skin fade, keep the top long. No beard trimmer." className="w-full bg-[#1a181e] rounded-[0.8rem] px-4 py-4 text-sm text-white placeholder-[#555] focus:outline-none focus:ring-1 focus:ring-[#b388ff] resize-none border-0"></textarea>
+              <label className="block text-[9px] font-bold uppercase text-at-muted mb-2 tracking-widest">SPECIAL INSTRUCTIONS</label>
+              <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Low skin fade, keep the top long. No beard trimmer." className="w-full bg-at-deep rounded-[0.8rem] px-4 py-4 text-sm text-at-heading placeholder-at-muted/40 focus:outline-none focus:ring-1 focus:ring-at-accent-light resize-none border-0"></textarea>
             </div>
           </div>
           {error ? <p className="text-red-400 text-sm mt-4 font-bold bg-red-500/10 p-4 rounded-lg">{error}</p> : null}
@@ -537,60 +605,60 @@ export function BookingFlow({
 
       {/* RIGHT COLUMN: APPOINTMENT SUMMARY */}
       <div className="lg:sticky lg:top-24 pb-8">
-        <div className="bg-[#1a181e] rounded-[1.5rem] p-6 sm:p-8 shadow-2xl ring-1 ring-white/5">
+        <div className="bg-at-deep rounded-[1.5rem] p-6 sm:p-8 shadow-2xl ring-1 ring-at-border/5">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-[#b388ff] flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-[#111]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+            <div className="w-8 h-8 rounded-lg bg-at-accent-light flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 text-at-accent-on" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
             </div>
-            <h3 className="text-xl font-bold text-white tracking-tight">Appointment Summary</h3>
+            <h3 className="text-xl font-bold text-at-heading tracking-tight">Appointment Summary</h3>
           </div>
 
           <div className="space-y-6">
             <div className="flex justify-between items-start gap-4">
               <div className="min-w-0 flex-1">
-                <p className="text-[9px] font-bold text-[#555] uppercase tracking-widest mb-1">SERVICE</p>
-                <p className="text-sm font-bold text-white truncate">{selectedService ? selectedService.name : '--'}</p>
+                <p className="text-[9px] font-bold text-at-muted/50 uppercase tracking-widest mb-1">SERVICE</p>
+                <p className="text-sm font-bold text-at-heading truncate">{selectedService ? selectedService.name : '--'}</p>
               </div>
-              <span className="text-sm font-bold text-[#b388ff] flex-shrink-0 whitespace-nowrap">
+              <span className="text-sm font-bold text-at-accent-light flex-shrink-0 whitespace-nowrap">
                 {selectedService ? formatCurrency(selectedService.price_cents) : '--'}
               </span>
             </div>
 
             <div>
-              <p className="text-[9px] font-bold text-[#555] uppercase tracking-widest mb-1">BARBER</p>
-              <p className="text-sm font-bold text-white">{selectedStaff ? selectedStaff.name : '--'}</p>
+              <p className="text-[9px] font-bold text-at-muted/50 uppercase tracking-widest mb-1">BARBER</p>
+              <p className="text-sm font-bold text-at-heading">{selectedStaff ? selectedStaff.name : '--'}</p>
             </div>
 
             <div>
-              <p className="text-[9px] font-bold text-[#555] uppercase tracking-widest mb-1">DATE & TIME</p>
-              <p className="text-sm font-bold text-white">{selectedSlot ? `${new Date(selectedSlot.start_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} at ${renderedSlots.find((r) => r.slot.start_at === selectedSlot.start_at)?.startTimeLabel}` : '--'}</p>
+              <p className="text-[9px] font-bold text-at-muted/50 uppercase tracking-widest mb-1">DATE & TIME</p>
+              <p className="text-sm font-bold text-at-heading">{selectedSlot ? `${new Date(selectedSlot.start_at).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} at ${renderedSlots.find((r) => r.slot.start_at === selectedSlot.start_at)?.startTimeLabel}` : '--'}</p>
             </div>
 
-            <div className="border-t border-[#333] pt-6 space-y-3 mt-2">
+            <div className="border-t border-at-border/20 pt-6 space-y-3 mt-2">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-[#8a8a93]">Subtotal</span>
-                <span className="font-bold text-white">{selectedService ? formatCurrency(selectedService.price_cents) : '--'}</span>
+                <span className="text-at-muted">Subtotal</span>
+                <span className="font-bold text-at-heading">{selectedService ? formatCurrency(selectedService.price_cents) : '--'}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-[#8a8a93]">Booking Fee</span>
-                <span className="font-bold text-white">$0.00</span>
+                <span className="text-at-muted">Booking Fee</span>
+                <span className="font-bold text-at-heading">$0.00</span>
               </div>
             </div>
 
             <div className="flex justify-between items-end pt-4 mb-2">
-              <span className="text-lg font-bold text-white">Total</span>
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#b388ff]">{selectedService ? formatCurrency(selectedService.price_cents) : '--'}</span>
+              <span className="text-lg font-bold text-at-heading">Total</span>
+              <span className="text-2xl sm:text-3xl font-extrabold text-at-accent-light">{selectedService ? formatCurrency(selectedService.price_cents) : '--'}</span>
             </div>
 
             <button
               disabled={!selectedSlot || !customerName || !customerPhone || submitting}
               onClick={submitBooking}
-              className="w-full bg-[#b388ff] text-[#111] font-bold text-sm uppercase tracking-[0.1em] py-5 mt-2 rounded-[1rem] hover:bg-[#c9a6ff] hover:scale-[1.02] shadow-[0_0_30px_-10px_rgba(179,136,255,0.4)] transition-all disabled:opacity-50 disabled:bg-[#333] disabled:text-[#8a8a93] disabled:hover:scale-100 disabled:shadow-none"
+              className="w-full bg-at-accent-light text-at-accent-on font-bold text-sm uppercase tracking-[0.1em] py-5 mt-2 rounded-[1rem] hover:bg-at-accent hover:scale-[1.02] shadow-[0_0_30px_-10px_rgba(var(--at-accent),0.4)] transition-all disabled:opacity-50 disabled:bg-at-border/20 disabled:text-at-muted disabled:hover:scale-100 disabled:shadow-none"
             >
               {submitting ? 'PROCESSING...' : 'CONFIRM APPOINTMENT'}
             </button>
 
-            <p className="text-[8px] font-bold text-[#555] tracking-widest text-center uppercase">
+            <p className="text-[8px] font-bold text-at-muted/50 tracking-widest text-center uppercase">
               {supportsOnlinePayment && requiresOnlinePayment ? 'YOU WILL BE REDIRECTED TO PAYMENT.' : 'PAY AT THE SHOP AFTER YOUR SERVICE.'}
             </p>
           </div>
@@ -599,3 +667,4 @@ export function BookingFlow({
     </div>
   );
 }
+

@@ -38,40 +38,40 @@ export default async function ShopJobsPage({ params }: ShopJobsPageProps) {
   }
 
   return (
-    <section className="min-h-screen font-sans text-white pb-16 sm:pb-32">
+    <section className="min-h-screen font-sans text-at-body pb-16 sm:pb-32 bg-at-page tenant-atelier">
       <div className="px-3 sm:px-6 pt-4 sm:pt-6">
-        <Container variant="hero" className="relative px-4 py-8 sm:px-6 md:px-16 md:py-32 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] sm:rounded-[2.5rem] bg-[#0e0e10] ring-1 ring-white/5 shadow-2xl max-w-[1440px] mx-auto">
+        <Container variant="hero" className="relative px-4 py-8 sm:px-6 md:px-16 md:py-32 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] sm:rounded-[2.5rem] bg-at-deep ring-1 ring-at-border/5 shadow-2xl max-w-[1440px] mx-auto">
           <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-[#0e0e10]/80 backdrop-blur-[2px] z-10" />
+            <div className="absolute inset-0 bg-at-deep/80 backdrop-blur-[2px] z-10" />
             <img
               src={shop.imageUrls[0] || "https://images.unsplash.com/photo-1520630685935-8669e0004ff4?q=80&w=2670&auto=format&fit=crop"}
               alt="Atelier Careers"
               className="h-full w-full object-cover opacity-50 grayscale"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#131315] via-[#131315]/80 to-transparent z-10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-at-page via-at-page/80 to-transparent z-10" />
           </div>
 
           <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end w-full">
             <div className="max-w-3xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#a078ff]">
+              <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-at-accent">
                 Cultura & Talentos
               </p>
-              <h1 className="mt-4 font-[family-name:var(--font-heading)] text-5xl font-extrabold uppercase tracking-tighter text-white md:text-7xl lg:text-[6rem] leading-[0.9]">
+              <h1 className="mt-4 font-[family-name:var(--font-heading)] text-5xl font-extrabold uppercase tracking-tighter text-at-heading md:text-7xl lg:text-[6rem] leading-[0.9]">
                 EMPLEO
               </h1>
-              <p className="mt-6 text-lg text-[#cbc3d7] font-light leading-relaxed max-w-xl">
+              <p className="mt-6 text-lg text-at-muted font-light leading-relaxed max-w-xl">
                 Buscamos artesanos apasionados que quieran elevar su carrera. Únete a la cultura de {shop.name} y domina tu oficio.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:w-[450px]">
-              <div className="rounded-[1.5rem] bg-[#201f22]/80 p-6 backdrop-blur-xl ring-1 ring-white/10 transition-transform duration-300 hover:-translate-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a078ff]">Crecimiento</p>
-                <p className="mt-2 text-sm mt-4 font-bold text-white tracking-widest uppercase">Continuo</p>
+              <div className="rounded-[1.5rem] bg-at-raised/80 p-6 backdrop-blur-xl ring-1 ring-at-border/10 transition-transform duration-300 hover:-translate-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-at-accent">Crecimiento</p>
+                <p className="mt-2 text-sm mt-4 font-bold text-at-heading tracking-widest uppercase">Continuo</p>
               </div>
-              <div className="rounded-[1.5rem] bg-[#201f22]/80 p-6 backdrop-blur-xl ring-1 ring-white/10 transition-transform duration-300 hover:-translate-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a078ff]">Ambiente</p>
-                <p className="mt-2 text-sm mt-4 font-bold text-white tracking-widest uppercase">Premium</p>
+              <div className="rounded-[1.5rem] bg-at-raised/80 p-6 backdrop-blur-xl ring-1 ring-at-border/10 transition-transform duration-300 hover:-translate-y-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-at-accent">Ambiente</p>
+                <p className="mt-2 text-sm mt-4 font-bold text-at-heading tracking-widest uppercase">Premium</p>
               </div>
             </div>
           </div>
@@ -81,25 +81,25 @@ export default async function ShopJobsPage({ params }: ShopJobsPageProps) {
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 mt-8 sm:mt-12 md:mt-24">
         <div className="grid lg:grid-cols-[1fr_1.5fr] gap-8 lg:gap-24 relative">
           <div className="hidden lg:block sticky top-32 h-fit">
-            <p className="text-3xl font-extrabold tracking-tight text-white mb-6 uppercase">
+            <p className="text-3xl font-extrabold tracking-tight text-at-heading mb-6 uppercase">
               "No buscamos empleados. Buscamos artistas."
             </p>
-            <div className="w-full aspect-[4/5] overflow-hidden rounded-[2.5rem] ring-1 ring-white/5 shadow-2xl relative group">
+            <div className="w-full aspect-[4/5] overflow-hidden rounded-[2.5rem] ring-1 ring-at-border/5 shadow-2xl relative group">
               <img
                 src={shop.imageUrls[1] || shop.imageUrls[0] || shop.logoUrl || "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1500&auto=format&fit=crop"}
                 className="w-full h-full object-cover grayscale opacity-60 transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[rgba(14,14,16,0.9)] to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-at-page/90 to-transparent" />
               <div className="absolute bottom-8 left-8 right-8">
-                <p className="text-[#a078ff] text-[10px] uppercase tracking-widest font-bold mb-2">Workspace</p>
-                <p className="text-xl font-bold text-white">{shop.name}</p>
+                <p className="text-at-accent text-[10px] uppercase tracking-widest font-bold mb-2">Workspace</p>
+                <p className="text-xl font-bold text-at-heading">{shop.name}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-[#0e0e10] p-6 sm:p-8 md:p-12 lg:p-16 rounded-[1.5rem] sm:rounded-[2.5rem] ring-1 ring-white/5 border border-transparent shadow-[0_0_80px_rgba(0,0,0,0.3)]">
-            <h3 className="font-[family-name:var(--font-heading)] text-3xl font-bold tracking-tighter text-white uppercase mb-4">Postúlate</h3>
-            <p className="text-[#cbc3d7] text-sm mb-12 uppercase tracking-wide font-semibold">Completa tus datos y analizaremos tu perfil con absoluta confidencialidad.</p>
+          <div className="bg-at-deep p-6 sm:p-8 md:p-12 lg:p-16 rounded-[1.5rem] sm:rounded-[2.5rem] ring-1 ring-at-border/5 border border-transparent shadow-[0_0_80px_rgba(0,0,0,0.3)]">
+            <h3 className="font-[family-name:var(--font-heading)] text-3xl font-bold tracking-tighter text-at-heading uppercase mb-4">Postúlate</h3>
+            <p className="text-at-muted text-sm mb-12 uppercase tracking-wide font-semibold">Completa tus datos y analizaremos tu perfil con absoluta confidencialidad.</p>
             {/* The child component handles its form naturally, but we present it inside an elevated card */}
             <div className="jobs-form-wrapper theme-dark">
               <JobsForm shopId={shop.id} />
