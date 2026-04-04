@@ -71,7 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
         ) : null}
       </head>
-      <body className="min-h-screen bg-page-bg text-slate-900 antialiased font-[family-name:var(--font-body)] dark:text-zinc-50">
+      <body suppressHydrationWarning className="min-h-screen bg-page-bg text-slate-900 antialiased font-[family-name:var(--font-body)] dark:text-zinc-50">
         <HeroUiProvider>
           <div className="relative min-h-screen">
             <Suspense fallback={<SiteHeaderFallback />}>

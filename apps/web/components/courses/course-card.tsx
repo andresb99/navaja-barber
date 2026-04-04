@@ -1,99 +1,139 @@
 'use client';
 
+import { 
+  Card, 
+  CardHeader, 
+  CardBody, 
+  CardFooter,
+  Image,
+  Button,
+  Chip
+} from '@heroui/react';
+import { Star, Clock, User, ArrowRight, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/cn';
-import { Button } from '@heroui/react';
 import Link from 'next/link';
 
 interface CourseCardProps {
+  courseId: string;
   category: string;
   title: string;
   description: string;
   price: string;
   duration: string;
   level: string;
-  shopName?: string;
-  shopSlug?: string;
+  shopName: string;
+  shopSlug: string;
   imageUrl?: string | null;
   upcomingSessions?: number;
+  ratingAvg?: number | null;
+  reviewCount?: number;
 }
 
-export function CourseCard({ category, title, description, price, duration, level, shopName, shopSlug, imageUrl, upcomingSessions }: CourseCardProps) {
+export function CourseCard({ 
+  courseId,
+  category, 
+  title, 
+  description, 
+  price, 
+  duration, 
+  level,
+  shopName,
+  shopSlug,
+  imageUrl,
+  upcomingSessions,
+  ratingAvg,
+  reviewCount = 0
+}: CourseCardProps) {
   return (
-    <div className="group relative bg-[#0a0a0c] border border-white/5 rounded-[2rem] flex flex-col h-full transition-all hover:border-[#c49cff]/30 hover:shadow-[0_0_40px_-10px_rgba(196,156,255,0.15)] overflow-hidden">
-      {/* Course image */}
-      {imageUrl && (
-        <div className="relative w-full h-48 overflow-hidden">
-          <img
-            src={imageUrl}
+    <Card 
+      className="bg-white dark:bg-[#121214] border-slate-100 dark:border-white/10 overflow-hidden group hover:border-[#c49cff]/30 transition-all duration-500 rounded-[2.5rem] shadow-[0_10px_30px_rgba(0,0,0,0.03)] dark:shadow-2xl"
+      shadow="none"
+    >
+      <CardHeader className="p-0 relative aspect-[16/10] overflow-hidden">
+        {imageUrl ? (
+          <Image
             alt={title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            src={imageUrl}
+            removeWrapper
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/40 to-transparent" />
-          {typeof upcomingSessions === 'number' && upcomingSessions > 0 && (
-            <div className="absolute top-4 right-4 bg-[#c49cff] text-[#2d0a6e] text-[8px] font-black tracking-widest uppercase px-3 py-1.5 rounded-full">
-              {upcomingSessions} {upcomingSessions === 1 ? 'SESIÓN' : 'SESIONES'}
-            </div>
+        ) : (
+          <div className="w-full h-full bg-slate-50 dark:bg-gradient-to-br dark:from-[#121214] dark:to-[#0a0a0c] flex items-center justify-center relative">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.02)_0%,transparent_70%)] dark:bg-[radial-gradient(circle_at_center,rgba(196,156,255,0.05)_0%,transparent_70%)]" />
+            <PlayCircle className="w-12 h-12 text-slate-200 dark:text-white/5 transition-colors group-hover:text-[#c49cff]/20" />
+          </div>
+        )}
+        
+        {/* Floating Badges */}
+        <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
+          {ratingAvg && (
+             <div className="bg-white/80 dark:bg-black/40 backdrop-blur-md border border-slate-200/50 dark:border-white/10 px-2 py-1 rounded-full flex items-center gap-1.5 shadow-xl">
+               <Star className="w-3 h-3 text-[#f1bf5e] fill-[#f1bf5e]" />
+               <span className="text-[10px] font-black text-slate-900 dark:text-white">{ratingAvg.toFixed(1)}</span>
+               <span className="text-[8px] font-bold text-slate-400 dark:text-white/40">({reviewCount})</span>
+             </div>
           )}
         </div>
-      )}
 
-      {/* Background glow on hover */}
-      <div className="absolute -top-[20%] -right-[20%] w-[50%] h-[50%] bg-[#c49cff]/10 blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-      <div className="relative z-10 flex flex-col flex-1 p-6 sm:p-8">
-        <header className="mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <p className="text-[10px] font-black tracking-[0.3em] text-[#c49cff] uppercase">{category}</p>
-            {shopName && (
-              <>
-                <span className="text-white/10">·</span>
-                <p className="text-[10px] font-bold tracking-widest text-white/30 uppercase truncate">{shopName}</p>
-              </>
-            )}
-          </div>
-          <h3 className="text-2xl sm:text-3xl font-bold text-white leading-tight font-heading mb-4 group-hover:text-[#dcc8ff] transition-colors line-clamp-2">
-            {title}
-          </h3>
-          <p className="text-sm text-slate-400 leading-relaxed font-body line-clamp-3">
-            {description}
-          </p>
-        </header>
-
-        <div className="mt-auto pt-8 flex flex-col gap-8">
-          <div className="grid grid-cols-3 gap-6 border-t border-white/5 pt-10">
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[8px] font-black tracking-[0.2em] text-slate-500 uppercase">PRECIO</span>
-              <span className="text-xl font-bold text-[#d0bcff] italic tracking-tight">{price}</span>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[8px] font-black tracking-[0.2em] text-slate-500 uppercase">DURACIÓN</span>
-              <span className="text-xs font-black text-white uppercase">{duration}</span>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[8px] font-black tracking-[0.2em] text-slate-500 uppercase">NIVEL</span>
-              <span className="text-xs font-black text-white uppercase">{level}</span>
-            </div>
-          </div>
-
-          {shopSlug ? (
-            <Link href={`/${shopSlug}/cursos`}>
-              <Button
-                variant="bordered"
-                className="w-full h-14 rounded-xl border-white/10 text-white font-black tracking-[0.25em] text-[9px] uppercase hover:bg-white hover:text-black hover:border-white transition-all transform active:scale-[0.98]"
-              >
-                VER PROGRAMA
-              </Button>
-            </Link>
-          ) : (
-            <Button
-              variant="bordered"
-              className="w-full h-14 rounded-xl border-white/10 text-white font-black tracking-[0.25em] text-[9px] uppercase hover:bg-white hover:text-black hover:border-white transition-all transform active:scale-[0.98]"
+        {upcomingSessions && upcomingSessions > 0 && (
+          <div className="absolute top-4 right-4 z-10">
+            <Chip 
+              className="bg-[#c49cff] text-[#2d0a6e] font-black italic tracking-widest text-[9px] uppercase border-none shadow-xl"
+              size="sm"
             >
-              VER PROGRAMA
-            </Button>
-          )}
+              {upcomingSessions} {upcomingSessions === 1 ? 'SESIÓN' : 'SESIONES'}
+            </Chip>
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-gradient-to-t from-white/40 dark:from-[#0a0a0c] via-transparent to-transparent opacity-60" />
+      </CardHeader>
+
+      <CardBody className="px-8 pt-8 pb-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-black text-[#c49cff] uppercase tracking-[0.2em]">
+            {category}
+          </span>
+          <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/20" />
+          <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">
+            {shopName}
+          </span>
         </div>
-      </div>
-    </div>
+
+        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight group-hover:text-[#c49cff] transition-colors h-[2.5em] line-clamp-2">
+          {title}
+        </h3>
+
+        <p className="text-[13px] text-slate-500 dark:text-white/40 leading-relaxed font-medium h-[4.5em] line-clamp-3">
+          {description}
+        </p>
+      </CardBody>
+
+      <CardFooter className="px-8 pb-8 pt-0 flex flex-col gap-8">
+        <div className="grid grid-cols-3 w-full border-t border-slate-100 dark:border-white/5 pt-6">
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">Precio</span>
+            <span className="text-sm font-black text-slate-900 dark:text-white tracking-tight">{price}</span>
+          </div>
+          <div className="flex flex-col gap-1 border-x border-slate-100 dark:border-white/5 px-4">
+            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">Duración</span>
+            <span className="text-sm font-bold text-slate-700 dark:text-white/80">{duration}</span>
+          </div>
+          <div className="flex flex-col gap-1 pl-4">
+            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">Nivel</span>
+            <span className="text-sm font-bold text-slate-700 dark:text-white/80">{level}</span>
+          </div>
+        </div>
+
+        <Button
+          as={Link}
+          href={`/courses/${courseId}`}
+          className="w-full h-14 bg-[#c49cff] text-[#2d0a6e] font-black tracking-widest text-[10px] uppercase rounded-2xl transition-all hover:scale-[1.01] active:scale-[0.98] shadow-[0_4px_12px_rgba(196,156,255,0.12)] hover:shadow-[0_6px_20px_rgba(196,156,255,0.18)] group/btn"
+        >
+          VER PROGRAMA
+          <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover/btn:translate-x-1" />
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
