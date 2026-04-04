@@ -2,11 +2,9 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { JobsForm } from '@/components/public/jobs-form';
 import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
-import { buildTenantPublicHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
-import { Container } from '@/components/heroui/container';
-import { ShopPageBreadcrumb } from '@/components/public/shop-page-breadcrumb';
+import { Briefcase, MapPin, TrendingUp, Award, Users, Scissors } from 'lucide-react';
 
 interface ShopJobsPageProps {
   params: Promise<{ slug: string }>;
@@ -22,8 +20,8 @@ export async function generateMetadata({ params }: ShopJobsPageProps): Promise<M
 
   return buildTenantPageMetadata({
     shop,
-    title: `Trabaja en ${shop.name}`,
-    description: `Postulaciones y vacantes abiertas dentro del workspace de ${shop.name}.`,
+    title: `Empleo | ${shop.name}`,
+    description: `Postulaciones y vacantes abiertas en ${shop.name}. Inicia tu legado aquí.`,
     section: 'jobs',
   });
 }
@@ -31,7 +29,6 @@ export async function generateMetadata({ params }: ShopJobsPageProps): Promise<M
 export default async function ShopJobsPage({ params }: ShopJobsPageProps) {
   const { slug } = await params;
   const shop = await getMarketplaceShopBySlug(slug);
-  const routeContext = await getPublicTenantRouteContext();
 
   if (!shop) {
     notFound();
@@ -39,73 +36,76 @@ export default async function ShopJobsPage({ params }: ShopJobsPageProps) {
 
   return (
     <section className="min-h-screen font-sans text-at-body pb-16 sm:pb-32 bg-at-page tenant-atelier">
-      <div className="px-3 sm:px-6 pt-4 sm:pt-6">
-        <Container variant="hero" className="relative px-4 py-8 sm:px-6 md:px-16 md:py-32 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] sm:rounded-[2.5rem] bg-at-deep ring-1 ring-at-border/5 shadow-2xl max-w-[1440px] mx-auto">
-          <div className="absolute inset-0 z-0">
-            <div className="absolute inset-0 bg-at-deep/80 backdrop-blur-[2px] z-10" />
-            <img
-              src={shop.imageUrls[0] || "https://images.unsplash.com/photo-1520630685935-8669e0004ff4?q=80&w=2670&auto=format&fit=crop"}
-              alt="Atelier Careers"
-              className="h-full w-full object-cover opacity-50 grayscale"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-at-page via-at-page/80 to-transparent z-10" />
-          </div>
-
-          <div className="relative z-10 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end w-full">
-            <div className="max-w-3xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-at-accent">
-                Cultura & Talentos
-              </p>
-              <h1 className="mt-4 font-[family-name:var(--font-heading)] text-5xl font-extrabold uppercase tracking-tighter text-at-heading md:text-7xl lg:text-[6rem] leading-[0.9]">
-                EMPLEO
+      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-12 sm:pt-20 md:pt-24 space-y-16 md:space-y-24">
+        
+        {/* HERO SECTION */}
+        <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-12 lg:gap-24 items-start">
+          <div className="space-y-10">
+            <div>
+              <h1 className="font-[family-name:var(--font-heading)] text-5xl sm:text-6xl md:text-7xl lg:text-[4.8rem] xl:text-[5.5rem] font-black uppercase tracking-tighter text-at-heading leading-[0.9]">
+                INICIA TU
+                <br />
+                <span className="text-at-accent-light">LEGADO</span> AQUÍ.
               </h1>
-              <p className="mt-6 text-lg text-at-muted font-light leading-relaxed max-w-xl">
-                Buscamos artesanos apasionados que quieran elevar su carrera. Únete a la cultura de {shop.name} y domina tu oficio.
+              <p className="mt-8 text-lg text-at-muted font-medium leading-relaxed max-w-lg">
+                Estamos constantemente en la búsqueda de visionarios. Si crees que tienes la precisión y la pasión necesaria, queremos conocerte.
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:w-[450px]">
-              <div className="rounded-[1.5rem] bg-at-raised/80 p-6 backdrop-blur-xl ring-1 ring-at-border/10 transition-transform duration-300 hover:-translate-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-at-accent">Crecimiento</p>
-                <p className="mt-2 text-sm mt-4 font-bold text-at-heading tracking-widest uppercase">Continuo</p>
+            <div className="space-y-8 pt-4 md:pt-8">
+              <div className="flex items-start gap-4 md:gap-5">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-at-raised flex items-center justify-center shrink-0 ring-1 ring-at-border/5">
+                  <MapPin className="w-4 h-4 md:w-5 md:h-5 text-at-accent-light" />
+                </div>
+                <div className="pt-1">
+                  <h3 className="text-at-heading font-bold text-base md:text-lg tracking-tight">Ubicaciones Globales</h3>
+                  <p className="text-sm text-at-muted/80 mt-1">Madrid, Barcelona, CDMX, Bogotá</p>
+                </div>
               </div>
-              <div className="rounded-[1.5rem] bg-at-raised/80 p-6 backdrop-blur-xl ring-1 ring-at-border/10 transition-transform duration-300 hover:-translate-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-at-accent">Ambiente</p>
-                <p className="mt-2 text-sm mt-4 font-bold text-at-heading tracking-widest uppercase">Premium</p>
-              </div>
-            </div>
-          </div>
-        </Container>
-      </div>
-
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 mt-8 sm:mt-12 md:mt-24">
-        <div className="grid lg:grid-cols-[1fr_1.5fr] gap-8 lg:gap-24 relative">
-          <div className="hidden lg:block sticky top-32 h-fit">
-            <p className="text-3xl font-extrabold tracking-tight text-at-heading mb-6 uppercase">
-              "No buscamos empleados. Buscamos artistas."
-            </p>
-            <div className="w-full aspect-[4/5] overflow-hidden rounded-[2.5rem] ring-1 ring-at-border/5 shadow-2xl relative group">
-              <img
-                src={shop.imageUrls[1] || shop.imageUrls[0] || shop.logoUrl || "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=1500&auto=format&fit=crop"}
-                className="w-full h-full object-cover grayscale opacity-60 transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-at-page/90 to-transparent" />
-              <div className="absolute bottom-8 left-8 right-8">
-                <p className="text-at-accent text-[10px] uppercase tracking-widest font-bold mb-2">Workspace</p>
-                <p className="text-xl font-bold text-at-heading">{shop.name}</p>
+              <div className="flex items-start gap-4 md:gap-5">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-at-raised flex items-center justify-center shrink-0 ring-1 ring-at-border/5">
+                  <Briefcase className="w-4 h-4 md:w-5 md:h-5 text-at-accent-light" />
+                </div>
+                <div className="pt-1">
+                  <h3 className="text-at-heading font-bold text-base md:text-lg tracking-tight">Flexibilidad & Beneficios</h3>
+                  <p className="text-sm text-at-muted/80 mt-1">Esquemas competitivos y seguro premium</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-at-deep p-6 sm:p-8 md:p-12 lg:p-16 rounded-[1.5rem] sm:rounded-[2.5rem] ring-1 ring-at-border/5 border border-transparent shadow-[0_0_80px_rgba(0,0,0,0.3)]">
-            <h3 className="font-[family-name:var(--font-heading)] text-3xl font-bold tracking-tighter text-at-heading uppercase mb-4">Postúlate</h3>
-            <p className="text-at-muted text-sm mb-12 uppercase tracking-wide font-semibold">Completa tus datos y analizaremos tu perfil con absoluta confidencialidad.</p>
-            {/* The child component handles its form naturally, but we present it inside an elevated card */}
-            <div className="jobs-form-wrapper theme-dark">
-              <JobsForm shopId={shop.id} />
-            </div>
+          <div className="bg-at-deep rounded-[2rem] p-6 lg:p-10 shadow-2xl ring-1 ring-at-border/10">
+            <JobsForm shopId={shop.id} />
           </div>
         </div>
+
+
+
+        {/* FEATURES BOTTOM */}
+        <div className="grid md:grid-cols-3 gap-6 pt-4 pb-24">
+          <div className="bg-at-raised/50 rounded-[2rem] p-10 ring-1 ring-at-border/5 transition-all hover:bg-at-raised/80">
+            <TrendingUp className="w-6 h-6 text-at-accent-light mb-8" />
+            <h3 className="text-at-heading font-black text-lg mb-4 tracking-tight uppercase">CRECIMIENTO CONTINUO</h3>
+            <p className="text-at-muted/60 text-[13px] font-medium leading-relaxed">
+              Acceso exclusivo a masterclasses y certificaciones internacionales. En Beardly, tu talento nunca toca techo.
+            </p>
+          </div>
+          <div className="bg-at-raised/50 rounded-[2rem] p-10 ring-1 ring-at-border/5 transition-all hover:bg-at-raised/80">
+            <Award className="w-6 h-6 text-at-accent-light mb-8" />
+            <h3 className="text-at-heading font-black text-lg mb-4 tracking-tight uppercase">AMBIENTE PREMIUM</h3>
+            <p className="text-at-muted/60 text-[13px] font-medium leading-relaxed">
+              Espacios diseñados para la comodidad del artista y del cliente. Herramientas de última generación y diseño editorial.
+            </p>
+          </div>
+          <div className="bg-at-raised/50 rounded-[2rem] p-10 ring-1 ring-at-border/5 transition-all hover:bg-at-raised/80">
+            <Users className="w-6 h-6 text-at-accent-light mb-8" />
+            <h3 className="text-at-heading font-black text-lg mb-4 tracking-tight uppercase">EQUIPO LÍDER</h3>
+            <p className="text-at-muted/60 text-[13px] font-medium leading-relaxed">
+              Colabora con los mejores barberos de la industria en un entorno de respeto, disciplina y creativa compartida.
+            </p>
+          </div>
+        </div>
+
       </div>
     </section>
   );
