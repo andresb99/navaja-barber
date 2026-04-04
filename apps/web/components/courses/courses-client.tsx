@@ -63,6 +63,17 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
   const [mounted, setMounted] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isFilterClosing, setIsFilterClosing] = useState(false);
+  const closingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const closeFilter = useCallback(() => {
+    if (isFilterClosing) return;
+    setIsFilterClosing(true);
+    closingTimer.current = setTimeout(() => {
+      setIsFilterOpen(false);
+      setIsFilterClosing(false);
+    }, 200);
+  }, [isFilterClosing]);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const isLoadingRef = useRef(false);
@@ -272,17 +283,17 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
       {/* ── FILTER DRAWER (Portal to avoid nesting issues) ── */}
       {isFilterOpen && createPortal(
         <>
-          <div 
-            className="fixed inset-0 bg-white/20 dark:bg-black/60 backdrop-blur-sm z-[90] animate-fade-in" 
-            onClick={() => setIsFilterOpen(false)} 
+          <div
+            className={cn('fixed inset-0 bg-white/30 dark:bg-black/70 z-[90] transition-opacity duration-300', isFilterClosing ? 'opacity-0' : 'opacity-100')}
+            onClick={closeFilter}
           />
-          <aside className="fixed right-0 top-0 h-full w-[400px] z-[100] bg-white dark:bg-[#0a0a0b] text-slate-900 dark:text-white p-8 flex flex-col shadow-[-20px_0_60px_rgba(0,0,0,0.1)] dark:shadow-[-20px_0_40px_rgba(0,0,0,0.5)] animate-scale-in origin-right">
+          <aside className={cn('fixed right-0 top-0 h-full w-[400px] z-[100] bg-white dark:bg-[#0a0a0b] text-slate-900 dark:text-white p-8 flex flex-col shadow-[-20px_0_60px_rgba(0,0,0,0.1)] dark:shadow-[-20px_0_40px_rgba(0,0,0,0.5)]', isFilterClosing ? 'animate-slide-out-right' : 'animate-slide-in-right')}>
             <div className="flex items-center justify-between mb-12">
               <div className="flex items-baseline gap-2">
                 <h2 className="text-3xl font-black italic tracking-tighter uppercase">FILTROS</h2>
                 <span className="text-[10px] font-black text-[#c49cff]">{totalCount}</span>
               </div>
-              <button onClick={() => setIsFilterOpen(false)} className="p-3 bg-slate-50 dark:bg-white/5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+              <button onClick={closeFilter} className="p-3 bg-slate-50 dark:bg-white/5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -295,9 +306,9 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
                   {levels.filter(l => l !== 'Todos').map((level) => {
                     const isActive = activeLevel === level;
                     return (
-                      <button 
-                        key={level} 
-                        onClick={() => setActiveLevel(isActive ? 'Todos' : level)} 
+                      <button
+                        key={level}
+                        onClick={() => setActiveLevel(isActive ? 'Todos' : level)}
                         className={cn(
                           "h-10 px-5 rounded-full text-[9px] font-black tracking-widest uppercase transition-all",
                           isActive ? "bg-[#c49cff] text-[#2d0a6e]" : "bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
@@ -345,7 +356,7 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
             </div>
 
             <div className="pt-8 mt-auto border-t border-slate-100 dark:border-white/5 space-y-4">
-              <Button onPress={() => setIsFilterOpen(false)} className="w-full h-16 bg-[#c49cff] text-[#2d0a6e] font-black tracking-[0.2em] text-xs uppercase rounded-xl shadow-[0_10px_30px_-10px_rgba(196,156,255,0.4)] transition-transform active:scale-[0.98]">
+              <Button onPress={closeFilter} className="w-full h-16 bg-[#c49cff] text-[#2d0a6e] font-black tracking-[0.2em] text-xs uppercase rounded-xl shadow-[0_10px_30px_-10px_rgba(196,156,255,0.4)] transition-transform active:scale-[0.98]">
                 VER RESULTADOS
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
@@ -365,10 +376,10 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.05); border-radius: 10px; }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); }
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        .animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
-        @keyframes scale-in { from { transform: scale(0.95); } to { transform: scale(1); } }
-        .animate-scale-in { animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .animate-slide-in-right { animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slide-out-right { from { transform: translateX(0); } to { transform: translateX(100%); } }
+        .animate-slide-out-right { animation: slide-out-right 0.2s cubic-bezier(0.4, 0, 1, 1) forwards; }
         @keyframes fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
       `}</style>

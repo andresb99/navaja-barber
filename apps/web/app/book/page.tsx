@@ -43,22 +43,8 @@ export default async function BookPage() {
   }
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-black/5 pb-5 dark:border-white/[0.06]">
-        <div>
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-widest text-brass">
-            Reservas
-          </p>
-          <h1 className="font-[family-name:var(--font-heading)] text-2xl font-bold text-ink dark:text-white md:text-3xl">
-            Elegí tu barbería
-          </h1>
-        </div>
-        <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold text-slate/70 dark:bg-white/5 dark:text-white/50">
-          {shops.length} barberías
-        </span>
-      </div>
-
+    <main className="min-h-screen bg-transparent">
       <BookPageContent shops={shops} />
-    </section>
+    </main>
   );
 }
