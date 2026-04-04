@@ -201,21 +201,8 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
   }
 
   return (
-    <section className="min-h-screen font-sans text-at-body pb-16 sm:pb-32 bg-at-page tenant-atelier">
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 pt-8 sm:pt-10 sm:pt-16">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-at-accent">
-          RESERVATION PORTAL
-        </p>
-        <h1 className="mt-3 font-[family-name:var(--font-heading)] text-3xl sm:text-4xl sm:text-5xl lg:text-6xl font-extrabold uppercase tracking-tighter text-at-heading leading-none">
-          CURATE YOUR <span className="text-at-accent-light">LOOK</span>
-        </h1>
-        <p className="mt-4 text-base text-at-muted font-normal leading-relaxed max-w-xl">
-          Precision grooming meets nocturnal luxury. Experience the obsidian standard.
-        </p>
-      </div>
-
-      <div className="max-w-[1240px] mx-auto px-4 sm:px-6 mt-6 sm:mt-8 sm:mt-12 mb-12 sm:mb-16 md:mb-24 relative">
-
+    <section className="h-[calc(100dvh-64px)] sm:h-[calc(100dvh-80px)] overflow-hidden bg-[#131315] tenant-atelier flex flex-col">
+      <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 flex flex-col min-h-0 relative">
         <BookingFlow
           shopId={shop.id}
           shopSlug={shop.slug}
