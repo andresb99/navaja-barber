@@ -288,13 +288,14 @@ export function BookingFlow({
       <div className="animate-page-enter flex-1 overflow-hidden pb-8">
         {/* STEP 1: SERVICES */}
         {step === 1 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 max-w-6xl mx-auto px-4 pt-1 sm:pt-4 h-full overflow-y-auto custom-scrollbar pr-4 pb-32 sm:pb-40">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 max-w-6xl mx-auto px-4 pt-1 sm:pt-4 h-full overflow-y-auto custom-scrollbar pr-4 relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 col-span-full pb-48">
             {services.map((item) => (
               <div
                 key={item.id}
                 onClick={() => { setServiceId(item.id); setStaffId(''); setSelectedSlot(null); }}
                 className={cn(
-                  "group relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-[#0a0a0c] p-5 sm:p-6 transition-all duration-500 cursor-pointer border-2 shadow-2xl flex flex-col justify-between min-h-[130px] sm:min-h-[140px]",
+                  "group relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-[#0a0a0c] p-6 sm:p-8 transition-all duration-500 cursor-pointer border-2 shadow-2xl flex flex-col justify-between min-h-[300px] sm:min-h-[340px]",
                   serviceId === item.id ? "border-[#a078ff] shadow-[0_0_50px_-10px_rgba(160,120,255,0.3)] scale-[1.02]" : "border-transparent hover:bg-[#111113] hover:border-white/5"
                 )}
               >
@@ -326,6 +327,7 @@ export function BookingFlow({
                   </div>
               </div>
             ))}
+            </div>
           </div>
         )}
 
@@ -618,7 +620,7 @@ export function BookingFlow({
       </div>
 
       {/* ── PERSISTENT BOTTOM BAR ────────────────────────────────────────── */}
-      <div className="fixed bottom-8 sm:bottom-12 left-0 right-0 z-[60] px-4 pointer-events-none">
+      <div className="fixed bottom-10 sm:bottom-16 left-0 right-0 z-[60] px-4 pointer-events-none">
         <div className="max-w-6xl mx-auto w-full pointer-events-auto">
           <div className="bg-[#0a0a0c]/20 backdrop-blur-xl saturate-200 px-5 py-3 sm:px-8 sm:py-5 rounded-[1.5rem] sm:rounded-[2.5rem] border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex items-center justify-between gap-3 sm:gap-4 relative overflow-hidden">
              {/* Subtle reflection overlay for extra "glass" realism */}
