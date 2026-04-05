@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { CourseEnrollmentModal } from './course-enrollment-modal';
+import { MarketplaceEnrollmentModal } from './marketplace-enrollment-modal';
+import { courseEnrollmentCreateSchema } from '@navaja/shared';
 
 interface SessionData {
   id: string;
@@ -54,11 +55,58 @@ export function CourseDetailView({
 }: CourseDetailViewProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [preSelectedId, setPreSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   const openModal = useCallback((sessionId?: string) => {
     setPreSelectedId(sessionId ?? null);
     setIsModalOpen(true);
   }, []);
+
+  const handleEnroll = async (formData: any) => {
+    setError(null);
+    setMessage(null);
+
+    const parsed = courseEnrollmentCreateSchema.safeParse({
+      session_id: formData.sessionId,
+      name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+    });
+
+    if (!parsed.success) {
+      setError('Por favor, revisa los datos del formulario.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/courses/enroll', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(parsed.data),
+      });
+
+      if (!response.ok) {
+        setError(await response.text());
+        return;
+      }
+
+      const payload = await response.json();
+      if (payload.requires_payment && payload.checkout_url) {
+        window.location.assign(payload.checkout_url);
+        return;
+      }
+
+      setMessage('Inscripción enviada. Te contactamos para confirmar el cupo.');
+      setTimeout(() => setIsModalOpen(false), 2000);
+    } catch (err) {
+      setError('Error al procesar la inscripción.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -375,17 +423,26 @@ export function CourseDetailView({
       </section>
 
       {/* Modal */}
-      <CourseEnrollmentModal
-        courseTitle={courseTitle}
+      <MarketplaceEnrollmentModal
+        type="course"
+        title={courseTitle}
         priceLabel={priceLabel}
-        sessions={sessions}
+        sessions={sessions.map(s => ({
+          id: s.id,
+          dateLabel: s.fullDateLabel, // Use full label in modal
+          seatsLeft: s.seatsLeft
+        }))}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleEnroll}
+        isLoading={loading}
+        error={error}
+        message={message}
         initialName={initialName}
         initialPhone={initialPhone}
         initialEmail={initialEmail}
-        preferredPaymentMethod={preferredPaymentMethod}
-        isOpen={isModalOpen}
         preSelectedSessionId={preSelectedId}
-        onClose={() => setIsModalOpen(false)}
+        preferredPaymentMethod={preferredPaymentMethod}
       />
     </>
   );

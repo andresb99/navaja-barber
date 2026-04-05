@@ -211,7 +211,7 @@ export function BookShopCard({ shop, isFeatured = false }: BookShopCardProps) {
           <Button
             as={Link}
             href={bookingHref}
-            className="flex-1 h-16 bg-[#c49cff] text-[#2d0a6e] font-[1000] text-[11px] uppercase tracking-[0.2em] rounded-[2rem] transition-all duration-300 hover:brightness-110 hover:scale-[1.02] hover:-translate-y-0.5"
+            className="flex-1 h-16 bg-[#c49cff] !text-white data-[hover=true]:text-white font-[1000] text-[11px] uppercase tracking-[0.2em] rounded-[2rem] transition-all duration-300 shadow-[0_4px_10px_rgba(196,156,255,0.15)] hover:shadow-[0_6px_12px_rgba(196,156,255,0.2)] hover:scale-[1.01]"
           >
             BOOK NOW
           </Button>
@@ -219,7 +219,7 @@ export function BookShopCard({ shop, isFeatured = false }: BookShopCardProps) {
             as={Link}
             href={tenantProfileHref}
             variant="bordered"
-            className="flex-1 h-16 border-white/10 text-white font-[1000] text-[11px] uppercase tracking-[0.2em] rounded-[2rem] transition-all duration-300 hover:bg-white/5 hover:scale-[1.02] hover:-translate-y-0.5"
+            className="flex-1 h-16 border-white/10 text-white font-[1000] text-[11px] uppercase tracking-[0.2em] rounded-[2rem] transition-all duration-300 hover:bg-white/10 hover:scale-[1.01] active:scale-[0.98]"
           >
             VISIT WEBSITE
           </Button>

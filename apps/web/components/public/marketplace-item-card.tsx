@@ -13,43 +13,60 @@ import { Star, Clock, User, ArrowRight, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import Link from 'next/link';
 
-interface CourseCardProps {
-  courseId: string;
+interface MarketplaceItemCardProps {
+  id: string;
+  type: 'course' | 'model';
   category: string;
   title: string;
   description: string;
-  price: string;
-  duration: string;
-  level: string;
-  shopName: string;
-  shopSlug: string;
   imageUrl?: string | null;
+  shopName: string;
+  
+  // Specific course props
+  price?: string;
+  duration?: string;
+  level?: string;
   upcomingSessions?: number;
   ratingAvg?: number | null;
   reviewCount?: number;
+
+  // Specific model props
+  date?: string;
+  location?: string;
+  
+  primaryAction: {
+    label: string;
+    href?: string;
+    onPress?: () => void;
+  };
 }
 
-export function CourseCard({ 
-  courseId,
+export function MarketplaceItemCard({ 
+  id,
+  type,
   category, 
   title, 
   description, 
-  price, 
-  duration, 
-  level,
-  shopName,
-  shopSlug,
   imageUrl,
+  shopName,
+  price,
+  duration,
+  level,
   upcomingSessions,
   ratingAvg,
-  reviewCount = 0
-}: CourseCardProps) {
+  reviewCount = 0,
+  date,
+  location,
+  primaryAction
+}: MarketplaceItemCardProps) {
+  const isModel = type === 'model';
+
   return (
     <Card 
-      className="bg-white dark:bg-[#121214] border-slate-100 dark:border-white/10 overflow-hidden group hover:border-[#c49cff]/30 transition-all duration-500 rounded-[2.5rem] shadow-[0_10px_30px_rgba(0,0,0,0.03)] dark:shadow-2xl"
+      className="bg-white dark:bg-[#121214] border-slate-100 dark:border-white/10 overflow-hidden group hover:border-[#c49cff]/30 transition-all duration-500 rounded-[2.5rem] shadow-[0_10px_30px_rgba(0,0,0,0.03)] dark:shadow-2xl h-full flex flex-col"
       shadow="none"
     >
-      <CardHeader className="p-0 relative aspect-[16/10] overflow-hidden">
+      <CardHeader className="p-0 relative aspect-[16/10] overflow-hidden shrink-0">
         {imageUrl ? (
           <Image
             alt={title}
@@ -66,7 +83,7 @@ export function CourseCard({
         
         {/* Floating Badges */}
         <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
-          {ratingAvg && (
+          {!isModel && ratingAvg && (
              <div className="bg-white/80 dark:bg-black/40 backdrop-blur-md border border-slate-200/50 dark:border-white/10 px-2 py-1 rounded-full flex items-center gap-1.5 shadow-xl">
                <Star className="w-3 h-3 text-[#f1bf5e] fill-[#f1bf5e]" />
                <span className="text-[10px] font-black text-slate-900 dark:text-white">{ratingAvg.toFixed(1)}</span>
@@ -89,7 +106,7 @@ export function CourseCard({
         <div className="absolute inset-0 bg-gradient-to-t from-white/40 dark:from-[#0a0a0c] via-transparent to-transparent opacity-60" />
       </CardHeader>
 
-      <CardBody className="px-8 pt-8 pb-4 space-y-4">
+      <CardBody className="px-8 pt-8 pb-4 space-y-4 flex-grow">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-black text-[#c49cff] uppercase tracking-[0.2em]">
             {category}
@@ -100,7 +117,7 @@ export function CourseCard({
           </span>
         </div>
 
-        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight group-hover:text-[#c49cff] transition-colors h-[2.5em] line-clamp-2">
+        <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight group-hover:text-[#c49cff] transition-colors h-[2.5em] line-clamp-2 uppercase">
           {title}
         </h3>
 
@@ -109,30 +126,52 @@ export function CourseCard({
         </p>
       </CardBody>
 
-      <CardFooter className="px-8 pb-8 pt-0 flex flex-col gap-8">
+      <CardFooter className="px-8 pb-8 pt-0 flex flex-col gap-8 mt-auto shrink-0">
         <div className="grid grid-cols-3 w-full border-t border-slate-100 dark:border-white/5 pt-6">
           <div className="flex flex-col gap-1">
-            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">Precio</span>
-            <span className="text-sm font-black text-slate-900 dark:text-white tracking-tight">{price}</span>
+            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">
+              {isModel ? 'Fecha' : 'Precio'}
+            </span>
+            <span className="text-sm font-black text-slate-900 dark:text-white tracking-tight truncate">
+              {isModel ? (date || 'PRÓXIMAMENTE') : price}
+            </span>
           </div>
           <div className="flex flex-col gap-1 border-x border-slate-100 dark:border-white/5 px-4">
-            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">Duración</span>
-            <span className="text-sm font-bold text-slate-700 dark:text-white/80">{duration}</span>
+            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">
+              {isModel ? 'Lugar' : 'Duración'}
+            </span>
+            <span className="text-sm font-bold text-slate-700 dark:text-white/80 truncate">
+              {isModel ? (location || shopName) : duration}
+            </span>
           </div>
           <div className="flex flex-col gap-1 pl-4">
-            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">Nivel</span>
-            <span className="text-sm font-bold text-slate-700 dark:text-white/80">{level}</span>
+            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">
+              {isModel ? 'Cupos' : 'Nivel'}
+            </span>
+            <span className="text-sm font-bold text-slate-700 dark:text-white/80 truncate">
+              {isModel ? (upcomingSessions ? `${upcomingSessions} DISP.` : 'DISPONIBLE') : level}
+            </span>
           </div>
         </div>
 
-        <Button
-          as={Link}
-          href={`/courses/${courseId}`}
-          className="w-full h-14 bg-[#c49cff] !text-white data-[hover=true]:text-white font-black tracking-widest text-[11px] uppercase rounded-[1.5rem] transition-all hover:scale-[1.01] active:scale-[0.98] shadow-[0_4px_10px_rgba(196,156,255,0.15)] hover:shadow-[0_6px_12px_rgba(196,156,255,0.2)] group/btn"
-        >
-          VER PROGRAMA
-          <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
-        </Button>
+        {primaryAction.href ? (
+          <Button
+            as={Link}
+            href={primaryAction.href}
+            className="w-full h-14 bg-[#c49cff] !text-white data-[hover=true]:text-white font-black tracking-widest text-[11px] uppercase rounded-[1.5rem] transition-all hover:scale-[1.01] active:scale-[0.98] shadow-[0_4px_10px_rgba(196,156,255,0.15)] hover:shadow-[0_6px_12px_rgba(196,156,255,0.2)] group/btn"
+          >
+            {primaryAction.label}
+            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
+          </Button>
+        ) : (
+          <Button
+            onPress={primaryAction.onPress as any}
+            className="w-full h-14 bg-[#c49cff] !text-white data-[hover=true]:text-white font-black tracking-widest text-[11px] uppercase rounded-[1.5rem] transition-all hover:scale-[1.01] active:scale-[0.98] shadow-[0_4px_10px_rgba(196,156,255,0.15)] hover:shadow-[0_6px_12px_rgba(196,156,255,0.2)] group/btn"
+          >
+            {primaryAction.label}
+            <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

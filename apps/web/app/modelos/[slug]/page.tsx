@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { formatCurrency } from '@navaja/shared';
 import { getOpenModelCalls } from '@/lib/modelos';
 import { getPublicTenantRouteContext } from '@/lib/public-tenant-context';
-import { buildTenantModelRegistrationHref, buildTenantPublicHref } from '@/lib/shop-links';
+import { buildTenantModelRegistrationHref } from '@/lib/shop-links';
 import { getMarketplaceShopBySlug } from '@/lib/shops';
 import { buildTenantPageMetadata } from '@/lib/tenant-public-metadata';
 import { Container } from '@/components/heroui/container';
+import { ModelosMarketplaceList } from '@/components/public/modelos-marketplace-list';
 
 interface ShopModelosPageProps {
   params: Promise<{ slug: string }>;
@@ -68,7 +68,7 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
               <div className="mt-8">
                 <Link
                   href={buildTenantModelRegistrationHref(shop.slug, routeContext.mode)}
-                  className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-at-accent-light px-6 sm:px-10 py-4 sm:py-6 text-xs sm:text-sm font-bold uppercase tracking-widest text-at-accent-on transition-all hover:bg-at-accent-hover hover:scale-105 shadow-[0_0_60px_-15px_rgba(var(--at-accent-light),0.5)]"
+                  className="group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-at-accent-light px-6 sm:px-10 py-4 sm:py-6 text-xs sm:text-sm font-bold uppercase tracking-widest text-at-accent-on shadow-[0_0_60px_-15px_rgba(196,156,255,0.5)] hover:scale-[1.01] transition-all"
                 >
                   Postular al Casting General
                 </Link>
@@ -94,83 +94,7 @@ export default async function ShopModelosPage({ params }: ShopModelosPageProps) 
           CASTINGS Y SESIONES ABIERTAS
         </h2>
 
-        {openCalls.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-[2.5rem] border border-at-border/5 bg-at-raised/50 py-32 text-center backdrop-blur-sm">
-            <p className="text-sm font-bold uppercase tracking-widest text-at-muted">
-              No hay convocatorias específicas para fechas concretas en este momento. Anótate al casting general arriba.
-            </p>
-          </div>
-        ) : null}
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {openCalls.map((call) => {
-            const modelCategories = Array.isArray(call.model_categories) ? call.model_categories : [];
-
-            return (
-              <article key={call.session_id} className="group overflow-hidden rounded-[1.5rem] sm:rounded-[2.5rem] bg-at-deep ring-1 ring-at-border/5 transition-all hover:bg-at-raised hover:-translate-y-2 shadow-[0_20px_40px_-20px_rgba(0,0,0,0.5)] flex flex-col justify-between p-5 sm:p-8 md:p-12">
-                <div>
-                  <div className="flex flex-wrap items-center justify-between gap-4 mb-8 border-b border-at-border/5 pb-8">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-at-accent mb-2">
-                        Sesión Abierta
-                      </p>
-                      <h3 className="font-[family-name:var(--font-heading)] text-3xl font-extrabold text-at-heading tracking-tight">
-                        {call.course_title}
-                      </h3>
-                      <p className="mt-3 text-sm text-at-muted uppercase tracking-wider font-semibold">
-                        {new Date(call.start_at).toLocaleString('es-UY', { dateStyle: 'long', timeStyle: 'short' })}
-                      </p>
-                    </div>
-
-                    <div className="bg-at-surface rounded-2xl p-4 sm:p-6 ring-1 ring-at-border/10 text-center min-w-[140px] sm:min-w-[180px]">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-at-accent mb-2">
-                        Compensación
-                      </p>
-                      <p className="text-2xl font-black text-at-accent-light">
-                        {call.compensation_type === 'gratis'
-                          ? 'GRATIS'
-                          : call.compensation_value_cents
-                            ? formatCurrency(call.compensation_value_cents)
-                            : call.compensation_type}
-                      </p>
-                      <p className="mt-2 text-xs text-at-muted font-semibold tracking-widest">
-                        CUPOS: {call.models_needed || '1'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-base text-at-muted leading-relaxed mb-6 font-medium max-w-xl">
-                    {call.notes_public || 'Participa en esta sesión exclusiva. Buscamos perfiles acordes al estilo y técnica propuesta.'}
-                  </p>
-
-                  {modelCategories.length > 0 && (
-                    <div className="flex flex-wrap gap-3 mb-10">
-                      {modelCategories.map((category) => (
-                        <span
-                          key={`${call.session_id}-${category}`}
-                          className="rounded-full border border-at-accent/30 bg-at-accent/10 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-at-accent-light"
-                        >
-                          {category}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Link
-                  href={buildTenantModelRegistrationHref(
-                    shop.slug,
-                    routeContext.mode,
-                    call.session_id,
-                  )}
-                  className="mt-6 flex w-full items-center justify-center rounded-2xl bg-at-border/5 ring-1 ring-at-border/10 px-8 py-5 text-xs font-bold uppercase tracking-[0.2em] text-at-heading transition-all hover:bg-at-border/10 hover:ring-at-accent/50"
-                >
-                  Anotarme en esta sesión
-                </Link>
-              </article>
-            );
-          })}
-        </div>
+        <ModelosMarketplaceList calls={openCalls} />
       </div>
     </section>
   );

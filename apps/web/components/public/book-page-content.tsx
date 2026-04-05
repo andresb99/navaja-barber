@@ -198,7 +198,10 @@ export function BookPageContent({ shops }: BookPageContentProps) {
             </div>
 
             <div className="pt-8 mt-auto border-t border-slate-100 dark:border-white/5 space-y-4">
-              <Button onPress={closeFilter} className="w-full h-16 bg-[#c49cff] text-[#2d0a6e] font-black tracking-[0.2em] text-xs uppercase rounded-xl shadow-[0_10px_30px_-10px_rgba(196,156,255,0.4)] transition-transform active:scale-[0.98]">
+              <Button 
+                onPress={closeFilter} 
+                className="w-full h-16 bg-[#c49cff] !text-white data-[hover=true]:text-white font-black tracking-[0.2em] text-xs uppercase rounded-2xl shadow-[0_4px_10px_rgba(196,156,255,0.15)] hover:shadow-[0_6px_15px_rgba(196,156,255,0.25)] transition-all active:scale-[0.98]"
+              >
                 VER RESULTADOS
                 <ChevronDown className="w-4 h-4 ml-1 -rotate-90" />
               </Button>

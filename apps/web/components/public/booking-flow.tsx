@@ -295,15 +295,15 @@ export function BookingFlow({
                 key={item.id}
                 onClick={() => { setServiceId(item.id); setStaffId(''); setSelectedSlot(null); }}
                 className={cn(
-                  "group relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-[#0a0a0c] p-6 sm:p-8 transition-all duration-500 cursor-pointer border-2 shadow-2xl flex flex-col justify-between min-h-[300px] sm:min-h-[340px]",
-                  serviceId === item.id ? "border-[#a078ff] shadow-[0_0_50px_-10px_rgba(160,120,255,0.3)] scale-[1.02]" : "border-transparent hover:bg-[#111113] hover:border-white/5"
+                  "group relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-[#0a0a0c] p-6 sm:p-8 transition-all duration-200 ease-out cursor-pointer border-2 shadow-xl flex flex-col justify-between min-h-[300px] sm:min-h-[340px]",
+                  serviceId === item.id ? "border-[#a078ff] bg-[#111113]" : "border-transparent hover:bg-[#111113] hover:border-white/5"
                 )}
               >
                 <div className="text-left">
                   <div className="flex justify-between items-start mb-3 sm:mb-4">
                     <div className={cn(
                       "w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center transition-colors shrink-0",
-                        serviceId === item.id ? "bg-[#a078ff] text-[#23005c]" : "bg-[#1a181e] text-[#a078ff]"
+                        serviceId === item.id ? "bg-[#a078ff] text-white" : "bg-[#1a181e] text-[#a078ff]"
                       )}>
                         <Scissors className="w-5 h-5" />
                       </div>

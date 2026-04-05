@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import { createPortal } from 'react-dom';
-import { CourseCard } from '@/components/courses/course-card';
+import { MarketplaceItemCard } from '@/components/public/marketplace-item-card';
+import { buildTenantCanonicalHref } from '@/lib/tenant-public-urls';
 import { CourseGridSkeleton } from '@/components/courses/course-skeleton';
 import { Button, Slider, Switch } from '@heroui/react';
 import { X, ChevronRight, SlidersHorizontal, Loader2 } from 'lucide-react';
@@ -254,20 +255,25 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
             <>
               {courses.map((course, idx) => (
                 <div key={`${course.id}-${idx}`} className="will-change-transform">
-                  <CourseCard
-                    courseId={course.id}
-                    category={normalizeLevel(course.level)}
+                  <MarketplaceItemCard
+                    key={`${course.id}-${idx}`}
+                    id={course.id}
+                    type="course"
+                    category={course.level}
                     title={course.title}
                     description={course.description}
+                    imageUrl={course.image_url}
+                    shopName={course.shop_name}
                     price={formatPrice(course.price_cents)}
                     duration={`${course.duration_hours}h`}
                     level={normalizeLevel(course.level)}
-                    shopName={course.shop_name}
-                    shopSlug={course.shop_slug}
-                    imageUrl={course.image_url}
                     upcomingSessions={course.upcoming_sessions}
                     ratingAvg={course.rating_avg}
                     reviewCount={course.enrollments_count || 0}
+                    primaryAction={{
+                      label: 'VER PROGRAMA',
+                      href: `/courses/${course.id}`
+                    }}
                   />
                 </div>
               ))}

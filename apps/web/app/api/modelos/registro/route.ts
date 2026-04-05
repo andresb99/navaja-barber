@@ -158,6 +158,7 @@ export async function POST(request: NextRequest) {
   const attributes = {
     preferences: parsed.data.preferences,
     consent_photos_videos: parsed.data.consent_photos_videos,
+    notes: parsed.data.notes || null,
   };
 
   const marketplaceModelPayload = {
