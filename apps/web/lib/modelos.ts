@@ -184,7 +184,7 @@ export async function listMarketplaceOpenModelCalls(): Promise<MarketplaceOpenMo
     .sort((a, b) => (a.start_at < b.start_at ? -1 : 1));
 }
 
-export async function getOpenModelCalls(shopId?: string): Promise<OpenModelCall[]> {
+export async function getOpenModelCalls(shopId?: string): Promise<MarketplaceOpenModelCall[]> {
   let resolvedShopId = shopId;
 
   if (!resolvedShopId) {
@@ -197,20 +197,5 @@ export async function getOpenModelCalls(shopId?: string): Promise<OpenModelCall[
   }
 
   const calls = await listMarketplaceOpenModelCalls();
-  return calls
-    .filter((call) => call.shop_id === resolvedShopId)
-    .map((call) => ({
-      session_id: call.session_id,
-      course_title: call.course_title,
-      course_level: call.course_level,
-      course_duration: call.course_duration,
-      course_image_url: call.course_image_url,
-      start_at: call.start_at,
-      location: call.location,
-      model_categories: call.model_categories,
-      compensation_type: call.compensation_type,
-      compensation_value_cents: call.compensation_value_cents,
-      notes_public: call.notes_public,
-      models_needed: call.models_needed,
-    }));
+  return calls.filter((call) => call.shop_id === resolvedShopId);
 }
