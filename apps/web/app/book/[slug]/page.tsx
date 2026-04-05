@@ -201,7 +201,7 @@ export default async function ShopBookPage({ params }: ShopBookPageProps) {
   }
 
   return (
-    <section className="h-[calc(100dvh-64px)] sm:h-[calc(100dvh-80px)] overflow-hidden bg-[#131315] tenant-atelier flex flex-col">
+    <section className="h-[calc(100dvh-76px)] overflow-hidden bg-[#131315] tenant-atelier flex flex-col touch-none">
       <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10 flex flex-col min-h-0 relative">
         <BookingFlow
           shopId={shop.id}

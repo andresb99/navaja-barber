@@ -288,7 +288,7 @@ export function BookingFlow({
       <div className="animate-page-enter flex-1 overflow-hidden pb-8">
         {/* STEP 1: SERVICES */}
         {step === 1 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 max-w-6xl mx-auto px-4 pt-1 sm:pt-4 h-full overflow-y-auto custom-scrollbar pr-4 relative">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 max-w-6xl mx-auto px-4 pt-1 sm:pt-4 h-full overflow-y-auto custom-scrollbar pr-4 relative touch-pan-y overscroll-none">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 col-span-full pb-48">
             {services.map((item) => (
               <div
