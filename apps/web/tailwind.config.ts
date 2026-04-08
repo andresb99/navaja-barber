@@ -12,6 +12,14 @@ const config: Config = {
   theme: {
   	extend: {
   		colors: {
+        elite: {
+          primary: '#bf9cff',
+          dim: '#af8cef',
+          surface: '#0e0e0e',
+          high: '#201f1f',
+          muted: '#adaaaa',
+          on: '#e5e2e1',
+        },
   			ink: 'rgb(var(--ink) / <alpha-value>)',
   			cream: 'rgb(var(--cream) / <alpha-value>)',
   			brass: 'rgb(var(--brass) / <alpha-value>)',
@@ -105,7 +113,10 @@ const config: Config = {
   		},
   		screens: {
   			xs: '480px',
-  		}
+  		},
+      fontFamily: {
+        elite: ['var(--font-body)', 'sans-serif'],
+      }
   	}
   },
   plugins: [

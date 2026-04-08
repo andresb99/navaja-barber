@@ -142,6 +142,25 @@ button {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
 }
 
+.elite-title {
+  font-family: var(--font-body), sans-serif;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  line-height: 1.1;
+}
+
+.elite-title-primary {
+  @apply elite-title;
+  color: #bf9cff;
+  font-style: italic;
+  font-weight: 300;
+}
+
+.elite-glow {
+  text-shadow: 0 0 20px rgba(191, 156, 255, 0.3);
+}
+
 p {
   line-height: 1.62;
 }
