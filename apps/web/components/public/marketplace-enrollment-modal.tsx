@@ -370,7 +370,7 @@ export function MarketplaceEnrollmentModal({
                 <button
                   type="submit"
                   disabled={propLoading || !selectedSessionId}
-                  className="w-full rounded-full bg-gradient-to-r from-[#a078ff] to-[#d0bcff] py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-[#23005c] transition-all hover:shadow-[0_0_40px_-10px_rgba(160,120,255,0.5)] hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
+                  className="w-full rounded-full bg-[#D0BCFF] py-3.5 text-[11px] font-bold uppercase tracking-[0.2em] text-white transition-all hover:shadow-[0_0_30px_-5px_rgba(208,188,255,0.4)] hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none"
                 >
                   {propLoading ? 'Processing...' : (isModel ? 'Confirmar Postulación' : 'Confirm Enrollment')}
                 </button>

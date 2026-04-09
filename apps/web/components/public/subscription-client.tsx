@@ -52,10 +52,10 @@ export function SubscriptionClient({ plans, ctx, manageWorkspaceHref }: Subscrip
             variant="light"
             radius="full"
             classNames={{
-              tabList: "bg-[#201f1f]/40 border border-[#484847]/10 p-1 backdrop-blur-xl",
-              cursor: "bg-[#bf9cff]/20 shadow-[0_0_15px_rgba(191,156,255,0.2)]",
-              tab: "px-8 h-10 data-[selected=true]:text-[#bf9cff] text-[#adaaaa]/40",
-              tabContent: "text-[10px] font-bold uppercase tracking-[0.2em]"
+              tabList: "bg-white/5 border border-white/10 p-1 backdrop-blur-xl",
+              cursor: "bg-brand-primary shadow-lg",
+              tab: "px-8 h-10 data-[selected=true]:text-brand-on-primary text-white/40",
+              tabContent: "text-[10px] font-black uppercase tracking-[0.2em]"
             }}
           >
             <Tab key="monthly" title="Monthly" />

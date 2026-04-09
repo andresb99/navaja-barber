@@ -11,6 +11,7 @@ import {
 } from '@heroui/react';
 import { Star, Clock, User, ArrowRight, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { ctaButtonClass, Eyebrow } from '@/components/ui/primitives';
 import Link from 'next/link';
 
 interface MarketplaceItemCardProps {
@@ -108,9 +109,7 @@ export function MarketplaceItemCard({
 
       <CardBody className="px-8 pt-8 pb-4 space-y-4 flex-grow">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-black text-[#c49cff] uppercase tracking-[0.2em]">
-            {category}
-          </span>
+          <Eyebrow>{category}</Eyebrow>
           <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/20" />
           <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">
             {shopName}
@@ -129,7 +128,7 @@ export function MarketplaceItemCard({
       <CardFooter className="px-8 pb-8 pt-0 flex flex-col gap-8 mt-auto shrink-0">
         <div className="grid grid-cols-3 w-full border-t border-slate-100 dark:border-white/5 pt-6">
           <div className="flex flex-col gap-1">
-            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">
+            <span className="text-[9px] font-black text-slate-300 dark:text-[#CBC3D7] uppercase tracking-[0.1em]">
               {isModel ? 'Fecha' : 'Precio'}
             </span>
             <span className="text-sm font-black text-slate-900 dark:text-white tracking-tight truncate">
@@ -137,7 +136,7 @@ export function MarketplaceItemCard({
             </span>
           </div>
           <div className="flex flex-col gap-1 border-x border-slate-100 dark:border-white/5 px-4">
-            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">
+            <span className="text-[9px] font-black text-slate-300 dark:text-[#CBC3D7] uppercase tracking-[0.1em]">
               {isModel ? 'Lugar' : 'Duración'}
             </span>
             <span className="text-sm font-bold text-slate-700 dark:text-white/80 truncate">
@@ -145,7 +144,7 @@ export function MarketplaceItemCard({
             </span>
           </div>
           <div className="flex flex-col gap-1 pl-4">
-            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">
+            <span className="text-[9px] font-black text-slate-300 dark:text-[#CBC3D7] uppercase tracking-[0.1em]">
               {isModel ? 'Cupos' : 'Nivel'}
             </span>
             <span className="text-sm font-bold text-slate-700 dark:text-white/80 truncate">
@@ -158,7 +157,7 @@ export function MarketplaceItemCard({
           <Button
             as={Link}
             href={primaryAction.href}
-            className="w-full h-14 bg-[#c49cff] !text-white data-[hover=true]:text-white font-black tracking-widest text-[11px] uppercase rounded-[1.5rem] transition-all hover:scale-[1.01] active:scale-[0.98] shadow-[0_4px_10px_rgba(196,156,255,0.15)] hover:shadow-[0_6px_12px_rgba(196,156,255,0.2)] group/btn"
+            className={ctaButtonClass({ hasShadow: false, className: 'group/btn' })}
           >
             {primaryAction.label}
             <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
@@ -166,7 +165,7 @@ export function MarketplaceItemCard({
         ) : (
           <Button
             onPress={primaryAction.onPress as any}
-            className="w-full h-14 bg-[#c49cff] !text-white data-[hover=true]:text-white font-black tracking-widest text-[11px] uppercase rounded-[1.5rem] transition-all hover:scale-[1.01] active:scale-[0.98] shadow-[0_4px_10px_rgba(196,156,255,0.15)] hover:shadow-[0_6px_12px_rgba(196,156,255,0.2)] group/btn"
+            className={ctaButtonClass({ hasShadow: false, className: 'group/btn' })}
           >
             {primaryAction.label}
             <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />

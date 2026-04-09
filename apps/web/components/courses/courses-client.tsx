@@ -9,6 +9,15 @@ import { Button, Slider, Switch } from '@heroui/react';
 import { X, ChevronRight, SlidersHorizontal, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { fetchCourses, type CourseItem, type CourseFilters, type CoursesMeta } from '@/lib/actions/courses';
+import {
+  filterPillClass,
+  SectionTitle,
+  FilterSectionLabel,
+  drawerOverlayClass,
+  drawerPanelClass,
+  DrawerStyles,
+  ctaButtonClass,
+} from '@/components/ui/primitives';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const LEVEL_MAP: Record<string, string> = {
@@ -290,13 +299,13 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
       {isFilterOpen && createPortal(
         <>
           <div
-            className={cn('fixed inset-0 bg-white/30 dark:bg-black/70 z-[90] transition-opacity duration-300', isFilterClosing ? 'opacity-0' : 'opacity-100')}
+            className={drawerOverlayClass(isFilterClosing)}
             onClick={closeFilter}
           />
-          <aside className={cn('fixed right-0 top-0 h-full w-[400px] z-[100] bg-white dark:bg-[#0a0a0b] text-slate-900 dark:text-white p-8 flex flex-col shadow-[-20px_0_60px_rgba(0,0,0,0.1)] dark:shadow-[-20px_0_40px_rgba(0,0,0,0.5)]', isFilterClosing ? 'animate-slide-out-right' : 'animate-slide-in-right')}>
+          <aside className={drawerPanelClass(isFilterClosing)}>
             <div className="flex items-center justify-between mb-12">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-3xl font-black italic tracking-tighter uppercase">FILTROS</h2>
+                <SectionTitle>FILTROS</SectionTitle>
                 <span className="text-[10px] font-black text-[#c49cff]">{totalCount}</span>
               </div>
               <button onClick={closeFilter} className="p-3 bg-slate-50 dark:bg-white/5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
@@ -307,7 +316,7 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
             <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar space-y-12 pb-10">
               {/* Level Pills */}
               <section>
-                <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-white/20 uppercase mb-6 text-left">NIVEL ACADÉMICO</h3>
+                <FilterSectionLabel>NIVEL ACADÉMICO</FilterSectionLabel>
                 <div className="flex flex-wrap gap-2">
                   {levels.filter(l => l !== 'Todos').map((level) => {
                     const isActive = activeLevel === level;
@@ -315,10 +324,7 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
                       <button
                         key={level}
                         onClick={() => setActiveLevel(isActive ? 'Todos' : level)}
-                        className={cn(
-                          "h-10 px-5 rounded-full text-[9px] font-black tracking-widest uppercase transition-all",
-                          isActive ? "bg-[#c49cff] text-[#2d0a6e]" : "bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
-                        )}
+                        className={filterPillClass(isActive)}
                       >
                         {level}
                       </button>
@@ -329,12 +335,12 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
 
               {/* Duration Pills */}
               <section>
-                <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-white/20 uppercase mb-6 text-left">DURACIÓN</h3>
+                <FilterSectionLabel>DURACIÓN</FilterSectionLabel>
                 <div className="flex flex-wrap gap-2">
                   {(Object.entries(DURATION_LABELS) as [DurationBucket, string][]).map(([key, label]) => {
                     const isActive = selectedDuration === key;
                     return (
-                      <button key={key} onClick={() => setSelectedDuration(key)} className={cn("h-10 px-5 rounded-full text-[9px] font-black tracking-widest uppercase transition-all", isActive ? "bg-[#c49cff] text-[#2d0a6e]" : "bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white")}>
+                      <button key={key} onClick={() => setSelectedDuration(key)} className={filterPillClass(isActive)}>
                         {label}
                       </button>
                     );
@@ -345,7 +351,7 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
               {/* Price Slider */}
               <section>
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-white/20 uppercase">PRECIO</h3>
+                  <FilterSectionLabel className="mb-0">PRECIO</FilterSectionLabel>
                   <span className="text-[10px] font-black text-[#c49cff] tracking-widest">{formatPrice(priceRange[0])} — {formatPrice(priceRange[1])}</span>
                 </div>
                 <Slider step={5000} minValue={meta.priceMin} maxValue={meta.priceMax} value={priceRange} onChange={(val) => setPriceRange(val as [number, number])} className="max-w-md" classNames={{ track: "bg-slate-100 dark:bg-white/5 h-1.5 rounded-full", filler: "bg-[#c49cff]", thumb: "bg-white border-2 border-slate-200 dark:border-[#16161a] w-6 h-6 after:hidden shadow-lg" }} />
@@ -353,7 +359,7 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
 
               {/* Toggles */}
               <section>
-                <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-white/20 uppercase mb-6 text-left">ESTADO</h3>
+                <FilterSectionLabel>ESTADO</FilterSectionLabel>
                 <div className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
                   <span className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">Solo con inscripciones</span>
                   <Switch isSelected={onlyWithSessions} onValueChange={setOnlyWithSessions} size="sm" classNames={{ wrapper: "bg-slate-200 dark:bg-white/10 group-data-[selected=true]:bg-[#c49cff]" }} />
@@ -362,7 +368,7 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
             </div>
 
             <div className="pt-8 mt-auto border-t border-slate-100 dark:border-white/5 space-y-4">
-              <Button onPress={closeFilter} className="w-full h-16 bg-[#c49cff] text-[#2d0a6e] font-black tracking-[0.2em] text-xs uppercase rounded-xl shadow-[0_10px_30px_-10px_rgba(196,156,255,0.4)] transition-transform active:scale-[0.98]">
+              <Button onPress={closeFilter} className={ctaButtonClass({ size: 'lg' })}>
                 VER RESULTADOS
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
@@ -375,20 +381,7 @@ export function CoursesClient({ initialCourses, initialHasMore, initialTotal, me
         document.body
       )}
 
-      <style jsx global>{`
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.05); border-radius: 10px; }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); }
-        @keyframes slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        .animate-slide-in-right { animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slide-out-right { from { transform: translateX(0); } to { transform: translateX(100%); } }
-        .animate-slide-out-right { animation: slide-out-right 0.2s cubic-bezier(0.4, 0, 1, 1) forwards; }
-        @keyframes fade-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-      `}</style>
+      <DrawerStyles />
     </div>
   );
 }

@@ -510,9 +510,9 @@ export function LoginForm({
 
   /* Mode switcher: only login/register as primary tabs */
   const modeButtonClassName = (isActive: boolean) =>
-    `relative z-10 flex min-h-[2.5rem] items-center justify-center gap-1.5 px-3 py-2 text-center text-[0.82rem] font-semibold leading-tight transition-all duration-200 sm:gap-2 sm:px-4 ${
+    `relative z-10 flex min-h-[2.5rem] items-center justify-center gap-1.5 px-3 py-2 text-center text-[0.82rem] font-bold leading-tight transition-all duration-200 sm:gap-2 sm:px-4 ${
       isActive
-        ? 'text-ink dark:text-white'
+        ? 'text-brand-on-primary'
         : 'text-slate/54 hover:text-ink dark:text-zinc-400 dark:hover:text-white'
     }`;
 
@@ -524,38 +524,32 @@ export function LoginForm({
       <div className="login-right-panel flex flex-col rounded-[2rem] border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_rgba(15,23,42,0.06),0_12px_32px_-12px_rgba(15,23,42,0.12)] dark:border-white/10 dark:shadow-[0_8px_32px_-12px_rgba(0,0,0,0.8)] md:p-8">
         {/* Mode switcher - 2 tabs: login/register */}
         {mode !== 'recover' && mode !== 'reset' ? (
-          <div className="relative rounded-[1.2rem] border border-slate-200 bg-slate-100/80 p-1 dark:border-white/10 dark:bg-white/[0.03]">
-            <span
-              aria-hidden="true"
-              className={`pointer-events-none absolute bottom-1 top-1 rounded-[0.85rem] bg-white shadow-[0_2px_8px_-2px_rgba(15,23,42,0.1)] transition-all duration-300 dark:bg-gradient-to-r dark:from-violet-600/90 dark:to-indigo-500/90 dark:shadow-[0_0_12px_rgba(139,92,246,0.3)] dark:border dark:border-white/10 ${
-                mode === 'login'
-                  ? 'left-1 w-[calc(50%-0.375rem)]'
-                  : 'left-[calc(50%+0.125rem)] w-[calc(50%-0.375rem)]'
-              }`}
-            />
-            <div className="grid grid-cols-2">
-              <Button
+          <div className="relative flex rounded-[1.25rem] border border-white/10 bg-white/5 p-1 backdrop-blur-xl">
+            <div className="grid w-full grid-cols-2 gap-1">
+              <button
                 type="button"
-                variant="light"
-                className={modeButtonClassName(mode === 'login')}
-                data-testid="auth-mode-login"
-                data-active={String(mode === 'login')}
-                onPress={() => handleModeChange('login')}
+                className={`flex min-h-[2.5rem] items-center justify-center gap-2 rounded-[0.9rem] px-4 py-2 text-center text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+                  mode === 'login'
+                    ? '!bg-[#D0BCFF] !text-white shadow-lg shadow-brand-primary/20'
+                    : 'bg-transparent text-white/40 hover:bg-white/5 hover:text-white'
+                }`}
+                onClick={() => handleModeChange('login')}
               >
-                <LogIn className="h-3.5 w-3.5 opacity-90" />
+                <LogIn className="h-4 w-4" />
                 Ingresar
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                variant="light"
-                className={modeButtonClassName(mode === 'register')}
-                data-testid="auth-mode-register"
-                data-active={String(mode === 'register')}
-                onPress={() => handleModeChange('register')}
+                className={`flex min-h-[2.5rem] items-center justify-center gap-2 rounded-[0.9rem] px-4 py-2 text-center text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+                  mode === 'register'
+                    ? '!bg-[#D0BCFF] !text-white shadow-lg shadow-brand-primary/20'
+                    : 'bg-transparent text-white/40 hover:bg-white/5 hover:text-white'
+                }`}
+                onClick={() => handleModeChange('register')}
               >
-                <UserPlus className="h-3.5 w-3.5 opacity-90" />
+                <UserPlus className="h-4 w-4" />
                 Crear cuenta
-              </Button>
+              </button>
             </div>
           </div>
         ) : null}

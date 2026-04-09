@@ -5,6 +5,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@heroui/react';
 import { Star, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { ctaButtonClass, ghostButtonClass } from '@/components/ui/primitives';
 import { buildShopHref } from '@/lib/shop-links';
 import type { MarketplaceShop } from '@/lib/shops';
 import { buildTenantCanonicalHref } from '@/lib/tenant-public-urls';
@@ -185,7 +186,7 @@ export function BookShopCard({ shop, isFeatured = false }: BookShopCardProps) {
 
         {isFeatured && (
           <div className="absolute top-6 right-6 bg-[#c49cff] px-4 py-1.5 rounded-full shadow-xl z-20 pointer-events-none">
-            <span className="text-[10px] font-black text-[#2d0a6e] uppercase tracking-widest">FEATURED</span>
+            <span className="text-[10px] font-black text-white uppercase tracking-widest">FEATURED</span>
           </div>
         )}
 
@@ -198,7 +199,7 @@ export function BookShopCard({ shop, isFeatured = false }: BookShopCardProps) {
           <h2 className="text-3xl font-[1000] text-white uppercase tracking-tighter leading-none">
             {shop.name}
           </h2>
-          <div className="flex items-center gap-2 text-white/40">
+          <div className="flex items-center gap-2 text-[#CBC3D7]">
             <MapPin className="w-5 h-5 text-[#c49cff] fill-[#c49cff]/20" />
             <span className="text-[11px] font-black uppercase tracking-widest leading-none">
               {shop.locationLabel || `${shop.city}, ${shop.region}`}
@@ -211,7 +212,7 @@ export function BookShopCard({ shop, isFeatured = false }: BookShopCardProps) {
           <Button
             as={Link}
             href={bookingHref}
-            className="flex-1 h-16 bg-[#c49cff] !text-white data-[hover=true]:text-white font-[1000] text-[11px] uppercase tracking-[0.2em] rounded-[2rem] transition-all duration-300 shadow-[0_4px_10px_rgba(196,156,255,0.15)] hover:shadow-[0_6px_12px_rgba(196,156,255,0.2)] hover:scale-[1.01]"
+            className={ctaButtonClass({ size: 'lg', fullWidth: false, hasShadow: false, className: 'flex-1 font-[1000] tracking-[0.2em] duration-300' })}
           >
             BOOK NOW
           </Button>
@@ -219,7 +220,7 @@ export function BookShopCard({ shop, isFeatured = false }: BookShopCardProps) {
             as={Link}
             href={tenantProfileHref}
             variant="bordered"
-            className="flex-1 h-16 border-white/10 text-white font-[1000] text-[11px] uppercase tracking-[0.2em] rounded-[2rem] transition-all duration-300 hover:bg-white/10 hover:scale-[1.01] active:scale-[0.98]"
+            className={ghostButtonClass({ className: 'flex-1 duration-300' })}
           >
             VISIT WEBSITE
           </Button>

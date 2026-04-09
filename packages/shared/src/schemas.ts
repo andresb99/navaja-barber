@@ -546,6 +546,7 @@ export const modelRegistrationInputSchema = z.object({
   preferences: z.array(modelPreferenceSchema).max(8).default([]),
   consent_photos_videos: z.boolean().default(false),
   marketing_opt_in: z.boolean().default(false),
+  notes: z.string().max(2000).optional().nullable(), // Field for model session notes
 });
 
 export const modelRequirementsInputSchema = z

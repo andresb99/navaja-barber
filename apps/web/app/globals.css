@@ -49,11 +49,11 @@
   --login-social-color: rgb(30, 41, 59);
   --login-social-hover-bg: rgb(249, 250, 251);
   --login-social-hover-border: rgb(220, 224, 230);
-  --login-cta-bg: #0f1c2e;
-  --login-cta-hover-bg: #16263d;
-  --login-cta-color: #ffffff;
-  --login-cta-shadow: 0 4px 16px -6px rgba(15, 28, 46, 0.5);
-  --login-cta-hover-shadow: 0 8px 24px -6px rgba(15, 28, 46, 0.6);
+  --login-cta-bg: rgb(var(--brand-primary));
+  --login-cta-hover-bg: rgb(var(--brand-primary));
+  --login-cta-color: rgb(var(--brand-on-primary));
+  --login-cta-shadow: 0 4px 16px -6px rgba(var(--brand-primary), 0.4);
+  --login-cta-hover-shadow: 0 8px 24px -6px rgba(var(--brand-primary), 0.5);
   --login-plans-text-muted: rgba(71, 85, 105, 0.7);
   --login-plans-feature: rgb(15, 23, 42);
   --login-plan-name: rgb(15, 23, 42);
@@ -61,6 +61,25 @@
   --login-plan-badge-bg: rgba(139, 92, 246, 0.1);
   --login-plan-badge-border: rgba(139, 92, 246, 0.2);
   --login-plan-badge-text: rgb(109, 40, 217);
+
+  /* ── Brand palette (Obsidian Neon) ── */
+  /* Light mode — deeper variants for contrast on light bg */
+  --brand-primary: 138 92 245;      /* #8A5CF5 — deeper for light bg contrast */
+  --brand-secondary: 33 33 33;      /* #212121 */
+  --brand-tertiary: 124 58 237;     /* #7C3AED — deeper for light bg */
+  --brand-neutral: 15 15 15;        /* #0F0F0F */
+  --brand-primary-light: 190 155 255; /* #BE9BFF */
+  --brand-on-primary: 255 255 255;  /* white text on dark purple in light mode */
+}
+
+/* ── Brand palette: dark mode overrides ── */
+.dark {
+  --brand-primary: 208 188 255;    /* #D0BCFF — the lilac you love */
+  --brand-secondary: 33 33 33;     /* #212121 */
+  --brand-tertiary: 160 120 255;   /* #A078FF — pills, checkboxes, accents */
+  --brand-neutral: 15 15 15;       /* #0F0F0F */
+  --brand-primary-light: 190 155 255; /* #BE9BFF — slightly deeper tint */
+  --brand-on-primary: 35 0 92;     /* #23005C — dark text on lilac */
 }
 
 * {
@@ -201,11 +220,11 @@ html.dark {
   --login-social-color: #fafafa;
   --login-social-hover-bg: rgba(255, 255, 255, 0.08);
   --login-social-hover-border: rgba(255, 255, 255, 0.15);
-  --login-cta-bg: linear-gradient(135deg, rgb(139, 92, 246), rgb(99, 102, 241));
-  --login-cta-hover-bg: linear-gradient(135deg, rgb(139, 92, 246), rgb(99, 102, 241));
-  --login-cta-color: #ffffff;
-  --login-cta-shadow: 0 1px 3px rgba(139, 92, 246, 0.2), 0 6px 16px -6px rgba(139, 92, 246, 0.3);
-  --login-cta-hover-shadow: 0 1px 3px rgba(139, 92, 246, 0.25), 0 8px 20px -6px rgba(139, 92, 246, 0.4);
+  --login-cta-bg: rgb(var(--brand-primary));
+  --login-cta-hover-bg: rgb(var(--brand-primary));
+  --login-cta-color: rgb(var(--brand-on-primary));
+  --login-cta-shadow: 0 1px 3px rgba(var(--brand-primary), 0.2), 0 6px 16px -6px rgba(var(--brand-primary), 0.3);
+  --login-cta-hover-shadow: 0 1px 3px rgba(var(--brand-primary), 0.25), 0 8px 20px -6px rgba(var(--brand-primary), 0.4);
   --login-plans-text-muted: rgba(255, 255, 255, 0.5);
   --login-plans-feature: rgba(255, 255, 255, 0.85);
   --login-plan-name: #fafafa;

@@ -11,6 +11,7 @@ import {
 } from '@heroui/react';
 import { Star, Clock, User, ArrowRight, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { ctaButtonClass, Eyebrow } from '@/components/ui/primitives';
 import Link from 'next/link';
 
 interface CourseCardProps {
@@ -78,7 +79,7 @@ export function CourseCard({
         {upcomingSessions && upcomingSessions > 0 && (
           <div className="absolute top-4 right-4 z-10">
             <Chip 
-              className="bg-[#c49cff] text-[#2d0a6e] font-black italic tracking-widest text-[9px] uppercase border-none shadow-xl"
+              className="bg-[#c49cff] text-white font-black italic tracking-widest text-[9px] uppercase border-none shadow-xl"
               size="sm"
             >
               {upcomingSessions} {upcomingSessions === 1 ? 'SESIÓN' : 'SESIONES'}
@@ -91,9 +92,7 @@ export function CourseCard({
 
       <CardBody className="px-8 pt-8 pb-4 space-y-4">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-black text-[#c49cff] uppercase tracking-[0.2em]">
-            {category}
-          </span>
+          <Eyebrow>{category}</Eyebrow>
           <div className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/20" />
           <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase tracking-widest">
             {shopName}
@@ -112,15 +111,15 @@ export function CourseCard({
       <CardFooter className="px-8 pb-8 pt-0 flex flex-col gap-8">
         <div className="grid grid-cols-3 w-full border-t border-slate-100 dark:border-white/5 pt-6">
           <div className="flex flex-col gap-1">
-            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">Precio</span>
+            <span className="text-[9px] font-black text-slate-300 dark:text-[#CBC3D7] uppercase tracking-[0.1em]">Precio</span>
             <span className="text-sm font-black text-slate-900 dark:text-white tracking-tight">{price}</span>
           </div>
           <div className="flex flex-col gap-1 border-x border-slate-100 dark:border-white/5 px-4">
-            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">Duración</span>
+            <span className="text-[9px] font-black text-slate-300 dark:text-[#CBC3D7] uppercase tracking-[0.1em]">Duración</span>
             <span className="text-sm font-bold text-slate-700 dark:text-white/80">{duration}</span>
           </div>
           <div className="flex flex-col gap-1 pl-4">
-            <span className="text-[9px] font-black text-slate-300 dark:text-white/20 uppercase tracking-[0.1em]">Nivel</span>
+            <span className="text-[9px] font-black text-slate-300 dark:text-[#CBC3D7] uppercase tracking-[0.1em]">Nivel</span>
             <span className="text-sm font-bold text-slate-700 dark:text-white/80">{level}</span>
           </div>
         </div>
@@ -128,7 +127,7 @@ export function CourseCard({
         <Button
           as={Link}
           href={`/courses/${courseId}`}
-          className="w-full h-14 bg-[#c49cff] !text-white data-[hover=true]:text-white font-black tracking-widest text-[11px] uppercase rounded-[1.5rem] transition-all hover:scale-[1.01] active:scale-[0.98] shadow-[0_4px_10px_rgba(196,156,255,0.15)] hover:shadow-[0_6px_12px_rgba(196,156,255,0.2)] group/btn"
+          className={ctaButtonClass({ className: 'group/btn' })}
         >
           VER PROGRAMA
           <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />

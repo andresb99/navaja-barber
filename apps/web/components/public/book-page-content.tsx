@@ -15,6 +15,15 @@ import { Button, Switch } from '@heroui/react';
 import { BookShopCard } from '@/components/public/book-shop-card';
 import type { MarketplaceShop } from '@/lib/shops';
 import { cn } from '@/lib/cn';
+import {
+  ctaButtonClass,
+  filterPillClass,
+  SectionTitle,
+  FilterSectionLabel,
+  drawerOverlayClass,
+  drawerPanelClass,
+  DrawerStyles,
+} from '@/components/ui/primitives';
 
 interface BookPageContentProps {
   shops: MarketplaceShop[];
@@ -150,13 +159,13 @@ export function BookPageContent({ shops }: BookPageContentProps) {
       {isFilterOpen && createPortal(
         <>
           <div
-            className={cn('fixed inset-0 bg-white/30 dark:bg-black/70 z-[90] transition-opacity duration-300', isFilterClosing ? 'opacity-0' : 'opacity-100')}
+            className={drawerOverlayClass(isFilterClosing)}
             onClick={closeFilter}
           />
-          <aside className={cn('fixed right-0 top-0 h-full w-[400px] z-[100] bg-white dark:bg-[#0a0a0b] text-slate-900 dark:text-white p-8 flex flex-col shadow-[-20px_0_60px_rgba(0,0,0,0.1)] dark:shadow-[-20px_0_40px_rgba(0,0,0,0.5)]', isFilterClosing ? 'animate-slide-out-right' : 'animate-slide-in-right')}>
+          <aside className={drawerPanelClass(isFilterClosing)}>
             <div className="flex items-center justify-between mb-12">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-3xl font-black italic tracking-tighter uppercase">FILTROS</h2>
+                <SectionTitle>FILTROS</SectionTitle>
                 <span className="text-[10px] font-black text-[#c49cff]">{filtered.length} SHOPS</span>
               </div>
               <button onClick={closeFilter} className="p-3 bg-slate-50 dark:bg-white/5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
@@ -167,7 +176,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
             <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar space-y-12 pb-10">
               {/* Order Pills */}
               <section>
-                <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-white/20 uppercase mb-6 text-left">ORDENAR POR</h3>
+                <FilterSectionLabel>ORDENAR POR</FilterSectionLabel>
                 <div className="flex flex-wrap gap-2">
                   {SORT_OPTIONS.map((opt) => {
                     const isActive = sortBy === opt.key;
@@ -175,10 +184,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
                       <button
                         key={opt.key}
                         onClick={() => setSortBy(opt.key)}
-                        className={cn(
-                          "h-10 px-5 rounded-full text-[9px] font-black tracking-widest uppercase transition-all",
-                          isActive ? "bg-[#c49cff] text-[#2d0a6e]" : "bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
-                        )}
+                        className={filterPillClass(isActive)}
                       >
                         {opt.label}
                       </button>
@@ -189,7 +195,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
 
               {/* Verified Toggle */}
               <section>
-                <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-white/20 uppercase mb-6 text-left">ESTADO</h3>
+                <FilterSectionLabel>ESTADO</FilterSectionLabel>
                 <div className="flex items-center justify-between p-5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
                   <span className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-widest">Solo tiendas verificadas</span>
                   <Switch isSelected={verifiedOnly} onValueChange={setVerifiedOnly} size="sm" classNames={{ wrapper: "bg-slate-200 dark:bg-white/10 group-data-[selected=true]:bg-[#c49cff]" }} />
@@ -200,7 +206,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
             <div className="pt-8 mt-auto border-t border-slate-100 dark:border-white/5 space-y-4">
               <Button 
                 onPress={closeFilter} 
-                className="w-full h-16 bg-[#c49cff] !text-white data-[hover=true]:text-white font-black tracking-[0.2em] text-xs uppercase rounded-2xl shadow-[0_4px_10px_rgba(196,156,255,0.15)] hover:shadow-[0_6px_15px_rgba(196,156,255,0.25)] transition-all active:scale-[0.98]"
+                className={ctaButtonClass({ size: 'lg', className: 'hover:shadow-[0_6px_15px_rgba(196,156,255,0.25)]' })}
               >
                 VER RESULTADOS
                 <ChevronDown className="w-4 h-4 ml-1 -rotate-90" />
@@ -221,18 +227,7 @@ export function BookPageContent({ shops }: BookPageContentProps) {
         document.body
       )}
 
-      <style jsx global>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.05); border-radius: 10px; }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); }
-        @keyframes slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        .animate-slide-in-right { animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slide-out-right { from { transform: translateX(0); } to { transform: translateX(100%); } }
-        .animate-slide-out-right { animation: slide-out-right 0.2s cubic-bezier(0.4, 0, 1, 1) forwards; }
-      `}</style>
+      <DrawerStyles />
     </div>
   );
 }

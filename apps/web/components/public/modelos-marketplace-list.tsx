@@ -12,6 +12,17 @@ import { MarketplaceEnrollmentModal } from '@/components/public/marketplace-enro
 import { MarketplaceItemCard } from '@/components/public/marketplace-item-card';
 import type { MarketplaceOpenModelCall } from '@/lib/modelos';
 import { modelRegistrationInputSchema } from '@navaja/shared';
+import {
+  Eyebrow,
+  PageTitle,
+  SectionTitle,
+  FilterSectionLabel,
+  filterPillClass,
+  drawerOverlayClass,
+  drawerPanelClass,
+  DrawerStyles,
+  ctaButtonClass,
+} from '@/components/ui/primitives';
 
 interface ModelosMarketplaceListProps {
   calls: MarketplaceOpenModelCall[];
@@ -35,7 +46,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
   const [activeCategory, setActiveCategory] = useState('Todas');
   const [activeLocation, setActiveLocation] = useState('Todas');
   const [sortBy, setSortBy] = useState<'newest' | 'popular'>('newest');
-  
+
   // UI State
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isFilterClosing, setIsFilterClosing] = useState(false);
@@ -141,15 +152,15 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
 
   const filteredGroups = useMemo(() => {
     const groups = new Map<string, any>();
-    
+
     calls.forEach((call) => {
       // Category filter
       if (activeCategory !== 'Todas') {
-        const hasCategory = Array.isArray(call.model_categories) && 
+        const hasCategory = Array.isArray(call.model_categories) &&
           call.model_categories.some(c => String(c).trim() === activeCategory);
         if (!hasCategory) return;
       }
-      
+
       // Location filter
       if (activeLocation !== 'Todas') {
         if (call.location?.trim() !== activeLocation) return;
@@ -164,7 +175,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
     });
 
     const result = Array.from(groups.values());
-    
+
     // Sort logic
     if (sortBy === 'newest') {
       result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -206,13 +217,11 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-px bg-[#c49cff]" />
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#c49cff]">
-                  Marketplace 
-                </p>
+                <Eyebrow className="tracking-[0.3em]">Marketplace</Eyebrow>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic leading-none">
+              <PageTitle>
                 Convocatorias <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#c49cff] to-[#9d50bb]">Abiertas</span>
-              </h1>
+              </PageTitle>
             </div>
 
             <div className="flex flex-wrap items-center gap-4 md:gap-6 ml-auto md:ml-0">
@@ -225,9 +234,9 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
               </span>
 
               <div className="flex items-center gap-3">
-                 <Link 
-                  href="/modelos/registro" 
-                  className="h-11 px-5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black tracking-widest uppercase flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                 <Link
+                  href="/modelos/registro"
+                  className={ctaButtonClass({ size: 'sm', fullWidth: false, hasShadow: false, className: 'px-5 flex items-center gap-2' })}
                 >
                   <UserPlus className="w-3.5 h-3.5" />
                   PERFIL MODELO
@@ -253,10 +262,9 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
                   key={opt.value}
                   onClick={() => setSortBy(opt.value)}
                   className={cn(
-                    "h-10 px-6 rounded-full text-[10px] font-black tracking-widest uppercase transition-all transform active:scale-95 whitespace-nowrap shrink-0",
-                    sortBy === opt.value
-                      ? "bg-[#c49cff] text-[#2d0a6e] shadow-[0_4px_20px_-5px_rgba(196,156,255,0.4)]"
-                      : "bg-slate-50 dark:bg-white/[0.03] text-slate-400 dark:text-white/40 border border-slate-100 dark:border-transparent hover:border-slate-200 dark:hover:border-white/10"
+                    filterPillClass(sortBy === opt.value, 'px-6 text-[10px]'),
+                    'whitespace-nowrap shrink-0 transform active:scale-95',
+                    sortBy === opt.value && 'shadow-[0_4px_20px_-5px_rgba(196,156,255,0.4)]',
                   )}
                 >
                   {opt.label}
@@ -274,8 +282,8 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
           {filteredGroups.length === 0 ? (
             <div className="col-span-full text-center py-40">
               <p className="text-slate-300 dark:text-white/20 text-xs font-black uppercase tracking-[0.3em]">No hay convocatorias con estos filtros</p>
-              <button 
-                onClick={resetFilters} 
+              <button
+                onClick={resetFilters}
                 className="mt-6 h-12 px-8 rounded-full border border-slate-100 dark:border-white/10 text-[#c49cff] text-[10px] font-black uppercase tracking-widest hover:bg-[#c49cff]/5 transition-colors"
               >
                 Limpiar filtros
@@ -286,7 +294,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
               const isAcademic = course.notes_public?.toLowerCase().includes('académica') || !course.model_categories?.length;
               const levelKey = (course.course_level || '').toLowerCase();
               const levelLabel = (LEVEL_LABELS[levelKey] ?? course.course_level) || 'General';
-              
+
               return (
                 <div key={`${course.shop_id}-${course.course_title}`} className="will-change-transform">
                   <MarketplaceItemCard
@@ -325,13 +333,13 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
       {isFilterOpen && createPortal(
         <>
           <div
-            className={cn('fixed inset-0 bg-white/30 dark:bg-black/70 z-[90] transition-opacity duration-300', isFilterClosing ? 'opacity-0' : 'opacity-100')}
+            className={drawerOverlayClass(isFilterClosing)}
             onClick={closeFilter}
           />
-          <aside className={cn('fixed right-0 top-0 h-full w-[400px] z-[100] bg-white dark:bg-[#0a0a0b] text-slate-900 dark:text-white p-8 flex flex-col shadow-[-20px_0_60px_rgba(0,0,0,0.1)] dark:shadow-[-20px_0_40px_rgba(0,0,0,0.5)]', isFilterClosing ? 'animate-slide-out-right' : 'animate-slide-in-right')}>
+          <aside className={drawerPanelClass(isFilterClosing)}>
             <div className="flex items-center justify-between mb-12">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-3xl font-black italic tracking-tighter uppercase">FILTROS</h2>
+                <SectionTitle>FILTROS</SectionTitle>
                 <span className="text-[10px] font-black text-[#c49cff]">{filteredGroups.length}</span>
               </div>
               <button onClick={closeFilter} className="p-3 bg-slate-50 dark:bg-white/5 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
@@ -342,7 +350,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
             <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar space-y-12 pb-10">
               {/* Category Pills */}
               <section>
-                <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-white/20 uppercase mb-6 text-left">CATEGORÍA</h3>
+                <FilterSectionLabel>CATEGORÍA</FilterSectionLabel>
                 <div className="flex flex-wrap gap-2">
                   {['Todas', ...categoryOptions].map((cat) => {
                     const isActive = activeCategory === cat;
@@ -350,10 +358,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
                       <button
                         key={cat}
                         onClick={() => setActiveCategory(cat)}
-                        className={cn(
-                          "h-10 px-5 rounded-full text-[9px] font-black tracking-widest uppercase transition-all",
-                          isActive ? "bg-[#c49cff] text-[#2d0a6e]" : "bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
-                        )}
+                        className={filterPillClass(isActive)}
                       >
                         {cat}
                       </button>
@@ -364,7 +369,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
 
               {/* Location Pills */}
               <section>
-                <h3 className="text-[10px] font-black tracking-[0.2em] text-slate-400 dark:text-white/20 uppercase mb-6 text-left">UBICACIÓN</h3>
+                <FilterSectionLabel>UBICACIÓN</FilterSectionLabel>
                 <div className="flex flex-wrap gap-2">
                   {['Todas', ...locationOptions].map((loc) => {
                     const isActive = activeLocation === loc;
@@ -372,10 +377,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
                       <button
                         key={loc}
                         onClick={() => setActiveLocation(loc)}
-                        className={cn(
-                          "h-10 px-5 rounded-full text-[9px] font-black tracking-widest uppercase transition-all",
-                          isActive ? "bg-[#c49cff] text-[#2d0a6e]" : "bg-slate-50 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white"
-                        )}
+                        className={filterPillClass(isActive)}
                       >
                         {loc}
                       </button>
@@ -386,7 +388,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
             </div>
 
             <div className="pt-8 mt-auto border-t border-slate-100 dark:border-white/5 space-y-4">
-              <Button onPress={closeFilter} className="w-full h-16 bg-[#c49cff] text-[#2d0a6e] font-black tracking-[0.2em] text-xs uppercase rounded-xl shadow-[0_10px_30px_-10px_rgba(196,156,255,0.4)] transition-transform active:scale-[0.98]">
+              <Button onPress={closeFilter} className={ctaButtonClass({ size: 'lg', hasShadow: false })}>
                 VER CONVOCATORIAS
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
@@ -416,18 +418,7 @@ export function ModelosMarketplaceList({ calls }: ModelosMarketplaceListProps) {
         )}
       </AnimatePresence>
 
-      <style jsx global>{`
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.05); border-radius: 10px; }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.05); }
-        @keyframes slide-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        .animate-slide-in-right { animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slide-out-right { from { transform: translateX(0); } to { transform: translateX(100%); } }
-        .animate-slide-out-right { animation: slide-out-right 0.2s cubic-bezier(0.4, 0, 1, 1) forwards; }
-      `}</style>
+      <DrawerStyles />
     </div>
   );
 }

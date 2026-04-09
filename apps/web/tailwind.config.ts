@@ -20,6 +20,15 @@ const config: Config = {
           muted: '#adaaaa',
           on: '#e5e2e1',
         },
+        /* ── Obsidian Neon brand palette (CSS-variable-driven) ── */
+        brand: {
+          primary: 'rgb(var(--brand-primary) / <alpha-value>)',
+          secondary: 'rgb(var(--brand-secondary) / <alpha-value>)',
+          tertiary: 'rgb(var(--brand-tertiary) / <alpha-value>)',
+          neutral: 'rgb(var(--brand-neutral) / <alpha-value>)',
+          'primary-light': 'rgb(var(--brand-primary-light) / <alpha-value>)',
+          'on-primary': 'rgb(var(--brand-on-primary) / <alpha-value>)',
+        },
   			ink: 'rgb(var(--ink) / <alpha-value>)',
   			cream: 'rgb(var(--cream) / <alpha-value>)',
   			brass: 'rgb(var(--brass) / <alpha-value>)',
