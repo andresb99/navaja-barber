@@ -1,6 +1,8 @@
 import { formatCurrency } from '@navaja/shared';
+import { SparkKpiCard } from '@/components/admin/spark-kpi-card';
+import { Button } from '@heroui/button';
+import { Bell, Plus } from 'lucide-react';
 import { AdminHomeSchedule } from '@/components/admin/admin-home-schedule';
-import { AdminHomeSummary } from '@/components/admin/admin-home-summary';
 import { AdminNotificationsDigest } from '@/components/admin/admin-notifications-digest';
 import { getAdminScheduleOverview } from '@/lib/admin-schedule';
 import { getAdminNotificationsData } from '@/lib/admin-notifications';
@@ -208,72 +210,128 @@ export default async function AdminHomePage({ searchParams }: AdminHomePageProps
   });
 
   return (
-    <section className="space-y-6">
-      <AdminHomeSummary
-        shopName={ctx.shopName}
-        rangeLabel={metrics.rangeLabel}
-        revenueLabel={formatCurrency(metrics.estimatedRevenueCents)}
-        activeAppointments={activeAppointments}
-        urgentItemsCount={urgentItemsCount}
-        summaryCards={[
-          {
-            id: 'next-appointment',
-            icon: 'next',
-            label: 'Proxima cita',
-            headline: nextAppointment?.start_at
-              ? formatAdminShortDateTime(nextAppointment.start_at, ctx.shopTimezone)
-              : 'Sin citas proximas',
-            detail: nextAppointment?.id
-              ? `${nextAppointmentCustomer} con ${nextAppointmentStaff}`
-              : 'No hay reservas pendientes o confirmadas despues de ahora.',
-            meta: nextAppointment?.id ? nextAppointmentService : 'Agenda libre',
-          },
-          {
-            id: 'last-completed-appointment',
-            icon: 'completed',
-            label: 'Ultima cita realizada',
-            headline: lastCompletedAppointment?.id
-              ? completedAppointmentCustomer
-              : 'Sin citas realizadas',
-            detail: lastCompletedAppointment?.id
-              ? `${completedAppointmentService} con ${completedAppointmentStaff}`
-              : 'Todavia no hay citas marcadas como realizadas para resumir aca.',
-            meta: lastCompletedAppointment?.start_at
-              ? `Atendida ${formatAdminShortDateTime(lastCompletedAppointment.start_at, ctx.shopTimezone)}`
-              : 'Sin historial reciente',
-          },
-          {
-            id: 'latest-review',
-            icon: 'review',
-            label: 'Ultima resena',
-            headline: latestReviewRating ? `${latestReviewRating} / 5` : 'Sin resenas publicadas',
-            detail: latestReview?.id
-              ? `${latestReviewCustomer} dejo feedback reciente.`
-              : 'Todavia no hay feedback publicado para mostrar en la home.',
-            meta: latestReview?.submitted_at
-              ? latestReviewComment || `Publicada ${formatAdminShortDate(latestReview.submitted_at, ctx.shopTimezone)}`
-              : 'Calidad de servicio',
-          },
-        ]}
-      />
+    <section className="flex flex-col gap-8 pb-10">
+      <header className="flex flex-col justify-between border-b border-white/5 pb-6 md:flex-row md:items-end">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">PANEL</p>
+          <h1 className="mt-2 font-[family-name:var(--font-heading)] text-3xl font-medium text-slate-100">
+            Buen día, Lucas.
+          </h1>
+          <p className="mt-2 text-[13px] text-slate-400">
+            Hoy tenés <strong className="text-slate-200">{activeAppointments} turnos confirmados</strong> y <strong className="text-slate-200">{urgentItemsCount} pendientes</strong>.
+          </p>
+        </div>
 
-      <AdminHomeSchedule
-        staff={scheduleOverview.staff}
-        events={ownerCalendarEvents}
-        startHour={ownerCalendarHours.startHour}
-        endHour={ownerCalendarHours.endHour}
-        initialDate={scheduleStart}
-        availableRangeStart={scheduleRangeStart}
-        availableRangeEndExclusive={scheduleRangeEndExclusive}
-      />
+        <div className="mt-6 flex flex-wrap items-center gap-3 md:mt-0">
+          <Button
+            radius="full"
+            variant="flat"
+            className="h-10 bg-white/[0.04] px-4 text-xs font-semibold text-slate-300 border border-white/10"
+          >
+            <Bell className="mr-1.5 h-3.5 w-3.5 opacity-70" />
+            Inbox - {urgentItemsCount}
+          </Button>
+          <Button
+            radius="full"
+            className="h-10 bg-[#e0d4ff] px-4 text-xs font-bold text-[#1a1130] hover:bg-[#d0bcff]"
+          >
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            Nuevo turno
+          </Button>
+        </div>
+      </header>
 
-      <AdminNotificationsDigest
-        shopSlug={ctx.shopSlug}
-        totalCount={notifications.totalCount}
-        pendingTimeOffCount={notifications.pendingTimeOffCount}
-        pendingMembershipCount={notifications.pendingMembershipCount}
-        stalePendingIntents={notifications.stalePendingIntents}
-      />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SparkKpiCard
+          label="RESERVAS HOY"
+          value={activeAppointments.toString()}
+          badge="+12%"
+          sparkPoints="M 0 30 Q 15 28, 30 25 T 60 20 T 100 15"
+        />
+        <SparkKpiCard
+          label="INGRESOS"
+          value={formatCurrency(metrics.estimatedRevenueCents)}
+          badge="+8%"
+          sparkPoints="M 0 30 Q 20 28, 40 22 T 70 15 T 100 5"
+        />
+        <SparkKpiCard
+          label="OCUPACIÓN"
+          value="86%"
+          badge="+4%"
+          sparkPoints="M 0 25 Q 25 25, 45 20 T 75 18 T 100 10"
+        />
+        <SparkKpiCard
+          label="NPS"
+          value="72"
+          badge="-2"
+          badgeTone="danger"
+          sparkPoints="M 0 10 Q 15 10, 30 15 T 60 20 T 100 25"
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <div className="lg:col-span-8">
+          <div className="h-full rounded-[1.25rem] border border-white/5 bg-[#141218] p-5 lg:p-6">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-white">Agenda de hoy</h3>
+                <p className="mt-1 text-xs text-slate-400 capitalize">
+                  {new Intl.DateTimeFormat('es-UY', { weekday: 'long', day: 'numeric', month: 'short' }).format(scheduleStart)}
+                </p>
+              </div>
+            </div>
+            
+            <AdminHomeSchedule
+              staff={scheduleOverview.staff}
+              events={ownerCalendarEvents}
+              startHour={ownerCalendarHours.startHour}
+              endHour={ownerCalendarHours.endHour}
+              initialDate={scheduleStart}
+              availableRangeStart={scheduleRangeStart}
+              availableRangeEndExclusive={scheduleRangeEndExclusive}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-6 lg:col-span-4">
+          <div className="rounded-[1.25rem] border border-white/5 bg-[#141218] p-5 lg:p-6">
+            <h3 className="text-base font-semibold text-white">Inbox</h3>
+            <p className="mt-1 mb-5 text-xs text-slate-400">Mensajes y avisos</p>
+            <div className="[&>section]:p-0 [&>section]:bg-transparent [&>section]:border-none [&>section_.meta-chip]:hidden [&>section_p.text-[11px]]:hidden [&>section_h2]:hidden [&>section_p.text-sm]:hidden">
+               <AdminNotificationsDigest
+                  shopSlug={ctx.shopSlug}
+                  totalCount={notifications.totalCount}
+                  pendingTimeOffCount={notifications.pendingTimeOffCount}
+                  pendingMembershipCount={notifications.pendingMembershipCount}
+                  stalePendingIntents={notifications.stalePendingIntents}
+               />
+            </div>
+          </div>
+          
+          <div className="rounded-[1.25rem] border border-white/5 bg-[#141218] p-5 lg:p-6 flex-1">
+             <h3 className="mb-1 text-base font-semibold text-white">Top barberos</h3>
+             <p className="mb-6 text-xs text-slate-400">Semana</p>
+
+             <div className="space-y-6">
+               {(scheduleOverview.staff.slice(0, 3)).map((staff, idx) => {
+                  const revenues = ['UYU 38K', 'UYU 31K', 'UYU 24K'];
+                  const widths = ['w-[90%]', 'w-[75%]', 'w-[60%]'];
+                  return (
+                    <div key={staff.id} className="flex flex-col gap-2">
+                       <div className="flex items-center justify-between text-xs font-semibold text-white">
+                         <span>{staff.name}</span>
+                         <span className="text-slate-400">{revenues[idx] || 'UYU 15K'}</span>
+                       </div>
+                       <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
+                          <div className={`h-full bg-gradient-to-r from-violet-600 to-violet-400 rounded-full ${widths[idx] || 'w-1/2'}`}></div>
+                       </div>
+                    </div>
+                  )
+               })}
+             </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }

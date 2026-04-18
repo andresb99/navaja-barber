@@ -1,23 +1,21 @@
 import { createBrowserClient } from '@supabase/ssr';
 import { env } from '@/lib/env';
+import { getPlatformHostConfig } from '@/lib/platform-host-config';
 
 function getAuthCookieDomain(): string | undefined {
   if (typeof window === 'undefined') {
     return undefined;
   }
 
-  const hostname = window.location.hostname;
-  const parts = hostname.split('.');
-
-  // Single-label hosts like bare "localhost" can't share cookies across subdomains
-  // (Chrome rejects domain=.localhost per RFC 6265). Use lvh.me in dev instead.
-  if (parts.length < 2) {
-    return undefined;
+  const { rootDomain } = getPlatformHostConfig();
+  
+  // Use the centralized root domain (e.g. .beardly.uy) to share cookies across subdomains.
+  // We skip this for localhost as domain=.localhost is invalid in many browsers.
+  if (rootDomain && rootDomain !== 'localhost') {
+    return `.${rootDomain}`;
   }
 
-  // Use the last 3 parts for known 2-label TLDs (e.g. vercel.app, lvh.me)
-  // otherwise last 2 parts covers most real domains and lvh.me itself.
-  return '.' + parts.slice(-Math.min(parts.length, 3)).join('.');
+  return undefined;
 }
 
 export function createSupabaseBrowserClient() {
